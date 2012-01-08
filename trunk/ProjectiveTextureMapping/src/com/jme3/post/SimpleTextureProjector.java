@@ -109,7 +109,7 @@ public class SimpleTextureProjector implements TextureProjector
    * @see TextureProjector
    */  
   @Override
-  public boolean isParralelProjection() 
+  public boolean isParallelProjection() 
   {
     return this.projectorCamera.isParallelProjection();
   }
@@ -125,7 +125,7 @@ public class SimpleTextureProjector implements TextureProjector
   }
   
   /**
-   * @return The geometry that sould be affected by this TextureProjector.
+   * @return The geometry that should be affected by this TextureProjector.
    * @see TextureProjector
    */  
   @Override

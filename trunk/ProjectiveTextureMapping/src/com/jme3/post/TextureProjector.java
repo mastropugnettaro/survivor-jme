@@ -62,7 +62,7 @@ public interface TextureProjector
   /**
    * @return true, if this TextureProjector uses parallel projection.
    */  
-  public boolean isParralelProjection();
+  public boolean isParallelProjection();
 
   /**
    * @return The texture to be projected.
@@ -70,7 +70,7 @@ public interface TextureProjector
   public Texture2D getProjectiveTexture();
 
   /**
-   * @return The geometry that sould be affected by this TextureProjector.
+   * @return The geometry that should be affected by this TextureProjector.
    */  
   public GeometryList getTargetGeometryList();
 }
