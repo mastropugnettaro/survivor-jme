@@ -126,6 +126,7 @@ public class SimpleTextureProjector implements TextureProjector
   
   /**
    * @return The geometry that should be affected by this TextureProjector.
+   * Return null if the whole RenderQueue shall be affected.
    * @see TextureProjector
    */  
   @Override

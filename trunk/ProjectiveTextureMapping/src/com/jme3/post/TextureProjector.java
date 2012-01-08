@@ -70,7 +70,8 @@ public interface TextureProjector
   public Texture2D getProjectiveTexture();
 
   /**
-   * @return The geometry that should be affected by this TextureProjector.
+   * @return The geometry that should be affected by this TextureProjector. 
+   * Return null if the whole RenderQueue shall be affected.
    */  
   public GeometryList getTargetGeometryList();
 }
