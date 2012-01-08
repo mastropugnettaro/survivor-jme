@@ -20,7 +20,8 @@ const mat4 biasMat = mat4(0.5, 0.0, 0.0, 0.0,
                           0.0, 0.0, 0.5, 0.0,
                           0.5, 0.5, 0.5, 1.0);
 
-void main(){
+void main() 
+{
   gl_Position = g_WorldViewProjectionMatrix * vec4(inPosition, 1.0);
   vec4 worldPos = g_WorldMatrix * vec4(inPosition, 1.0);
 
