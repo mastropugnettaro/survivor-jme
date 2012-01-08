@@ -120,7 +120,7 @@ public class TextureProjectorRenderer implements SceneProcessor
     { 
       textureMat.setTexture("ProjectiveMap", textureProjector.getProjectiveTexture());
       textureMat.setMatrix4("ProjectorViewProjectionMatrix", textureProjector.getProjectorViewProjectionMatrix());
-      if (textureProjector.isParralelProjection())
+      if (textureProjector.isParallelProjection())
       {
         textureMat.clearParam("ProjectorLocation");
         textureMat.setVector3("ProjectorDirection", textureProjector.getProjectorDirection());
