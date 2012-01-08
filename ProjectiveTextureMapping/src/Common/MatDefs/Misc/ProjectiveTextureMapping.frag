@@ -5,7 +5,8 @@ varying float cosAngle;
 uniform sampler2D m_SceneMap;
 uniform sampler2D m_ProjectiveMap;
 
-void main() {
+void main() 
+{
   vec2 sCoord = sceneCoord.xy / sceneCoord.w;
   vec2 pCoord = projCoord.xy / projCoord.w;
 
