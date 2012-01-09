@@ -1,7 +1,6 @@
 MaterialDef Projective Texture Mapping {
 
     MaterialParameters {
-        Texture2D SceneMap
         Texture2D ProjectiveMap
         Matrix4 ProjectorViewProjectionMatrix
         Vector3 ProjectorLocation
@@ -9,6 +8,7 @@ MaterialDef Projective Texture Mapping {
     }
 
     Technique {
+
         VertexShader GLSL100:   Common/MatDefs/Misc/ProjectiveTextureMapping.vert
         FragmentShader GLSL100: Common/MatDefs/Misc/ProjectiveTextureMapping.frag
 

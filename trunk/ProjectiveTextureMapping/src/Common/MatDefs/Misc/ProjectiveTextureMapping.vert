@@ -8,7 +8,6 @@ uniform mat4 m_ProjectorViewProjectionMatrix;
   uniform vec3 m_ProjectorLocation;
 #endif
 
-varying vec4 sceneCoord;
 varying vec4 projCoord;
 varying float cosAngle;
 
@@ -26,7 +25,6 @@ void main()
   vec4 worldPos = g_WorldMatrix * vec4(inPosition, 1.0);
 
   projCoord = biasMat * m_ProjectorViewProjectionMatrix * worldPos;
-  sceneCoord = biasMat * gl_Position;
 
   #ifdef IS_PARALLEL_PROJECTION
     cosAngle = dot(inNormal, -m_ProjectorDirection);
