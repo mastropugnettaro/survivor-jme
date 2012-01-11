@@ -84,7 +84,7 @@ public class TextureProjectorRenderer1pass implements SceneProcessor
   }
 
   /**
-   * @return The geometry that should be affected by this TextureProjector.
+   * @return The geometry that should be affected by this TextureProjectorRenderer.
    * Return null if the whole RenderQueue shall be affected.
    * @see TextureProjector
    */  
@@ -94,7 +94,7 @@ public class TextureProjectorRenderer1pass implements SceneProcessor
   }
   
   /**
-   * Sets the geometry that sould be affected by this TextureProjector.
+   * Sets the geometry that sould be affected by this TextureProjectorRenderer.
    * @param The geometry that sould be affected by this TextureProjector.
    * @see TextureProjector
    */  
