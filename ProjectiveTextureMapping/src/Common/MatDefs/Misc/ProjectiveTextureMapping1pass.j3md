@@ -1,0 +1,67 @@
+MaterialDef Projective Texture Mapping {
+
+    MaterialParameters {
+        Int NumProjectors
+        Texture2D ProjectiveMap0
+        Texture2D ProjectiveMap1
+        Texture2D ProjectiveMap2
+        Texture2D ProjectiveMap3
+        Texture2D ProjectiveMap4
+        Texture2D ProjectiveMap5
+        Texture2D ProjectiveMap6
+        Texture2D ProjectiveMap7
+        Matrix4 ProjectorViewProjectionMatrix0
+        Matrix4 ProjectorViewProjectionMatrix1
+        Matrix4 ProjectorViewProjectionMatrix2
+        Matrix4 ProjectorViewProjectionMatrix3
+        Matrix4 ProjectorViewProjectionMatrix4
+        Matrix4 ProjectorViewProjectionMatrix5
+        Matrix4 ProjectorViewProjectionMatrix6
+        Matrix4 ProjectorViewProjectionMatrix7
+        Vector3 ProjectorLocation0
+        Vector3 ProjectorLocation1
+        Vector3 ProjectorLocation2
+        Vector3 ProjectorLocation3
+        Vector3 ProjectorLocation4
+        Vector3 ProjectorLocation5
+        Vector3 ProjectorLocation6
+        Vector3 ProjectorLocation7
+        Vector3 ProjectorDirection0
+        Vector3 ProjectorDirection1
+        Vector3 ProjectorDirection2
+        Vector3 ProjectorDirection3
+        Vector3 ProjectorDirection4
+        Vector3 ProjectorDirection5
+        Vector3 ProjectorDirection6
+        Vector3 ProjectorDirection7
+    }
+
+    Technique {
+        VertexShader GLSL100:   Common/MatDefs/Misc/ProjectiveTextureMapping1pass.vert
+        FragmentShader GLSL100: Common/MatDefs/Misc/ProjectiveTextureMapping1pass.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            WorldMatrix
+        }
+
+        RenderState {
+            Blend Alpha
+        }
+
+        Defines {
+            NUM_PROJECTORS : NumProjectors
+            IS_PARALLEL_PROJECTION0: ProjectorDirection0
+            IS_PARALLEL_PROJECTION1: ProjectorDirection1
+            IS_PARALLEL_PROJECTION2: ProjectorDirection2
+            IS_PARALLEL_PROJECTION3: ProjectorDirection3
+            IS_PARALLEL_PROJECTION4: ProjectorDirection4
+            IS_PARALLEL_PROJECTION5: ProjectorDirection5
+            IS_PARALLEL_PROJECTION6: ProjectorDirection6
+            IS_PARALLEL_PROJECTION7: ProjectorDirection7
+        }
+    }
+
+   Technique FixedFunc {
+   }
+}
