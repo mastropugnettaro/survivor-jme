@@ -60,14 +60,14 @@ import java.util.logging.Logger;
  * Test application for Projective Texture Mapping.
  * @author survivor
  */
-public class TestProjectiveTextureMapping extends SimpleApplication 
+public class TestProjectiveTextureMapping1pass extends SimpleApplication 
 {
   private ProjectorData pd1, pd2;
-  private TextureProjectorRenderer ptr;
+  private TextureProjectorRenderer1pass ptr;
 
   public static void main(String[] args) 
   {
-    TestProjectiveTextureMapping app = new TestProjectiveTextureMapping();
+    TestProjectiveTextureMapping1pass app = new TestProjectiveTextureMapping1pass();
     app.start();
     Logger.getLogger("").setLevel(Level.SEVERE);
   }
@@ -148,13 +148,21 @@ public class TestProjectiveTextureMapping extends SimpleApplication
         
     GeometryList gl = new GeometryList(new OpaqueComparator());
     gl.add(geom1);
-    pd2.projector.setTargetGeometryList(gl);
+    
     pd2.projector.getProjectorCamera().setParallelProjection(true);
     pd2.projector.getProjectorCamera().setFrustumPerspective(90f, 1f, 1f, 5f);
     
-    ptr = new TextureProjectorRenderer(assetManager);
+    ptr = new TextureProjectorRenderer1pass(assetManager);
+    ptr.setTargetGeometryList(gl);
     ptr.getTextureProjectors().add(pd1.projector);
     ptr.getTextureProjectors().add(pd2.projector);
+    ptr.getTextureProjectors().add(pd2.projector);
+    ptr.getTextureProjectors().add(pd2.projector);
+    ptr.getTextureProjectors().add(pd2.projector);
+    ptr.getTextureProjectors().add(pd2.projector);
+    ptr.getTextureProjectors().add(pd2.projector);
+    ptr.getTextureProjectors().add(pd2.projector);
+    Logger.getLogger("").severe("NUM_PROJECTORS: " + ptr.getTextureProjectors().size());
     viewPort.addProcessor(ptr);        
   }
   
