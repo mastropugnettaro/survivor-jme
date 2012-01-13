@@ -29,6 +29,6 @@ void main()
   #ifdef IS_PARALLEL_PROJECTION
     cosAngle = dot(inNormal, -m_ProjectorDirection);
   #else
-    cosAngle = dot(inNormal, m_ProjectorLocation - inPosition);
+    cosAngle = dot(inNormal, normalize(m_ProjectorLocation - inPosition));
   #endif
 }
