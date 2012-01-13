@@ -124,7 +124,7 @@ void main()
     #ifdef IS_PARALLEL_PROJECTION0
       cosAngle0 = dot(inNormal, -m_ProjectorDirection0);
     #else 
-      cosAngle0 = dot(inNormal, m_ProjectorLocation0 - inPosition);
+      cosAngle0 = dot(inNormal, normalize(m_ProjectorLocation0 - inPosition));
     #endif
   #endif
 
@@ -134,7 +134,7 @@ void main()
     #ifdef IS_PARALLEL_PROJECTION1
       cosAngle1 = dot(inNormal, -m_ProjectorDirection1);
     #else 
-      cosAngle1 = dot(inNormal, m_ProjectorLocation1 - inPosition);
+      cosAngle1 = dot(inNormal, normalize(m_ProjectorLocation1 - inPosition));
     #endif
   #endif
 
@@ -144,7 +144,7 @@ void main()
     #ifdef IS_PARALLEL_PROJECTION2
       cosAngle2 = dot(inNormal, -m_ProjectorDirection2);
     #else 
-      cosAngle2 = dot(inNormal, m_ProjectorLocation2 - inPosition);
+      cosAngle2 = dot(inNormal, normalize(m_ProjectorLocation2 - inPosition));
     #endif
   #endif
 
@@ -154,7 +154,7 @@ void main()
     #ifdef IS_PARALLEL_PROJECTION3
       cosAngle3 = dot(inNormal, -m_ProjectorDirection3);
     #else 
-      cosAngle3 = dot(inNormal, m_ProjectorLocation3 - inPosition);
+      cosAngle3 = dot(inNormal, normalize(m_ProjectorLocation3 - inPosition));
     #endif
   #endif
 
@@ -164,7 +164,7 @@ void main()
     #ifdef IS_PARALLEL_PROJECTION4
       cosAngle4 = dot(inNormal, -m_ProjectorDirection4);
     #else 
-      cosAngle4 = dot(inNormal, m_ProjectorLocation4 - inPosition);
+      cosAngle4 = dot(inNormal, normalize(m_ProjectorLocation4 - inPosition));
     #endif
   #endif
 
@@ -174,7 +174,7 @@ void main()
     #ifdef IS_PARALLEL_PROJECTION5
       cosAngle5 = dot(inNormal, -m_ProjectorDirection5);
     #else 
-      cosAngle5 = dot(inNormal, m_ProjectorLocation5 - inPosition);
+      cosAngle5 = dot(inNormal, normalize(m_ProjectorLocation5 - inPosition));
     #endif
   #endif
 
@@ -184,7 +184,7 @@ void main()
     #ifdef IS_PARALLEL_PROJECTION6
       cosAngle6 = dot(inNormal, -m_ProjectorDirection6);
     #else 
-      cosAngle6 = dot(inNormal, m_ProjectorLocation6 - inPosition);
+      cosAngle6 = dot(inNormal, normalize(m_ProjectorLocation6 - inPosition));
     #endif
   #endif
 
@@ -194,7 +194,7 @@ void main()
     #ifdef IS_PARALLEL_PROJECTION7
       cosAngle7 = dot(inNormal, -m_ProjectorDirection7);
     #else 
-      cosAngle7 = dot(inNormal, m_ProjectorLocation7 - inPosition);
+      cosAngle7 = dot(inNormal, normalize(m_ProjectorLocation7 - inPosition));
     #endif
   #endif
 }
