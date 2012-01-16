@@ -48,6 +48,8 @@ public class SimpleTextureProjector implements TextureProjector
   private Camera projectorCamera;
   private Texture2D projectiveTextureMap;
   private GeometryList targetGeometryList;
+  private float fallOffDistance;
+  private float fallOffPower;
     
 /**
  * Crates a new instance.
@@ -61,6 +63,8 @@ public class SimpleTextureProjector implements TextureProjector
     this.projectorCamera = new Camera(
       projectiveTextureMap.getImage().getWidth(), 
       projectiveTextureMap.getImage().getHeight());
+    this.fallOffDistance = Float.MAX_VALUE;
+    this.fallOffPower = 3f;
   }
   
 /**
@@ -154,6 +158,38 @@ public class SimpleTextureProjector implements TextureProjector
     return this.projectorCamera;
   }
   
+  /**
+   * @param fallOffDistance The distance at which the projection should start to fall off.
+   */  
+  public void setFallOffDistance(float fallOffDistance)
+  {
+    this.fallOffDistance = fallOffDistance;
+  }
+  
+  /**
+   * @return The distance at which the projection should start to fall off.
+   */  
+  public float getFallOffDistance()
+  {
+    return this.fallOffDistance;
+  }
+  
+  /**
+   * @param fallOffPower The power at which the projection should fall off.
+   */  
+  public void setFallOffPower(float fallOffPower)
+  {
+    this.fallOffPower = fallOffPower;
+  }
+  
+  /**
+   * @return Power at which the projection should fall off.
+   */  
+  public float getFallOffPower()
+  {
+    return this.fallOffPower;
+  }
+    
   /**
    * Provides frustum points to be used by a WireFrustum for debugging.
    * @param An initialized Vector3f[8] array to receive the frustum points.
