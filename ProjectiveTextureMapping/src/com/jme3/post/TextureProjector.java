@@ -74,4 +74,14 @@ public interface TextureProjector
    * Return null if the whole RenderQueue shall be affected.
    */  
   public GeometryList getTargetGeometryList();
+  
+  /**
+   * @return The distance at which the projection should start to fall off.
+   */  
+  public float getFallOffDistance();
+  
+  /**
+   * @return Power at which the projection should fall off.
+   */  
+  public float getFallOffPower();  
 }

@@ -105,7 +105,7 @@ public class TestProjectiveTextureMapping extends SimpleApplication
     mat.setColor("Ambient", ColorRGBA.LightGray);
     mat2.setBoolean("UseMaterialColors", true);
     
-    Sphere sphere1 = new Sphere(64, 64, 0.5f);
+    Sphere sphere1 = new Sphere(256, 256, 0.5f);
     Geometry geom2 = new Geometry("Sphere1", sphere1);
     geom2.setMaterial(mat2);
     rootNode.attachChild(geom2);
@@ -145,6 +145,9 @@ public class TestProjectiveTextureMapping extends SimpleApplication
     pd2 = new ProjectorData();
     initProjectorData(pd1, new Vector3f(1f, 2.1f, 0f), texture1);
     initProjectorData(pd2, new Vector3f(1f, 2.1f, 2f), texture2);
+    
+    pd1.projector.setFallOffDistance(2.1f);
+    pd1.projector.setFallOffPower(4f);    
         
     GeometryList gl = new GeometryList(new OpaqueComparator());
     gl.add(geom1);
@@ -155,6 +158,12 @@ public class TestProjectiveTextureMapping extends SimpleApplication
     ptr = new TextureProjectorRenderer(assetManager);
     ptr.getTextureProjectors().add(pd1.projector);
     ptr.getTextureProjectors().add(pd2.projector);
+//    ptr.getTextureProjectors().add(pd1.projector);
+//    ptr.getTextureProjectors().add(pd2.projector);
+//    ptr.getTextureProjectors().add(pd1.projector);
+//    ptr.getTextureProjectors().add(pd2.projector);
+//    ptr.getTextureProjectors().add(pd1.projector);
+//    ptr.getTextureProjectors().add(pd2.projector);
     viewPort.addProcessor(ptr);        
   }
   
@@ -200,7 +209,7 @@ public class TestProjectiveTextureMapping extends SimpleApplication
     float t = FastMath.cos(timer.getTimeInSeconds() * 0.6f - FastMath.PI) * 
       (FastMath.sin( timer.getTimeInSeconds() * 0.3f - FastMath.PI));
     
-    pd1.projector.getProjectorCamera().lookAt(new Vector3f(s, 0f, t), Vector3f.UNIT_X.clone());    
+    pd1.projector.getProjectorCamera().lookAt(new Vector3f(s * 0.5f, 0f, t * 3f), Vector3f.UNIT_X.clone());    
     pd2.projector.getProjectorCamera().lookAtDirection(Vector3f.UNIT_Y.negate(), Vector3f.UNIT_X.clone());
     pd2.projector.getProjectorCamera().setLocation(new Vector3f(t * 2f, 2.1f, s * 2f));
     

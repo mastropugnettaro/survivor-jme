@@ -5,6 +5,8 @@ MaterialDef Projective Texture Mapping {
         Matrix4 ProjectorViewProjectionMatrix
         Vector3 ProjectorLocation
         Vector3 ProjectorDirection
+        Float FallOffDistance
+        Float FallOffPower
     }
 
     Technique {
@@ -21,7 +23,8 @@ MaterialDef Projective Texture Mapping {
         }
 
         Defines {
-            IS_PARALLEL_PROJECTION: ProjectorDirection
+            IS_PARALLEL_PROJECTION : ProjectorDirection
+            FALL_OFF : FallOffDistance
         }
     }
 

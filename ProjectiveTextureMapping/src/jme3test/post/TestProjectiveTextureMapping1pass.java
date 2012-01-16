@@ -156,12 +156,12 @@ public class TestProjectiveTextureMapping1pass extends SimpleApplication
     ptr.setTargetGeometryList(gl);
     ptr.getTextureProjectors().add(pd1.projector);
     ptr.getTextureProjectors().add(pd2.projector);
-    ptr.getTextureProjectors().add(pd2.projector);
-    ptr.getTextureProjectors().add(pd2.projector);
-    ptr.getTextureProjectors().add(pd2.projector);
-    ptr.getTextureProjectors().add(pd2.projector);
-    ptr.getTextureProjectors().add(pd2.projector);
-    ptr.getTextureProjectors().add(pd2.projector);
+//    ptr.getTextureProjectors().add(pd1.projector);
+//    ptr.getTextureProjectors().add(pd2.projector);
+//    ptr.getTextureProjectors().add(pd1.projector);
+//    ptr.getTextureProjectors().add(pd2.projector);
+//    ptr.getTextureProjectors().add(pd1.projector);
+//    ptr.getTextureProjectors().add(pd2.projector);
     Logger.getLogger("").severe("NUM_PROJECTORS: " + ptr.getTextureProjectors().size());
     viewPort.addProcessor(ptr);        
   }
@@ -208,7 +208,7 @@ public class TestProjectiveTextureMapping1pass extends SimpleApplication
     float t = FastMath.cos(timer.getTimeInSeconds() * 0.6f - FastMath.PI) * 
       (FastMath.sin( timer.getTimeInSeconds() * 0.3f - FastMath.PI));
     
-    pd1.projector.getProjectorCamera().lookAt(new Vector3f(s, 0f, t), Vector3f.UNIT_X.clone());    
+    pd1.projector.getProjectorCamera().lookAt(new Vector3f(s * 0.5f, 0f, t * 3f), Vector3f.UNIT_X.clone());    
     pd2.projector.getProjectorCamera().lookAtDirection(Vector3f.UNIT_Y.negate(), Vector3f.UNIT_X.clone());
     pd2.projector.getProjectorCamera().setLocation(new Vector3f(t * 2f, 2.1f, s * 2f));
     

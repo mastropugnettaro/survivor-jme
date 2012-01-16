@@ -1,3 +1,6 @@
+attribute vec3 inPosition;
+attribute vec3 inNormal;
+
 uniform mat4 g_WorldViewProjectionMatrix;
 uniform mat4 g_WorldMatrix;
 uniform mat4 m_ProjectorViewProjectionMatrix;
@@ -10,9 +13,6 @@ uniform mat4 m_ProjectorViewProjectionMatrix;
 
 varying vec4 projCoord;
 varying float cosAngle;
-
-attribute vec3 inPosition;
-attribute vec3 inNormal;
 
 const mat4 biasMat = mat4(0.5, 0.0, 0.0, 0.0,
                           0.0, 0.5, 0.0, 0.0,
