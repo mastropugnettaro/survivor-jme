@@ -1,0 +1,190 @@
+#ifndef NUM_LIGHTS
+  #define NUM_LIGHTS 1
+#endif
+
+uniform mat4 g_WorldViewProjectionMatrix;
+uniform mat4 g_WorldViewMatrix;
+uniform mat4 g_ViewMatrix;
+uniform mat3 g_NormalMatrix;
+
+uniform vec4 g_LightPosition[NUM_LIGHTS];
+uniform vec4 g_LightColor[NUM_LIGHTS];
+uniform vec4 g_AmbientLightColor;
+
+#ifdef MATERIAL_COLORS
+  uniform vec4 m_Ambient;
+  uniform vec4 m_Diffuse;
+  uniform vec4 m_Specular;
+#endif
+uniform float m_Shininess;
+
+#ifdef DIFFUSEMAP
+  uniform sampler2D m_DiffuseMap;
+#endif
+
+#ifdef NORMALMAP
+  uniform sampler2D m_NormalMap;
+#endif
+
+#if defined(DIFFUSEMAP) || defined(NORMALMAP) || defined(SPECULARMAP) || defined(ALPHAMAP)
+  varying vec2 texCoord;
+#endif
+
+void calculateLightVector(in vec4 lightPosition, in vec4 lightColor, in vec3 V, in vec3 N, out vec3 L)
+{
+  // positional or directional light?
+  float isPosLight = step(0.5, lightColor.w);
+  vec4 wvLightPos = (g_ViewMatrix * vec4(lightPosition.xyz, clamp(lightColor.w, 0.0, 1.0)));
+  L = wvLightPos.xyz * sign(isPosLight - 0.5) - V * isPosLight;
+
+  // ToDo: Can we get rid the matrix mult? Blinn-Phong with directional lights only?
+  // L = normalize(lightPosition.xyz - V);
+}
+
+#ifdef VERTEX_LIGHTING
+
+  void calculateVertexColor(in vec3 N, in vec3 L, in vec3 E, in vec4 lightColor, inout vec4 vertexColor)
+  {
+    // calculate Diffuse Term:
+    vec4 Idiff = lightColor * max(dot(N, L), 0.0);
+    #ifdef MATERIAL_COLORS
+      Idiff *= m_Diffuse;
+    #endif
+    Idiff = clamp(Idiff, 0.0, 1.0);
+
+    // calculate Specular Term:
+    vec3 R = normalize(-reflect(L, N));
+    vec4 Ispec = lightColor * pow(max(dot(R, E), 0.0), m_Shininess);
+    #ifdef MATERIAL_COLORS
+      Ispec *= m_Specular;
+    #endif
+    Ispec = clamp(Ispec, 0.0, 1.0);
+
+    vertexColor += Idiff + Ispec;
+  }
+
+  void textureVertexFragment(in vec4 vertexColor, out vec4 fragColor)
+  {
+    // calculate Diffuse Term:
+    #if defined(MATERIAL_COLORS) || defined(DIFFUSEMAP)
+      vec4 Idiff = vertexColor;
+      #ifdef DIFFUSEMAP
+        Idiff *= texture2D(m_DiffuseMap, texCoord);
+        Idiff = clamp(Idiff, 0.0, 1.0);
+      #endif
+    #else
+      vec4 Idiff = vec4(0.0);
+    #endif
+
+    // calculate Specular Term:
+    #ifdef SPECULARMAP
+      vec4 Ispec = vertexColor;
+      Idiff *= texture2D(m_SpecularMap, texCoord);
+      Ispec = clamp(Ispec, 0.0, 1.0);
+    #else
+      vec4 Ispec = vec4(0.0);
+    #endif
+
+    fragColor = Idiff + Ispec;
+  }
+
+  void doPerVertexLighting(in vec4 position, in vec3 normal, out vec4 fragColor)
+  {
+    vec3 V; // view vector
+    vec3 N; // normal vector
+    vec3 E; // eye vector
+    vec3 L; // light vector
+
+    V = vec3(g_WorldViewMatrix * position);
+    E = normalize(-V);
+    N = normalize(g_NormalMatrix * normal);
+    fragColor = m_Ambient * g_AmbientLightColor;
+
+    for (int i = 0; i < NUM_LIGHTS; i++)
+    {
+      vec3 R;
+      vec4 Idiff;
+      vec4 Ispec;    
+      vec4 lightPosition = g_LightPosition[i];
+      vec4 lightColor = g_LightColor[i];
+
+      calculateLightVector(lightPosition, lightColor, V, N, L);
+      calculateVertexColor(N, L, E, lightColor, fragColor);
+    }
+  }
+
+#else
+
+  void calculateFragmentColor(in vec3 N, in vec3 L, in vec3 E, in vec4 lightColor, inout vec4 fragColor)
+  {
+    // calculate Diffuse Term:
+    #if defined(MATERIAL_COLORS) && defined(DIFFUSE)
+      #define NEED_DIFFUSE
+    #endif
+    #if defined(NEED_DIFFUSE) || defined(DIFFUSEMAP)
+      vec4 Idiff = lightColor * max(dot(N, L), 0.0);
+      #ifdef NEED_DIFFUSE
+        Idiff *= m_Diffuse;
+      #endif
+      #ifdef DIFFUSEMAP
+        Idiff *= texture2D(m_DiffuseMap, texCoord);
+      #endif
+      Idiff = clamp(Idiff, 0.0, 1.0);
+    #else
+      vec4 Idiff = vec4(0.0);
+    #endif
+
+    // calculate Specular Term:
+    #if defined(MATERIAL_COLORS) && defined(SPECULAR)
+      #define NEED_SPECULAR
+    #endif
+    #if defined(NEED_SPECULAR) || defined(SPECULARMAP)
+      vec3 R = normalize(-reflect(L, N));
+      vec4 Ispec = lightColor * pow(max(dot(R, E), 0.0), m_Shininess);
+      #ifdef NEED_SPECULAR
+        Ispec *= m_Specular;
+      #endif
+      #ifdef SPECULARMAP
+        Idiff *= texture2D(m_SpecularMap, texCoord);
+      #endif
+      Ispec = clamp(Ispec, 0.0, 1.0);
+    #else
+      vec4 Ispec = vec4(0.0);
+    #endif
+
+    fragColor += Idiff + Ispec;
+  }
+
+  void doPerFragmentLighting(in vec3 position, in vec3 normal, out vec4 fragColor)
+  {
+    vec3 V; // view vector
+    vec3 N; // normal vector
+    vec3 E; // eye vector
+    vec3 L; // light vector
+
+    V = normalize(position);
+    E = -V;
+
+    #ifdef NORMALMAP
+      N = normalize(texture2D(m_NormalMap, texCoord).xyz * vec3(2.0) - vec3(1.0));
+    #else
+      N = normalize(normal);
+    #endif
+
+    //calculate Ambient Term:
+    #if defined(MATERIAL_COLORS)
+      fragColor = m_Ambient * g_AmbientLightColor;
+    #else
+      fragColor = vec4(0.2, 0.2, 0.2, 1.0) * g_AmbientLightColor;
+    #endif
+
+    for (int i = 0; i < NUM_LIGHTS; i++)
+    {
+      vec4 lightPosition = g_LightPosition[i];
+      vec4 lightColor = g_LightColor[i];
+      calculateLightVector(lightPosition, lightColor, V, N, L);
+      calculateFragmentColor(N, L, E, lightColor, fragColor);
+    }
+  }
+
+#endif
