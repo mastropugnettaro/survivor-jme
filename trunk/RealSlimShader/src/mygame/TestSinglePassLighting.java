@@ -74,6 +74,7 @@ public class TestSinglePassLighting extends SimpleApplication
       rootNode.addLight(dl);
     }
     
-    log.log(Level.SEVERE, "*** NUM_LIGHTS: {0} ***", NUM_LIGHTS);
+    log.log(Level.SEVERE, "*** SPHERE_SEGMENTS: {0}, NUM_LIGHTS: {1} ***",
+      new Object[] { SPHERE_SEGMENTS, NUM_LIGHTS });
   }
 }
