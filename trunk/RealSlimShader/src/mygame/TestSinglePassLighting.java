@@ -52,7 +52,7 @@ public class TestSinglePassLighting extends SimpleApplication
     sphere.setMaterial(sphereMat);
     rootNode.attachChild(sphere);
 
-    cam.setLocation(new Vector3f(-2f, 0f, 0f));
+    cam.setLocation(new Vector3f(-1.5f, 0f, 0f));
     cam.lookAtDirection(Vector3f.UNIT_X.clone(), Vector3f.UNIT_Y.clone());
     cam.setFrustumPerspective(45, (float) settings.getWidth() / settings.getHeight(), 0.1f, 100.0f);
 
