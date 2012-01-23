@@ -50,7 +50,6 @@ void calculateLightVector(in vec4 lightPosition, in vec4 lightColor, in vec3 V, 
     #ifdef MATERIAL_COLORS
       Idiff *= m_Diffuse;
     #endif
-    Idiff = clamp(Idiff, 0.0, 1.0);
 
     // calculate Specular Term:
     vec3 R = normalize(-reflect(L, N));
@@ -58,7 +57,6 @@ void calculateLightVector(in vec4 lightPosition, in vec4 lightColor, in vec3 V, 
     #ifdef MATERIAL_COLORS
       Ispec *= m_Specular;
     #endif
-    Ispec = clamp(Ispec, 0.0, 1.0);
 
     vertexColor += Idiff + Ispec;
   }
@@ -129,7 +127,6 @@ void calculateLightVector(in vec4 lightPosition, in vec4 lightColor, in vec3 V, 
       #ifdef DIFFUSEMAP
         Idiff *= texture2D(m_DiffuseMap, texCoord);
       #endif
-      Idiff = clamp(Idiff, 0.0, 1.0);
       fragColor += Idiff;
     #endif
 
@@ -146,7 +143,6 @@ void calculateLightVector(in vec4 lightPosition, in vec4 lightColor, in vec3 V, 
       #ifdef SPECULARMAP
         Idiff *= texture2D(m_SpecularMap, texCoord);
       #endif
-      Ispec = clamp(Ispec, 0.0, 1.0);
       fragColor += Ispec;
     #endif
   }
