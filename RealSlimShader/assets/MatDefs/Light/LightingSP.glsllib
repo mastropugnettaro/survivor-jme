@@ -130,8 +130,7 @@ void calculateLightVector(in vec4 lightPosition, in vec4 lightColor, in vec3 V, 
         Idiff *= texture2D(m_DiffuseMap, texCoord);
       #endif
       Idiff = clamp(Idiff, 0.0, 1.0);
-    #else
-      vec4 Idiff = vec4(0.0);
+      fragColor += Idiff;
     #endif
 
     // calculate Specular Term:
@@ -148,11 +147,8 @@ void calculateLightVector(in vec4 lightPosition, in vec4 lightColor, in vec3 V, 
         Idiff *= texture2D(m_SpecularMap, texCoord);
       #endif
       Ispec = clamp(Ispec, 0.0, 1.0);
-    #else
-      vec4 Ispec = vec4(0.0);
+      fragColor += Ispec;
     #endif
-
-    fragColor += Idiff + Ispec;
   }
 
   void doPerFragmentLighting(in vec3 position, in vec3 normal, out vec4 fragColor)
