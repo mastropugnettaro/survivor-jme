@@ -34,9 +34,6 @@ uniform mat3 g_NormalMatrix;
     float isPosLight = step(0.5, lightColor.w);
     vec4 wvLightPos = (g_ViewMatrix * vec4(lightPosition.xyz, clamp(lightColor.w, 0.0, 1.0)));
     L = wvLightPos.xyz * sign(isPosLight - 0.5) - V * isPosLight;
-
-    // ToDo: Can we get rid the matrix mult? Blinn-Phong with directional lights only?
-    // L = normalize(lightPosition.xyz - V);
   }
 
   void calculateVertexColor(const in vec3 N, const in vec3 L, const in vec3 E, const in vec4 lightColor, inout vec4 vertexColor)
@@ -86,9 +83,11 @@ uniform mat3 g_NormalMatrix;
 
   #if defined(NORMALMAP) && !defined(NORMALMAP_PERTURB)
     attribute vec4 inTangent;
+    varying vec4 tangent;
     varying vec3 vViewDir;
-    varying vec3 wvTangent;
-    varying vec3 wvBitangent;
+    //varying vec3 wvTangent;
+    //varying vec3 wvBitangent;
+    varying mat3 tbnMat;
   #endif
 
 #endif
@@ -101,13 +100,14 @@ void main(void)
     doPerVertexLighting(position);
   #else
     wvPosition = vec3(g_WorldViewMatrix * position);
-    wvNormal = g_NormalMatrix * inNormal;
+    wvNormal = normalize(g_NormalMatrix * inNormal);
     #if defined(NORMALMAP) && !defined(NORMALMAP_PERTURB)
-      wvTangent = normalize(g_NormalMatrix * inTangent.xyz);
+      //tangent = inTangent;
+      vec3 wvTangent = normalize(g_NormalMatrix * inTangent.xyz);
       vec3 wvBinormal = cross(wvNormal, wvTangent);
-      wvBitangent = wvBinormal * -inTangent.w;
-      mat3 tbnMat = mat3(wvTangent, wvBitangent, wvNormal);
-      vViewDir = normalize(-wvPosition) * tbnMat;
+      vec3 wvBitangent = wvBinormal * -inTangent.w;
+      tbnMat = mat3(wvTangent, wvBitangent, wvNormal);
+      vViewDir = normalize(-wvPosition * tbnMat);
     #endif
   #endif
 
