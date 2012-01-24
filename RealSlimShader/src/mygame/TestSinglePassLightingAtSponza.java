@@ -13,7 +13,6 @@ import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.scene.Geometry;
 import com.jme3.texture.Texture;
-import java.awt.Color;
 
 public class TestSinglePassLightingAtSponza extends SimpleApplication {
 
