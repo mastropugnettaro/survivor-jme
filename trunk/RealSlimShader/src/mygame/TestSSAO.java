@@ -17,7 +17,7 @@ import java.awt.Color;
 
 public class TestSSAO extends SimpleApplication {
 
-  private static final int NUM_LIGHTS_HALF = 1;
+  private static final int NUM_LIGHTS_HALF = 16;
   Geometry model;
 
   public static void main(String[] args) {
@@ -33,7 +33,7 @@ public class TestSSAO extends SimpleApplication {
 
     DirectionalLight dl;
     
-    float ci = 1f / Math.max(NUM_LIGHTS_HALF, 1f) / 2f;
+    float ci = 1f / Math.max(NUM_LIGHTS_HALF, 1f);
     for (int i = 0; i < NUM_LIGHTS_HALF; i++) {
       float x = 1f + i % 2;
       float y = FastMath.sign(1.5f - i % 4);
@@ -54,15 +54,20 @@ public class TestSSAO extends SimpleApplication {
     Material mat = new MaterialSP(assetManager, "MatDefs/Light/LightingSP.j3md");
     Texture diff = assetManager.loadTexture("Textures/BrickWall.jpg");
     diff.setWrap(Texture.WrapMode.Repeat);
-    //Texture norm = assetManager.loadTexture("Textures/BrickWall_normal.jpg");
-    Texture norm = assetManager.loadTexture("Textures/Rock_normal.png");
+    diff.setAnisotropicFilter(16);
+    diff.setMinFilter(Texture.MinFilter.Trilinear);
+    diff.setMagFilter(Texture.MagFilter.Bilinear);
+    Texture norm = assetManager.loadTexture("Textures/BrickWall_normal.jpg");
     norm.setWrap(Texture.WrapMode.Repeat);
-    //mat.setTexture("DiffuseMap", diff);
-    //mat.setColor("Diffuse", ColorRGBA.White.clone());
-    mat.setTexture("NormalMap", norm);
+    norm.setAnisotropicFilter(16);
+    norm.setMinFilter(Texture.MinFilter.Trilinear);
+    norm.setMagFilter(Texture.MagFilter.Bilinear);
+    mat.setTexture("DiffuseMap", diff);
+    mat.setBoolean("UseMaterialColors", true);
+    mat.setColor("Diffuse", ColorRGBA.White.clone());    
+    mat.setColor("Specular", ColorRGBA.Gray.clone());    
     mat.setFloat("Shininess", 2.0f);
-
-    mat = new MaterialSP("Materials/Rock.j3m", assetManager);    
+    mat.setTexture("NormalMap", norm);
 
     AmbientLight al = new AmbientLight();
     al.setColor(new ColorRGBA(1.8f, 1.8f, 1.8f, 1.0f));
