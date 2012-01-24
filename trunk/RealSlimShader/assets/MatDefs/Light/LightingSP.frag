@@ -63,9 +63,11 @@
   varying vec3 wvNormal;
 
   #if defined(NORMALMAP) && !defined(NORMALMAP_PERTURB)
+    //varying vec4 tangent;
     varying vec3 vViewDir;
-    varying vec3 wvTangent;
-    varying vec3 wvBitangent;
+    //varying vec3 wvTangent;
+    //varying vec3 wvBitangent;
+    varying mat3 tbnMat;
   #endif
 
   void calculateLightVector(const in vec4 lightPosition, const in vec4 lightColor, const in vec3 V, out vec3 L)
@@ -74,11 +76,6 @@
     float isPosLight = step(0.5, lightColor.w);
     vec4 wvLightPos = (g_ViewMatrix * vec4(lightPosition.xyz, clamp(lightColor.w, 0.0, 1.0)));
     L = wvLightPos.xyz * sign(isPosLight - 0.5) - V * isPosLight;
-
-    #if defined(NORMALMAP) && !defined(NORMALMAP_PERTURB)
-       mat3 tbnMat = mat3(wvTangent, wvBitangent, wvNormal);
-       L.xyz = (L.xyz * tbnMat).xyz;
-    #endif
   }
 
   void calculateFragmentColor(const in vec3 N, const in vec3 L, const in vec3 E, const in vec4 lightColor, inout vec4 fragColor)
@@ -129,7 +126,14 @@
         N = normalize(wvNormal + texture2D(m_NormalMap, texCoord).xyz * vec3(2.0) - vec3(1.0));
         E = -V;
       #else
-        E = normalize(vViewDir);
+        N = normalize(texture2D(m_NormalMap, texCoord).xyz * vec3(2.0) - vec3(1.0));
+
+        //vec3 wvTangent = normalize(g_NormalMatrix * tangent.xyz);
+        //vec3 wvBinormal = cross(wvNormal, wvTangent);
+        //vec3 wvBitangent = wvBinormal * -tangent.w;
+        //mat3 tbnMat = mat3(wvTangent, wvBitangent, wvNormal);
+        //E = -V * tbnMat;
+        E = -vViewDir;
       #endif
     #else
       N = normalize(wvNormal);
@@ -148,6 +152,9 @@
       vec4 lightPosition = g_LightPosition[i];
       vec4 lightColor = g_LightColor[i];
       calculateLightVector(lightPosition, lightColor, V, L);
+      #if defined(NORMALMAP) && !defined(NORMALMAP_PERTURB)
+         L = normalize(L * tbnMat);
+      #endif
       calculateFragmentColor(N, L, E, lightColor, gl_FragColor);
     }
   }

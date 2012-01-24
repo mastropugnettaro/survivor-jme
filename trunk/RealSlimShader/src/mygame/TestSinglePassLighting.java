@@ -11,6 +11,7 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.shape.Sphere;
 import com.jme3.scene.shape.Sphere.TextureMode;
 import com.jme3.system.AppSettings;
+import com.jme3.util.TangentBinormalGenerator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -46,6 +47,7 @@ public class TestSinglePassLighting extends SimpleApplication
     viewPort.setBackgroundColor(ColorRGBA.DarkGray);
 
     Sphere sphereMesh = new Sphere(SPHERE_SEGMENTS, SPHERE_SEGMENTS, 0.5f);
+    TangentBinormalGenerator.generate(sphereMesh);
     sphereMesh.setTextureMode(TextureMode.Projected);
     Geometry sphere = new Geometry("Sphere", sphereMesh);
     Material sphereMat = new MaterialSP("Materials/Rock.j3m", assetManager);    
