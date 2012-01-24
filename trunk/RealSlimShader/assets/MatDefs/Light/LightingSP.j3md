@@ -1,6 +1,8 @@
 MaterialDef Phong Lighting (Single Pass) {
 
     MaterialParameters {
+        Boolean NormalMapPerturb
+
         // Compute vertex lighting in the shader
         // For better performance
         Boolean VertexLighting
@@ -45,6 +47,7 @@ MaterialDef Phong Lighting (Single Pass) {
 
             VERTEX_LIGHTING : VertexLighting
             MATERIAL_COLORS : UseMaterialColors
+            NORMALMAP_PERTURB : NormalMapPerturb
 
             AMBIENT: Ambient
             DIFFUSE : Diffuse
