@@ -104,8 +104,7 @@ void main(void)
     #if defined(NORMALMAP) && !defined(NORMALMAP_PERTURB)
       //tangent = inTangent;
       vec3 wvTangent = normalize(g_NormalMatrix * inTangent.xyz);
-      vec3 wvBinormal = cross(wvNormal, wvTangent);
-      vec3 wvBitangent = wvBinormal * -inTangent.w;
+      vec3 wvBitangent = cross(wvNormal, wvTangent);
       tbnMat = mat3(wvTangent, wvBitangent, wvNormal);
       vViewDir = normalize(-wvPosition * tbnMat);
     #endif
