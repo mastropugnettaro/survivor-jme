@@ -32,8 +32,8 @@ uniform mat3 g_NormalMatrix;
   {
     // positional or directional light?
     float isPosLight = step(0.5, lightColor.w);
-    vec4 wvLightPos = (g_ViewMatrix * vec4(lightPosition.xyz, clamp(lightColor.w, 0.0, 1.0)));
-    L = wvLightPos.xyz * sign(isPosLight - 0.5) - V * isPosLight;
+    L = lightPosition.xyz * sign(isPosLight - 0.5) - V * isPosLight;
+    L = vec3(g_ViewMatrix * vec4(L, clamp(lightColor.w, 0.0, 1.0)));
   }
 
   void calculateVertexColor(const in vec3 N, const in vec3 L, const in vec3 E, const in vec4 lightColor, inout vec4 vertexColor)
@@ -81,13 +81,10 @@ uniform mat3 g_NormalMatrix;
   varying vec3 wvPosition;
   varying vec3 wvNormal;
 
-  #if defined(NORMALMAP) && !defined(NORMALMAP_PERTURB)
-    attribute vec4 inTangent;
-    varying vec4 tangent;
-    varying vec3 vViewDir;
-    //varying vec3 wvTangent;
-    //varying vec3 wvBitangent;
-    varying mat3 tbnMat;
+  #if defined(NORMALMAP)
+    attribute vec3 inTangent;
+    varying vec3 wvTangent;
+    varying vec3 wvBitangent;
   #endif
 
 #endif
@@ -101,12 +98,9 @@ void main(void)
   #else
     wvPosition = vec3(g_WorldViewMatrix * position);
     wvNormal = normalize(g_NormalMatrix * inNormal);
-    #if defined(NORMALMAP) && !defined(NORMALMAP_PERTURB)
-      //tangent = inTangent;
-      vec3 wvTangent = normalize(g_NormalMatrix * inTangent.xyz);
-      vec3 wvBitangent = cross(wvNormal, wvTangent);
-      tbnMat = mat3(wvTangent, wvBitangent, wvNormal);
-      vViewDir = normalize(-wvPosition * tbnMat);
+    #if defined(NORMALMAP)
+      wvTangent = normalize(g_NormalMatrix * inTangent.xyz);
+      wvBitangent = cross(wvNormal, wvTangent);
     #endif
   #endif
 
