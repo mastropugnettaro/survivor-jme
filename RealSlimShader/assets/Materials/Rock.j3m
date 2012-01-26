@@ -2,12 +2,10 @@ Material Rock : MatDefs/Light/LightingSP.j3md {
      MaterialParameters {
         UseMaterialColors : true
         Diffuse : 1.0 1.0 1.0 1.0
-        VertexLighting : false
         Ambient : 1.0 1.0 1.0 1.0
         Shininess : 100.0
         Specular : 1.0 1.0 1.0 1.0
         NormalMap : Textures/Rock_normal.png
-        NormalMapPerturb : true
      }
     AdditionalRenderState {
     }
