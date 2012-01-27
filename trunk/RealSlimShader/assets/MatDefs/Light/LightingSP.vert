@@ -78,29 +78,32 @@ uniform mat3 g_NormalMatrix;
 
 #else // per fragment lighting
 
-  varying vec3 wvPosition;
-  varying vec3 wvNormal;
+  varying vec3 position;
+    varying vec3 vsNormal;
 
   #if defined(NORMALMAP)
     attribute vec3 inTangent;
-    varying vec3 wvTangent;
-    varying vec3 wvBitangent;
+    varying vec3 vsTangent;
+    varying vec3 vsBitangent;
   #endif
 
 #endif
 
 void main(void)
 {
-  vec4 position = vec4(inPosition, 1.0);
+  vec4 pos = vec4(inPosition, 1.0);
 
   #ifdef VERTEX_LIGHTING
     doPerVertexLighting(position);
   #else
-    wvPosition = vec3(g_WorldViewMatrix * position);
-    wvNormal = normalize(g_NormalMatrix * inNormal);
+      position = vec3(g_WorldViewMatrix * pos);
+      vsNormal = g_NormalMatrix * inNormal;
     #if defined(NORMALMAP)
-      wvTangent = normalize(g_NormalMatrix * inTangent.xyz);
-      wvBitangent = cross(wvNormal, wvTangent);
+      vsTangent = g_NormalMatrix * inTangent;
+      vsBitangent = cross(vsNormal, vsTangent);
+
+      // view space -> tangent space
+      position = position * mat3(vsTangent, vsBitangent, vsNormal);
     #endif
   #endif
 
@@ -108,5 +111,5 @@ void main(void)
     texCoord = inTexCoord;
   #endif
 
-  gl_Position = g_WorldViewProjectionMatrix * position;
+  gl_Position = g_WorldViewProjectionMatrix * pos;
 }
