@@ -22,7 +22,7 @@
     #if defined(MATERIAL_COLORS) || defined(DIFFUSEMAP)
       vec4 Idiff = gl_Color;
       #ifdef DIFFUSEMAP
-        Idiff *= texture2D(m_DiffuseMap, texCoord);
+        Idiff *= texture2D(m_DiffuseMap, v_TexCoord);
         Idiff = clamp(Idiff, 0.0, 1.0);
       #endif
     #else
@@ -32,7 +32,7 @@
     // calculate Specular Term:
     #ifdef SPECULARMAP
       vec4 Ispec = gl_Color;
-      Idiff *= texture2D(m_SpecularMap, texCoord);
+      Idiff *= texture2D(m_SpecularMap, v_TexCoord);
       Ispec = clamp(Ispec, 0.0, 1.0);
     #else
       vec4 Ispec = vec4(0.0);
@@ -79,7 +79,7 @@
         Idiff *= m_Diffuse;
       #endif
       #ifdef DIFFUSEMAP
-        Idiff *= texture2D(m_DiffuseMap, texCoord);
+        Idiff *= texture2D(m_DiffuseMap, v_TexCoord);
       #endif
       fragColor += Idiff;
     #endif
