@@ -59,21 +59,13 @@
   #endif
   uniform float m_Shininess;
 
-  varying vec3 wvPosition;
-  varying vec3 wvNormal;
+  varying vec3 position;
+  varying vec3 vsNormal;
 
   #if defined(NORMALMAP)
-    varying vec3 wvTangent;
-    varying vec3 wvBitangent;
+    varying vec3 vsTangent;
+    varying vec3 vsBitangent;
   #endif
-
-  void calculateLightVector(const in vec4 lightPosition, const in vec4 lightColor, const in vec3 V, out vec3 L)
-  {
-    // positional or directional light?
-    float isPosLight = step(0.5, lightColor.w);
-    L = lightPosition.xyz * sign(isPosLight - 0.5) - V * isPosLight;
-    L = vec3(g_ViewMatrix * vec4(L, clamp(lightColor.w, 0.0, 1.0)));
-  }
 
   void calculateFragmentColor(const in vec3 N, const in vec3 L, const in vec3 E, const in vec4 lightColor, inout vec4 fragColor)
   {
@@ -116,15 +108,21 @@
     vec3 E; // eye vector
     vec3 L; // light vector
 
-    V = normalize(wvPosition);
+    V = normalize(position);
     E = -V;
 
     #ifdef NORMALMAP
-      // tangent space -> view space
-      mat3 tbnMat3 = mat3(wvTangent, wvBitangent, wvNormal);
-      N = tbnMat3 * (texture2D(m_NormalMap, texCoord).xyz * vec3(2.0) - vec3(1.0));
+      N = (texture2D(m_NormalMap, texCoord).xyz * vec3(2.0) - vec3(1.0));
+
+      // view space -> tangent space matrix
+      mat4 vsTangentMatrix = mat4(vec4(vsTangent,     0.0),
+                                  vec4(vsBitangent,   0.0),
+                                  vec4(vsNormal,      0.0),
+                                  vec4(0.0, 0.0, 0.0, 1.0));
+      // world space -> tangent space matrix
+      mat4 wsViewTangentMatrix = vsTangentMatrix * g_ViewMatrix;
     #else
-      N = normalize(wvNormal);
+      N = vsNormal;
     #endif
 
     //calculate Ambient Term:
@@ -138,7 +136,20 @@
     {
       vec4 lightPosition = g_LightPosition[i];
       vec4 lightColor = g_LightColor[i];
-      calculateLightVector(lightPosition, lightColor, V, L);
+      vec4 lightVector;
+
+      // positional or directional light?
+      float isPosLight = step(0.5, lightColor.w);
+      lightVector = vec4(lightPosition.xyz * sign(isPosLight - 0.5) - V * isPosLight,
+        clamp(lightColor.w, 0.0, 1.0));
+
+      #ifdef NORMALMAP
+        // view space -> tangent space
+        L = vec3(wsViewTangentMatrix * lightVector);
+      #else
+        L = vec3(g_ViewMatrix * lightVector);
+      #endif
+
       calculateFragmentColor(N, L, E, lightColor, gl_FragColor);
     }
   }
