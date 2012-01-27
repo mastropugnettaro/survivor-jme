@@ -82,7 +82,7 @@ uniform mat3 g_NormalMatrix;
   varying vec3 v_Normal;
 
   #if defined(NORMALMAP)
-    attribute vec3 inTangent;
+    attribute vec4 inTangent;
     varying vec3 v_Tangent;
     varying vec3 v_Bitangent;
   #endif
@@ -97,10 +97,10 @@ void main(void)
     doPerVertexLighting(position);
   #else
       v_Position = vec3(g_WorldViewMatrix * position); // object space -> view space
-      v_Normal = g_NormalMatrix * inNormal; // object space -> view space
+      v_Normal = normalize(g_NormalMatrix * inNormal); // object space -> view space
     #if defined(NORMALMAP)      
-      v_Tangent = g_NormalMatrix * inTangent; // object space -> view space
-      v_Bitangent = cross(v_Normal, v_Tangent);
+      v_Tangent = normalize(g_NormalMatrix * inTangent.xyz); // object space -> view space
+      v_Bitangent = cross(v_Normal, v_Tangent) * -inTangent.w;
 
       // view space -> tangent space
       v_Position = v_Position * mat3(v_Tangent, v_Bitangent, v_Normal);

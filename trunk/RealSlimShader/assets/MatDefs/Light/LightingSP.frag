@@ -120,7 +120,7 @@
                                   vec4(v_Normal,      0.0),
                                   vec4(0.0, 0.0, 0.0, 1.0));
       // world space -> tangent space matrix
-      mat4 wsViewTangentMatrix = vsTangentMatrix * g_ViewMatrix;
+      mat4 wsViewTangentMatrix = transpose(vsTangentMatrix) * g_ViewMatrix;
     #else
       N = v_Normal;
     #endif
