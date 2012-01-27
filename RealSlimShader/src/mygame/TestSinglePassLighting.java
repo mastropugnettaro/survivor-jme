@@ -43,7 +43,8 @@ public class TestSinglePassLighting extends SimpleApplication
   {
     this.setPauseOnLostFocus(false);
     //setDisplayStatView(false);
-    flyCam.setEnabled(false);
+    //flyCam.setEnabled(false);
+    flyCam.setMoveSpeed(5);
     viewPort.setBackgroundColor(ColorRGBA.DarkGray);
 
     Sphere sphereMesh = new Sphere(SPHERE_SEGMENTS, SPHERE_SEGMENTS, 0.5f);
@@ -55,18 +56,18 @@ public class TestSinglePassLighting extends SimpleApplication
     sphere.setMaterial(sphereMat);
     rootNode.attachChild(sphere);
 
-    cam.setLocation(new Vector3f(-1.5f, 0f, 0f));
-    cam.lookAtDirection(Vector3f.UNIT_X.clone(), Vector3f.UNIT_Y.clone());
+    cam.setLocation(new Vector3f(-1f, 1f, 0f));
+    cam.lookAt(Vector3f.ZERO.clone(), Vector3f.UNIT_Y.clone());
     cam.setFrustumPerspective(45, (float) settings.getWidth() / settings.getHeight(), 0.1f, 100.0f);
 
     AmbientLight al;
     DirectionalLight dl;
             
     al = new AmbientLight();
-    al.setColor(new ColorRGBA(0.1f, 0f, 0f, 1f));
+    al.setColor(new ColorRGBA(0.05f, 0.05f, 0.05f, 1f));
     rootNode.addLight(al);
   
-    float ci = 1f / Math.max(NUM_LIGHTS, 1f);
+    float ci = 0.9f / Math.max(NUM_LIGHTS, 1f);
     for (int i = 0; i < NUM_LIGHTS; i++)
     { 
       float x = 1f + i % 2;

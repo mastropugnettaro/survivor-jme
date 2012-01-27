@@ -6,6 +6,7 @@ Material Rock : MatDefs/Light/LightingSP.j3md {
         Specular : 1.0 1.0 1.0 1.0
         Ambient : 1.0 1.0 1.0 1.0
         NormalMap : Textures/BrickWall_normal.jpg
+        DiffuseMap : Textures/BrickWall.jpg
      }
     AdditionalRenderState {
     }
