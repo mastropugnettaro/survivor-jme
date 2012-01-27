@@ -7,7 +7,7 @@ attribute vec3 inNormal;
 
 #if defined(DIFFUSEMAP) || defined(NORMALMAP) || defined(SPECULARMAP) || defined(ALPHAMAP)
   attribute vec2 inTexCoord;
-  varying vec2 texCoord;
+  varying vec2 v_TexCoord;
 #endif
 
 uniform mat4 g_WorldViewProjectionMatrix;
@@ -27,14 +27,6 @@ uniform mat3 g_NormalMatrix;
     uniform vec4 m_Specular;
   #endif
   uniform float m_Shininess;
-
-  void calculateLightVector(const in vec4 lightPosition, const in vec4 lightColor, const in vec3 V, out vec3 L)
-  {
-    // positional or directional light?
-    float isPosLight = step(0.5, lightColor.w);
-    L = lightPosition.xyz * sign(isPosLight - 0.5) - V * isPosLight;
-    L = vec3(g_ViewMatrix * vec4(L, clamp(lightColor.w, 0.0, 1.0)));
-  }
 
   void calculateVertexColor(const in vec3 N, const in vec3 L, const in vec3 E, const in vec4 lightColor, inout vec4 vertexColor)
   {
@@ -61,55 +53,63 @@ uniform mat3 g_NormalMatrix;
     vec3 E; // eye vector
     vec3 L; // light vector
 
-    V = normalize(vec3(g_WorldViewMatrix * position));
+    V = normalize(vec3(g_WorldViewMatrix * position)); // object space -> view space
     E = -V;
-    N = normalize(g_NormalMatrix * inNormal);
+    N = g_NormalMatrix * inNormal; // object space -> view space
     gl_FrontColor = m_Ambient * g_AmbientLightColor;
 
     for (int i = 0; i < NUM_LIGHTS; i++)
     {
       vec4 lightPosition = g_LightPosition[i];
       vec4 lightColor = g_LightColor[i];
+      vec4 lightVector;
 
-      calculateLightVector(lightPosition, lightColor, V, L);
+      // positional or directional light?
+      float isPosLight = step(0.5, lightColor.w);
+      lightVector = vec4(lightPosition.xyz * sign(isPosLight - 0.5) - V * isPosLight,
+        clamp(lightColor.w, 0.0, 1.0));
+      
+      lightVector = g_ViewMatrix * lightVector; // world space -> view space
+      L = vec3(lightVector);
+
       calculateVertexColor(N, L, E, lightColor, gl_FrontColor);
     }
   }
 
 #else // per fragment lighting
 
-  varying vec3 position;
-    varying vec3 vsNormal;
+  varying vec3 v_Position;
+  varying vec3 v_Normal;
 
   #if defined(NORMALMAP)
     attribute vec3 inTangent;
-    varying vec3 vsTangent;
-    varying vec3 vsBitangent;
+    varying vec3 v_Tangent;
+    varying vec3 v_Bitangent;
   #endif
 
 #endif
 
 void main(void)
 {
-  vec4 pos = vec4(inPosition, 1.0);
+  vec4 position = vec4(inPosition, 1.0);
 
   #ifdef VERTEX_LIGHTING
     doPerVertexLighting(position);
   #else
-      position = vec3(g_WorldViewMatrix * pos);
-      vsNormal = g_NormalMatrix * inNormal;
-    #if defined(NORMALMAP)
-      vsTangent = g_NormalMatrix * inTangent;
-      vsBitangent = cross(vsNormal, vsTangent);
+      v_Position = vec3(g_WorldViewMatrix * position); // object space -> view space
+      v_Normal = g_NormalMatrix * inNormal; // object space -> view space
+    #if defined(NORMALMAP)      
+      v_Tangent = g_NormalMatrix * inTangent; // object space -> view space
+      v_Bitangent = cross(v_Normal, v_Tangent);
 
       // view space -> tangent space
-      position = position * mat3(vsTangent, vsBitangent, vsNormal);
+      v_Position = v_Position * mat3(v_Tangent, v_Bitangent, v_Normal);
     #endif
   #endif
 
   #if defined(DIFFUSEMAP) || defined(NORMALMAP) || defined(SPECULARMAP) || defined(ALPHAMAP)
-    texCoord = inTexCoord;
+    v_TexCoord = inTexCoord;
   #endif
 
-  gl_Position = g_WorldViewProjectionMatrix * pos;
+  gl_Position = g_WorldViewProjectionMatrix * position; // object space -> projection space
 }
