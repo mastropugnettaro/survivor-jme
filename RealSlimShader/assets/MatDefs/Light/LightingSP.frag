@@ -3,7 +3,7 @@
 #endif
 
 #if defined(DIFFUSEMAP) || defined(NORMALMAP) || defined(SPECULARMAP) || defined(ALPHAMAP)
-  varying vec2 texCoord;
+  varying vec2 v_TexCoord;
 #endif
 
 #ifdef DIFFUSEMAP
@@ -59,12 +59,12 @@
   #endif
   uniform float m_Shininess;
 
-  varying vec3 position;
-  varying vec3 vsNormal;
+  varying vec3 v_Position;
+  varying vec3 v_Normal;
 
   #if defined(NORMALMAP)
-    varying vec3 vsTangent;
-    varying vec3 vsBitangent;
+    varying vec3 v_Tangent;
+    varying vec3 v_Bitangent;
   #endif
 
   void calculateFragmentColor(const in vec3 N, const in vec3 L, const in vec3 E, const in vec4 lightColor, inout vec4 fragColor)
@@ -95,7 +95,7 @@
         Ispec *= m_Specular;
       #endif
       #ifdef SPECULARMAP
-        Idiff *= texture2D(m_SpecularMap, texCoord);
+        Idiff *= texture2D(m_SpecularMap, v_TexCoord);
       #endif
       fragColor += Ispec;
     #endif
@@ -108,21 +108,21 @@
     vec3 E; // eye vector
     vec3 L; // light vector
 
-    V = normalize(position);
+    V = normalize(v_Position);
     E = -V;
 
     #ifdef NORMALMAP
-      N = (texture2D(m_NormalMap, texCoord).xyz * vec3(2.0) - vec3(1.0));
+      N = (texture2D(m_NormalMap, v_TexCoord).xyz * vec3(2.0) - vec3(1.0));
 
       // view space -> tangent space matrix
-      mat4 vsTangentMatrix = mat4(vec4(vsTangent,     0.0),
-                                  vec4(vsBitangent,   0.0),
-                                  vec4(vsNormal,      0.0),
+      mat4 vsTangentMatrix = mat4(vec4(v_Tangent,     0.0),
+                                  vec4(v_Bitangent,   0.0),
+                                  vec4(v_Normal,      0.0),
                                   vec4(0.0, 0.0, 0.0, 1.0));
       // world space -> tangent space matrix
       mat4 wsViewTangentMatrix = vsTangentMatrix * g_ViewMatrix;
     #else
-      N = vsNormal;
+      N = v_Normal;
     #endif
 
     //calculate Ambient Term:
@@ -144,9 +144,10 @@
         clamp(lightColor.w, 0.0, 1.0));
 
       #ifdef NORMALMAP
-        // view space -> tangent space
+        // world space -> tangent space
         L = vec3(wsViewTangentMatrix * lightVector);
-      #else
+      #else        
+        // world space -> view space
         L = vec3(g_ViewMatrix * lightVector);
       #endif
 
