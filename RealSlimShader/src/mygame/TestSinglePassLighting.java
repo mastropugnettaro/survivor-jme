@@ -50,6 +50,7 @@ public class TestSinglePassLighting extends SimpleApplication
     TangentBinormalGenerator.generate(sphereMesh);
     sphereMesh.setTextureMode(TextureMode.Projected);
     Geometry sphere = new Geometry("Sphere", sphereMesh);
+    sphere.rotate(FastMath.HALF_PI, 0f, 0f);
     Material sphereMat = new MaterialSP("Materials/Rock.j3m", assetManager);    
     sphere.setMaterial(sphereMat);
     rootNode.attachChild(sphere);

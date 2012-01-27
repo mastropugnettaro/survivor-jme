@@ -120,8 +120,9 @@
     E = -V;
 
     #ifdef NORMALMAP
+      // tangent space -> view space
       mat3 tbnMat3 = mat3(wvTangent, wvBitangent, wvNormal);
-      N = tbnMat3 * normalize(texture2D(m_NormalMap, texCoord).xyz * vec3(2.0) - vec3(1.0));
+      N = tbnMat3 * (texture2D(m_NormalMap, texCoord).xyz * vec3(2.0) - vec3(1.0));
     #else
       N = normalize(wvNormal);
     #endif
