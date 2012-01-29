@@ -30,8 +30,8 @@ MaterialDef Phong Lighting (Single Pass) {
     Technique {
         LightMode SinglePass
 
-        VertexShader GLSL100:   MatDefs/Light/LightingSP.vert
-        FragmentShader GLSL100: MatDefs/Light/LightingSP.frag
+        VertexShader GLSL120:   MatDefs/Light/LightingSP.vert
+        FragmentShader GLSL120: MatDefs/Light/LightingSP.frag
 
         WorldParameters {
             WorldViewProjectionMatrix

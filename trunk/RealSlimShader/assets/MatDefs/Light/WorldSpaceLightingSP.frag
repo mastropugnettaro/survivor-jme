@@ -126,8 +126,7 @@
 
       // positional or directional light?
       float isPosLight = step(0.5, lightColor.w);
-      L = vec4(lightPosition.xyz * sign(isPosLight - 0.5) - v_Position * isPosLight,
-        clamp(lightColor.w, 0.0, 1.0));
+      L = lightPosition.xyz * sign(isPosLight - 0.5) - v_Position * isPosLight;
 
       calculateFragmentColor(N, L, E, lightColor, gl_FragColor);
     }
