@@ -44,7 +44,7 @@ public class TestSinglePassLighting extends SimpleApplication
     this.setPauseOnLostFocus(false);
     //setDisplayStatView(false);
     flyCam.setEnabled(false);
-    flyCam.setMoveSpeed(5);
+    flyCam.setMoveSpeed(3);
     viewPort.setBackgroundColor(ColorRGBA.DarkGray);
 
     Sphere sphereMesh = new Sphere(SPHERE_SEGMENTS, SPHERE_SEGMENTS, 0.5f);
