@@ -97,7 +97,7 @@ void main(void)
       v_View = normalize(v_Position - vec3(g_ViewMatrixInverse * vec4(0, 0, 0, 1)));
       v_Normal = normalize(vec3(g_WorldMatrix * vec4(inNormal, 0.0))); // object space -> world space
     #if defined(NORMALMAP)      
-      vec3 tangent = normalize(g_WorldMatrix * vec4(inTangent.xyz, 0.0)); // object space -> world space
+      vec3 tangent = normalize(vec3(g_WorldMatrix * vec4(inTangent.xyz, 0.0))); // object space -> world space
       vec3 bitangent = cross(v_Normal, tangent) * -inTangent.w;
       
       // tangent space -> world space matrix
