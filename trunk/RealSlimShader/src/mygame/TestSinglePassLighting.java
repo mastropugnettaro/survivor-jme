@@ -18,7 +18,7 @@ import java.util.logging.Logger;
 public class TestSinglePassLighting extends SimpleApplication
 {
   private static final Logger log = Logger.getLogger(TestSinglePassLighting.class.getName());
-  private static final int SPHERE_SEGMENTS = 32;
+  private static final int SPHERE_SEGMENTS = 32; // warning: TangentBinormalGenerator
   private static final int NUM_LIGHTS = 4;
   
   public static void main(String[] args)
@@ -43,7 +43,7 @@ public class TestSinglePassLighting extends SimpleApplication
   {
     this.setPauseOnLostFocus(false);
     //setDisplayStatView(false);
-    //flyCam.setEnabled(false);
+    flyCam.setEnabled(false);
     flyCam.setMoveSpeed(5);
     viewPort.setBackgroundColor(ColorRGBA.DarkGray);
 
