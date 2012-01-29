@@ -60,7 +60,7 @@ public class TestSinglePassLightingAtSponza extends SimpleApplication {
 
     flyCam.setMoveSpeed(50);
 
-    Material mat = new MaterialSP(assetManager, "MatDefs/Light/LightingSP.j3md");
+    Material mat = new MaterialSP(assetManager, "MatDefs/Light/WorldSpaceLightingSP.j3md");
     Texture diff = assetManager.loadTexture("Textures/BrickWall.jpg");
     diff.setWrap(Texture.WrapMode.Repeat);
     diff.setAnisotropicFilter(16);
