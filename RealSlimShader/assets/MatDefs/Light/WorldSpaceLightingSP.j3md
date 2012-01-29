@@ -35,11 +35,8 @@ MaterialDef Phong Lighting (Single Pass) {
 
         WorldParameters {
             WorldViewProjectionMatrix
-            WorldViewMatrix
             WorldMatrix
-            ViewMatrix
             ViewMatrixInverse
-            NormalMatrix
         }
 
         Defines {
