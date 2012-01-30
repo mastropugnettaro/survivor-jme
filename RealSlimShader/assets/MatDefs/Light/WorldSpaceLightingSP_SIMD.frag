@@ -121,7 +121,7 @@
       //NdotL = NdotL * correction;
 
       // modulate diffuse by attenuation
-      NdotL = clamp(NdotL - NdotL * attenuation, 0.0, 1.0);
+      NdotL = NdotL - clamp(NdotL * attenuation, 0.0, 1.0);
 
       diffuse = NdotL;
     #endif
@@ -136,8 +136,8 @@
       RdotL += LZ * R.z;
 
       // correct RdotL
-      //RdotL = clamp(RdotL * correction, 0.0, 1.0);
-      RdotL = RdotL * correction;
+      RdotL = clamp(RdotL * correction, 0.0, 1.0);
+      //RdotL = RdotL * correction;
     
       // specular
       //specular = computeSpecularPower(RdotL); // cheap, low quality
