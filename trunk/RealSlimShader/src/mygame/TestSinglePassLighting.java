@@ -3,6 +3,7 @@ package mygame;
 import com.jme3.app.SimpleApplication;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
+import com.jme3.light.PointLight;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
@@ -19,7 +20,7 @@ public class TestSinglePassLighting extends SimpleApplication
 {
   private static final Logger log = Logger.getLogger(TestSinglePassLighting.class.getName());
   private static final int SPHERE_SEGMENTS = 32; // warning: TangentBinormalGenerator
-  private static final int NUM_LIGHTS = 4;
+  private static final int NUM_LIGHTS = 5;
   
   public static void main(String[] args)
   {
@@ -68,7 +69,7 @@ public class TestSinglePassLighting extends SimpleApplication
     rootNode.addLight(al);
   
     float ci = 0.9f / Math.max(NUM_LIGHTS, 1f);
-    for (int i = 0; i < NUM_LIGHTS; i++)
+    for (int i = 0; i < (NUM_LIGHTS-1); i++)
     { 
       float x = 1f + i % 2;
       float y = FastMath.sign(1.5f - i % 4);
@@ -76,6 +77,15 @@ public class TestSinglePassLighting extends SimpleApplication
       dl.setDirection(new Vector3f(x, y, -1f).normalizeLocal());
       dl.setColor(new ColorRGBA(ci, ci, ci, 1.0f));
       rootNode.addLight(dl);
+    }
+    
+    if (NUM_LIGHTS > 0)
+    {
+      PointLight pl = new PointLight();
+      pl.setPosition(new Vector3f(-1f, -1f, 0f));
+      pl.setColor(ColorRGBA.Green);
+      pl.setRadius(1.5f);
+      rootNode.addLight(pl);
     }
     
     log.log(Level.SEVERE, "*** SPHERE_SEGMENTS: {0}, NUM_LIGHTS: {1} ***",

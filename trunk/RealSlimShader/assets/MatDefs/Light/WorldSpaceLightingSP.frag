@@ -84,7 +84,7 @@
       #define NEED_SPECULAR
     #endif
     #if defined(NEED_SPECULAR) || defined(SPECULARMAP)
-      vec3 R = normalize(-reflect(L, N));
+      vec3 R = reflect(-L, N);
       vec4 Ispec = lightColor * pow(max(dot(R, E), 0.0), m_Shininess);
       #ifdef NEED_SPECULAR
         Ispec *= m_Specular;
@@ -126,7 +126,7 @@
 
       // positional or directional light?
       float isPosLight = step(0.5, lightColor.w);
-      L = lightPosition.xyz * sign(isPosLight - 0.5) - v_Position * isPosLight;
+      L = normalize(lightPosition.xyz * sign(isPosLight - 0.5) - v_Position * isPosLight);
 
       calculateFragmentColor(N, L, E, lightColor, gl_FragColor);
     }

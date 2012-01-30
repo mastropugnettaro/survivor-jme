@@ -60,7 +60,8 @@ public class TestSinglePassLightingAtSponza extends SimpleApplication {
 
     flyCam.setMoveSpeed(50);
 
-    Material mat = new MaterialSP(assetManager, "MatDefs/Light/WorldSpaceLightingSP.j3md");
+    Material mat = new MaterialSP(assetManager, "MatDefs/Light/WorldSpaceLightingSP_SIMD.j3md");
+    //Material mat = new MaterialSP(assetManager, "MatDefs/Light/Lighting.j3md");
     Texture diff = assetManager.loadTexture("Textures/BrickWall.jpg");
     diff.setWrap(Texture.WrapMode.Repeat);
     diff.setAnisotropicFilter(16);
@@ -83,10 +84,10 @@ public class TestSinglePassLightingAtSponza extends SimpleApplication {
     model.setMaterial(mat);
     rootNode.attachChild(model);
 
-    FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
-    SSAOFilter ssaoFilter = new SSAOFilter(12.940201f, 43.928635f, 0.32999992f, 0.6059958f);
-    fpp.addFilter(ssaoFilter);
-    viewPort.addProcessor(fpp);
+//    FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
+//    SSAOFilter ssaoFilter = new SSAOFilter(12.940201f, 43.928635f, 0.32999992f, 0.6059958f);
+//    fpp.addFilter(ssaoFilter);
+//    viewPort.addProcessor(fpp);
 
     log.log(Level.SEVERE, "*** NUM_LIGHTS: {0} ***", NUM_LIGHTS_HALF * 2);
   }
