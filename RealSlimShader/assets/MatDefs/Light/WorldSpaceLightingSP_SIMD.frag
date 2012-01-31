@@ -106,7 +106,7 @@
 
       // attenuation
       // 1 - d^2 / r^2 for diffuse
-      vec4 attenuation = squaredLengths * LW;
+      vec4 attenuation = clamp(squaredLengths * LW, 0.0, 1.0);
     #endif
 
     #if defined(NEED_DIFFUSE) || defined(DIFFUSEMAP)
@@ -121,7 +121,7 @@
       //NdotL = NdotL * correction;
 
       // modulate diffuse by attenuation
-      NdotL = NdotL - clamp(NdotL * attenuation, 0.0, 1.0);
+      NdotL = NdotL - NdotL * attenuation;
 
       diffuse = NdotL;
     #endif
@@ -136,8 +136,8 @@
       RdotL += LZ * R.z;
 
       // correct RdotL
-      RdotL = clamp(RdotL * correction, 0.0, 1.0);
-      //RdotL = RdotL * correction;
+      //RdotL = clamp(RdotL * correction, 0.0, 1.0);
+      RdotL = RdotL * correction;
     
       // specular
       //specular = computeSpecularPower(RdotL); // cheap, low quality
@@ -199,22 +199,26 @@
       specularSum += specularQuad[3] * g_LightColor[i+3];
     }
 
-    #ifdef NEED_DIFFUSE
-      diffuseSum *= m_Diffuse;
-    #endif
-    #ifdef DIFFUSEMAP
-      diffuseSum *= texture2D(m_DiffuseMap, v_TexCoord);
-    #endif
-
-    #ifdef NEED_SPECULAR
-      specularSum *= m_Specular;
-    #endif
-    #ifdef SPECULARMAP
-      specularSum *= texture2D(m_SpecularMap, v_TexCoord);
+    #if defined(NEED_DIFFUSE) || defined(DIFFUSEMAP)
+      #ifdef NEED_DIFFUSE
+        diffuseSum *= m_Diffuse;
+      #endif
+      #ifdef DIFFUSEMAP
+        diffuseSum *= texture2D(m_DiffuseMap, v_TexCoord);
+      #endif      
+      gl_FragColor += diffuseSum;
     #endif
 
-    gl_FragColor += diffuseSum + specularSum;
-    gl_FragColor.rgb = vec4(clamp(gl_FragColor.rgb, 0.0, 1.0), 1.0);
+    #if defined(NEED_SPECULAR) || defined(SPECULARMAP)
+      #ifdef NEED_SPECULAR
+        specularSum *= m_Specular;
+      #endif
+      #ifdef SPECULARMAP
+        specularSum *= texture2D(m_SpecularMap, v_TexCoord);
+      #endif
+      gl_FragColor += specularSum;
+    #endif
+    //gl_FragColor = vec4(clamp(gl_FragColor.rgb, 0.0, 1.0), 1.0);
   }
 
 #endif
