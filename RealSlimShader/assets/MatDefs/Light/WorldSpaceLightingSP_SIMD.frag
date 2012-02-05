@@ -88,8 +88,16 @@
   void calculateLightVector(const in vec4 lightPosition, const in vec4 lightColor, const in vec3 P, out vec4 L)
   {
     // positional or directional light?
-    float isPosLight = step(0.5, lightColor.w);
-    L = vec4(lightPosition.xyz * sign(isPosLight - 0.5) - P * isPosLight, lightPosition.w);
+    //float isPosLight = step(0.5, lightColor.w);
+    //L = vec4(lightPosition.xyz * sign(isPosLight - 0.5) - P * isPosLight, lightPosition.w);
+    if (lightColor.w == 0.0)
+    {
+      L = vec4(-lightPosition.xyz, 0.0);
+    }
+    else
+    {
+      L = vec4(lightPosition.xyz - P, 1.0);
+    }
   }
 
   void computeLighting4(
@@ -98,15 +106,13 @@
   {
     #if defined(NEED_DIFFUSE) || defined(DIFFUSEMAP) || defined(NEED_SPECULAR) || defined(SPECULARMAP)
       // compute squared lengths in parallel
-      vec4 squaredLengths = vec4(0.00000001);
-      squaredLengths += pow(LX, vec4(2.0));
-      squaredLengths += pow(LY, vec4(2.0));
-      squaredLengths += pow(LZ, vec4(2.0));
-      vec4 correction = vec4(1.0) / sqrt(squaredLengths);
+      vec4 squaredLengths = LX * LX + LY * LY + LZ * LZ;
+      vec4 len = sqrt(squaredLengths) + vec4(0.00000001);
 
       // attenuation
       // 1 - d^2 / r^2 for diffuse
-      vec4 attenuation = clamp(squaredLengths * LW, 0.0, 1.0);
+      //vec4 attenuation = clamp(squaredLengths * LW, 0.0, 1.0);
+      vec4 attenuation = squaredLengths * LW;
     #endif
 
     #if defined(NEED_DIFFUSE) || defined(DIFFUSEMAP)
@@ -116,12 +122,11 @@
       NdotL += LY * N.y;
       NdotL += LZ * N.z;
 
-      // correct NdotL
-      NdotL = clamp(NdotL * correction, 0.0, 1.0);
-      //NdotL = NdotL * correction;
+      // normalize NdotL
+      NdotL = clamp(NdotL / len, 0.0, 1.0);
 
       // modulate diffuse by attenuation
-      NdotL = NdotL - NdotL * attenuation;
+      NdotL = NdotL - clamp(NdotL * attenuation, 0.0, 1.0);
 
       diffuse = NdotL;
     #endif
@@ -135,9 +140,9 @@
       RdotL += LY * R.y;
       RdotL += LZ * R.z;
 
-      // correct RdotL
-      //RdotL = clamp(RdotL * correction, 0.0, 1.0);
-      RdotL = RdotL * correction;
+      // normalize RdotL
+      //RdotL = clamp(RdotL / len, 0.0, 1.0);
+      RdotL = RdotL / len;
     
       // specular
       //specular = computeSpecularPower(RdotL); // cheap, low quality
@@ -205,7 +210,7 @@
       #endif
       #ifdef DIFFUSEMAP
         diffuseSum *= texture2D(m_DiffuseMap, v_TexCoord);
-      #endif      
+      #endif
       gl_FragColor += diffuseSum;
     #endif
 
@@ -218,7 +223,6 @@
       #endif
       gl_FragColor += specularSum;
     #endif
-    //gl_FragColor = vec4(clamp(gl_FragColor.rgb, 0.0, 1.0), 1.0);
   }
 
 #endif
