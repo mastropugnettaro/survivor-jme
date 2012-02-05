@@ -15,12 +15,17 @@ import com.jme3.system.AppSettings;
 import com.jme3.util.TangentBinormalGenerator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
+import org.lwjgl.opengl.GL20;
+import org.lwjgl.opengl.GL21;
+import org.lwjgl.opengl.GL30;
 
 public class TestSinglePassLighting extends SimpleApplication
 {
   private static final Logger log = Logger.getLogger(TestSinglePassLighting.class.getName());
   private static final int SPHERE_SEGMENTS = 32; // warning: TangentBinormalGenerator
-  private static final int NUM_LIGHTS = 5;
+  private static final int NUM_LIGHTS = 4;
   
   public static void main(String[] args)
   {
@@ -69,7 +74,7 @@ public class TestSinglePassLighting extends SimpleApplication
     rootNode.addLight(al);
   
     float ci = 0.9f / Math.max(NUM_LIGHTS, 1f);
-    for (int i = 0; i < (NUM_LIGHTS-1); i++)
+    for (int i = 0; i < NUM_LIGHTS; i++)
     { 
       float x = 1f + i % 2;
       float y = FastMath.sign(1.5f - i % 4);
@@ -79,14 +84,24 @@ public class TestSinglePassLighting extends SimpleApplication
       rootNode.addLight(dl);
     }
     
-    if (NUM_LIGHTS > 0)
-    {
-      PointLight pl = new PointLight();
-      pl.setPosition(new Vector3f(-1f, -1f, 0f));
-      pl.setColor(ColorRGBA.Green);
-      pl.setRadius(1.5f);
-      rootNode.addLight(pl);
-    }
+//    if (NUM_LIGHTS > 0)
+//    {
+//      PointLight pl = new PointLight();
+//      pl.setPosition(new Vector3f(-1f, -1f, 0f));
+//      pl.setColor(ColorRGBA.Green);
+//      pl.setRadius(1.5f);
+//      rootNode.addLight(pl);
+//    }
+    
+    log.log(Level.SEVERE, "\n" +
+      "GL_MAX_LIGHTS: " + GL11.glGetInteger(GL11.GL_MAX_LIGHTS) + "\n" +
+      "GL_MAX_TEXTURE_COORDS: " + GL11.glGetInteger(GL20.GL_MAX_TEXTURE_COORDS) + "\n" +
+      "GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS: " + GL11.glGetInteger(GL20.GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS) + "\n" +
+      "MAX_VERTEX_ATTRIBS: " + GL11.glGetInteger(GL20.GL_MAX_VERTEX_ATTRIBS) + "\n" +
+      "GL_MAX_VERTEX_UNIFORM_COMPONENTS: " + GL11.glGetInteger(GL20.GL_MAX_VERTEX_UNIFORM_COMPONENTS) + "\n" +
+      "GL_MAX_VARYING_FLOATS: " + GL11.glGetInteger(GL20.GL_MAX_VARYING_FLOATS) + "\n" + 
+      "GL_MAX_FRAGMENT_UNIFORM_COMPONENTS: " + GL11.glGetInteger(GL20.GL_MAX_FRAGMENT_UNIFORM_COMPONENTS) + "\n" +
+      "");
     
     log.log(Level.SEVERE, "*** SPHERE_SEGMENTS: {0}, NUM_LIGHTS: {1} ***",
       new Object[] { SPHERE_SEGMENTS, NUM_LIGHTS });
