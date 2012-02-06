@@ -103,13 +103,13 @@
     vec3 E; // eye vector
     vec3 L; // light vector
 
-    V = v_View;
+    V = normalize(v_View);
     E = -V;
 
     #ifdef NORMALMAP
       N = vec3(texture2D(m_NormalMap, v_TexCoord) * v_NormalMapMatrix);
     #else
-      N = v_Normal;
+      N = normalize(v_Normal);
     #endif
 
     //calculate Ambient Term:
@@ -125,8 +125,16 @@
       vec4 lightColor = g_LightColor[i];
 
       // positional or directional light?
-      float isPosLight = step(0.5, lightColor.w);
-      L = normalize(lightPosition.xyz * sign(isPosLight - 0.5) - v_Position * isPosLight);
+      //float isPosLight = step(0.5, lightColor.w);
+      //L = normalize(lightPosition.xyz * sign(isPosLight - 0.5) - v_Position * isPosLight);
+      if (lightColor.w == 0.0)
+      {
+        L = -lightPosition.xyz;
+      }
+      else
+      {
+        L = normalize(lightPosition.xyz - v_Position);
+      }
 
       calculateFragmentColor(N, L, E, lightColor, gl_FragColor);
     }

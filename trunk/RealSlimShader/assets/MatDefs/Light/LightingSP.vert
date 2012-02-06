@@ -12,6 +12,7 @@ attribute vec3 inNormal;
 
 uniform mat4 g_WorldViewProjectionMatrix;
 uniform mat4 g_WorldViewMatrix;
+uniform mat4 g_WorldMatrix;
 uniform mat4 g_ViewMatrix;
 uniform mat3 g_NormalMatrix;
 
@@ -79,6 +80,7 @@ uniform mat3 g_NormalMatrix;
 #else // per fragment lighting
 
   varying vec3 v_Position;
+  varying vec3 v_View;
   varying vec3 v_Normal;
 
   #if defined(NORMALMAP)
@@ -96,14 +98,16 @@ void main(void)
   #ifdef VERTEX_LIGHTING
     doPerVertexLighting(position);
   #else
-      v_Position = vec3(g_WorldViewMatrix * position); // object space -> view space
-      v_Normal = normalize(g_NormalMatrix * inNormal); // object space -> view space
+    v_Position = vec3(g_WorldMatrix * position); // object space -> world space
+    v_View = normalize(vec3(g_WorldViewMatrix * position)); // object space -> view space
+    v_Normal = normalize(g_NormalMatrix * inNormal); // object space -> view space
+
     #if defined(NORMALMAP)      
       v_Tangent = normalize(g_NormalMatrix * inTangent.xyz); // object space -> view space
       v_Bitangent = cross(v_Normal, v_Tangent) * -inTangent.w;
 
       // view space -> tangent space
-      v_Position = v_Position * mat3(v_Tangent, v_Bitangent, v_Normal);
+      //v_Position = v_Position * mat3(v_Tangent, v_Bitangent, v_Normal);
     #endif
   #endif
 

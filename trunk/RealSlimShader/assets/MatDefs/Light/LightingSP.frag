@@ -60,6 +60,7 @@
   uniform float m_Shininess;
 
   varying vec3 v_Position;
+  varying vec3 v_View;
   varying vec3 v_Normal;
 
   #if defined(NORMALMAP)
@@ -108,7 +109,7 @@
     vec3 E; // eye vector
     vec3 L; // light vector
 
-    V = normalize(v_Position);
+    V = normalize(v_View);
     E = -V;
 
     #ifdef NORMALMAP
@@ -122,7 +123,7 @@
       // world space -> tangent space matrix
       mat4 wsViewTangentMatrix = transpose(vsTangentMatrix) * g_ViewMatrix;
     #else
-      N = v_Normal;
+      N = normalize(v_Normal);
     #endif
 
     //calculate Ambient Term:
@@ -136,19 +137,26 @@
     {
       vec4 lightPosition = g_LightPosition[i];
       vec4 lightColor = g_LightColor[i];
-      vec4 lightVector;
+      vec3 lightVector;
 
       // positional or directional light?
-      float isPosLight = step(0.5, lightColor.w);
-      lightVector = vec4(lightPosition.xyz * sign(isPosLight - 0.5) - v_Position * isPosLight,
-        clamp(lightColor.w, 0.0, 1.0));
+      //float isPosLight = step(0.5, lightColor.w);
+      //lightVector = normalize(lightPosition.xyz * sign(isPosLight - 0.5) - v_Position * isPosLight);
+      if (lightColor.w == 0)
+      {
+        lightVector = -lightPosition.xyz;
+      }
+      else
+      {
+        lightVector = lightPosition.xyz - v_Position;
+      }
 
       #ifdef NORMALMAP
         // world space -> tangent space
-        L = vec3(wsViewTangentMatrix * lightVector);
+        L = vec3(wsViewTangentMatrix * vec4(lightVector, 0.0));
       #else        
         // world space -> view space
-        L = vec3(g_ViewMatrix * lightVector);
+        L = vec3(g_ViewMatrix * vec4(lightVector, 0.0));
       #endif
 
       L = normalize(L);
