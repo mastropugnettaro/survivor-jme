@@ -111,8 +111,7 @@
 
       // attenuation
       // 1 - d^2 / r^2 for diffuse
-      //vec4 attenuation = clamp(squaredLengths * LW, 0.0, 1.0);
-      vec4 attenuation = squaredLengths * LW;
+      vec4 attenuation = clamp(squaredLengths * LW, 0.0, 1.0);
     #endif
 
     #if defined(NEED_DIFFUSE) || defined(DIFFUSEMAP)

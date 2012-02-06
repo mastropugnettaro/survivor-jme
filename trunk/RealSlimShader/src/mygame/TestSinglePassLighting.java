@@ -9,6 +9,7 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
+import com.jme3.scene.Node;
 import com.jme3.scene.shape.Sphere;
 import com.jme3.scene.shape.Sphere.TextureMode;
 import com.jme3.system.AppSettings;
@@ -60,10 +61,14 @@ public class TestSinglePassLighting extends SimpleApplication
     sphere.rotate(FastMath.HALF_PI, 0f, 0f);
     Material sphereMat = new MaterialSP("Materials/Rock.j3m", assetManager);    
     sphere.setMaterial(sphereMat);
-    rootNode.attachChild(sphere);
 
-    cam.setLocation(new Vector3f(-1f, 1f, 0f));
-    cam.lookAt(Vector3f.ZERO.clone(), Vector3f.UNIT_Y.clone());
+    Node node = new Node();
+    node.setLocalTranslation(1f, 1f, 1f);
+    node.attachChild(sphere);
+    rootNode.attachChild(node);
+
+    cam.setLocation(new Vector3f(0f, 2f, 1f));
+    cam.lookAt(node.getLocalTranslation().clone(), Vector3f.UNIT_Y.clone());
     cam.setFrustumPerspective(45, (float) settings.getWidth() / settings.getHeight(), 0.1f, 100.0f);
 
     AmbientLight al;
@@ -84,14 +89,14 @@ public class TestSinglePassLighting extends SimpleApplication
       rootNode.addLight(dl);
     }
     
-//    if (NUM_LIGHTS > 0)
-//    {
-//      PointLight pl = new PointLight();
-//      pl.setPosition(new Vector3f(-1f, -1f, 0f));
-//      pl.setColor(ColorRGBA.Green);
-//      pl.setRadius(1.5f);
-//      rootNode.addLight(pl);
-//    }
+    if (NUM_LIGHTS > 0)
+    {
+      PointLight pl = new PointLight();
+      pl.setPosition(new Vector3f(0f, 0f, 1f));
+      pl.setColor(ColorRGBA.Green);
+      pl.setRadius(1.5f);
+      rootNode.addLight(pl);
+    }
     
     log.log(Level.SEVERE, "\n" +
       "GL_MAX_LIGHTS: " + GL11.glGetInteger(GL11.GL_MAX_LIGHTS) + "\n" +

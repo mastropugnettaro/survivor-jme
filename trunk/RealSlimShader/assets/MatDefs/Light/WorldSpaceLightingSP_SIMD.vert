@@ -96,8 +96,12 @@ void main(void)
   #ifdef VERTEX_LIGHTING
     doPerVertexLighting(position);
   #else
-      v_Position = vec3(g_WorldMatrix * position); // object space -> world space      
+      v_Position = vec3(g_WorldMatrix * position);
+      //vec4 wPosition4 = g_WorldMatrix * position; // object space -> world space
+      //v_Position = wPosition4.xyz / wPosition4.w;
+
       v_View = normalize(v_Position - vec3(g_ViewMatrixInverse * vec4(0, 0, 0, 1)));
+
       v_Normal = normalize(vec3(g_WorldMatrix * vec4(inNormal, 0.0))); // object space -> world space
     #if defined(NORMALMAP)      
       vec3 tangent = normalize(vec3(g_WorldMatrix * vec4(inTangent.xyz, 0.0))); // object space -> world space
