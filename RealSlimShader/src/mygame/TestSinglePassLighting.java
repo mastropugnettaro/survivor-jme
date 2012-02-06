@@ -17,10 +17,7 @@ import com.jme3.util.TangentBinormalGenerator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GL20;
-import org.lwjgl.opengl.GL21;
-import org.lwjgl.opengl.GL30;
 
 public class TestSinglePassLighting extends SimpleApplication
 {
@@ -50,7 +47,7 @@ public class TestSinglePassLighting extends SimpleApplication
   {
     this.setPauseOnLostFocus(false);
     //setDisplayStatView(false);
-    flyCam.setEnabled(false);
+    //flyCam.setEnabled(false);
     flyCam.setMoveSpeed(3);
     viewPort.setBackgroundColor(ColorRGBA.DarkGray);
 
@@ -89,14 +86,11 @@ public class TestSinglePassLighting extends SimpleApplication
       rootNode.addLight(dl);
     }
     
-    if (NUM_LIGHTS > 0)
-    {
-      PointLight pl = new PointLight();
-      pl.setPosition(new Vector3f(0f, 0f, 1f));
-      pl.setColor(ColorRGBA.Green);
-      pl.setRadius(1.5f);
-      rootNode.addLight(pl);
-    }
+    PointLight pl = new PointLight();
+    pl.setPosition(new Vector3f(0f, 0f, 1f));
+    pl.setColor(ColorRGBA.Green);
+    pl.setRadius(1.5f);
+    rootNode.addLight(pl);
     
     log.log(Level.SEVERE, "\n" +
       "GL_MAX_LIGHTS: " + GL11.glGetInteger(GL11.GL_MAX_LIGHTS) + "\n" +

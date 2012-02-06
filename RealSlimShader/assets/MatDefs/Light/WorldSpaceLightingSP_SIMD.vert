@@ -95,10 +95,8 @@ void main(void)
 
   #ifdef VERTEX_LIGHTING
     doPerVertexLighting(position);
-  #else
-      v_Position = vec3(g_WorldMatrix * position);
-      //vec4 wPosition4 = g_WorldMatrix * position; // object space -> world space
-      //v_Position = wPosition4.xyz / wPosition4.w;
+  #else      
+      v_Position = vec3(g_WorldMatrix * position); // object space -> world space
 
       v_View = normalize(v_Position - vec3(g_ViewMatrixInverse * vec4(0, 0, 0, 1)));
 
