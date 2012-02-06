@@ -111,7 +111,8 @@
 
       // attenuation
       // 1 - d^2 / r^2 for diffuse
-      vec4 attenuation = clamp(squaredLengths * LW, 0.0, 1.0);
+      //vec4 attenuation = clamp(squaredLengths * LW, 0.0, 1.0);
+      vec4 attenuation = clamp(1 - squaredLengths * LW, 0.0, 1.0);
     #endif
 
     #if defined(NEED_DIFFUSE) || defined(DIFFUSEMAP)
@@ -122,7 +123,8 @@
       diffuse = clamp(NdotL / len, 0.0, 1.0);
 
       // modulate diffuse by attenuation
-      diffuse = diffuse - clamp(diffuse * attenuation, 0.0, 1.0);
+      //diffuse = diffuse - clamp(diffuse * attenuation, 0.0, 1.0);
+      diffuse *= attenuation;
     #endif
 
     #if defined(NEED_SPECULAR) || defined(SPECULARMAP)
@@ -143,7 +145,8 @@
       specular[3] = pow(max(RdotL[3], 0.0), m_Shininess);
 
       // modulate specular by attenuation
-      specular = specular - clamp(specular * attenuation, 0.0, 1.0);
+      //specular = specular - clamp(specular * attenuation, 0.0, 1.0);
+      specular *= attenuation;
     #endif
   }
 
@@ -155,7 +158,7 @@
     V = v_View;
 
     #ifdef NORMALMAP
-      N = vec3(normalize(texture2D(m_NormalMap, v_TexCoord) * v_NormalMapMatrix));
+      N = normalize(texture2D(m_NormalMap, v_TexCoord) * v_NormalMapMatrix);
     #else
       N = normalize(v_Normal);
     #endif

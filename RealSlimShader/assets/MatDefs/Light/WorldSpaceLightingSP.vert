@@ -27,7 +27,8 @@ uniform mat4 g_ViewMatrixInverse;
   #endif
   uniform float m_Shininess;
 
-  void calculateVertexColor(const in vec3 N, const in vec3 L, const in vec3 E, const in vec4 lightColor, inout vec4 vertexColor)
+  void calculateVertexColor(const in vec3 N, const in vec3 L, const in vec3 E, 
+    const in vec4 lightColor, const in float attenuation, inout vec4 vertexColor)
   {
     // calculate Diffuse Term:
     vec4 Idiff = lightColor * max(dot(N, L), 0.0);
@@ -42,7 +43,7 @@ uniform mat4 g_ViewMatrixInverse;
       Ispec *= m_Specular;
     #endif
 
-    vertexColor += Idiff + Ispec;
+    vertexColor += (Idiff + Ispec) * attenuation;
   }
 
   void doPerVertexLighting(const in vec4 position)
@@ -52,6 +53,7 @@ uniform mat4 g_ViewMatrixInverse;
     vec3 N; // normal vector
     vec3 E; // eye vector
     vec3 L; // light vector
+    float attenuation;
 
     P = vec3(g_WorldMatrix * position); // object space -> world space
     V = normalize(P - vec3(g_ViewMatrixInverse * vec4(0, 0, 0, 1)));
@@ -65,11 +67,20 @@ uniform mat4 g_ViewMatrixInverse;
       vec4 lightColor = g_LightColor[i];
 
       // positional or directional light?
-      float isPosLight = step(0.5, lightColor.w);
-      L = vec4(lightPosition.xyz * sign(isPosLight - 0.5) - P * isPosLight,
-        clamp(lightColor.w, 0.0, 1.0));
+      if (lightColor.w == 0.0)
+      {
+        L = -lightPosition.xyz;
+        attenuation = 1.0;
+      }
+      else
+      {
+        L = lightPosition.xyz - P;
+        float dist = length(L);
+        L /= vec3(dist);
+        attenuation = clamp(1.0 - lightPosition.w * dist, 0.0, 1.0);
+      }
       
-      calculateVertexColor(N, L, E, lightColor, gl_FrontColor);
+      calculateVertexColor(N, L, E, lightColor, attenuation, gl_FrontColor);
     }
   }
 
