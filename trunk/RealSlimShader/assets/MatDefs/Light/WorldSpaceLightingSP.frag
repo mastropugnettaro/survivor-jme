@@ -62,8 +62,11 @@
     varying mat4 v_NormalMapMatrix;
   #endif
 
-  void calculateFragmentColor(const in vec3 N, const in vec3 L, const in vec3 E, const in vec4 lightColor, inout vec4 fragColor)
+  void calculateFragmentColor(const in vec3 N, const in vec3 L, const in vec3 E, 
+    const in vec4 lightColor, const in float attenuation, inout vec4 fragColor)
   {
+    vec4 fragColorSum = vec4(0.0);
+
     // calculate Diffuse Term:
     #if defined(MATERIAL_COLORS) && defined(DIFFUSE)
       #define NEED_DIFFUSE
@@ -76,7 +79,7 @@
       #ifdef DIFFUSEMAP
         Idiff *= texture2D(m_DiffuseMap, v_TexCoord);
       #endif
-      fragColor += Idiff;
+      fragColorSum += Idiff;
     #endif
 
     // calculate Specular Term:
@@ -92,8 +95,10 @@
       #ifdef SPECULARMAP
         Idiff *= texture2D(m_SpecularMap, v_TexCoord);
       #endif
-      fragColor += Ispec;
+      fragColorSum += Ispec;
     #endif
+
+    fragColor += fragColorSum * attenuation;
   }
 
   void doPerFragmentLighting()
@@ -102,6 +107,7 @@
     vec3 N; // normal vector
     vec3 E; // eye vector
     vec3 L; // light vector
+    float attenuation;
 
     V = normalize(v_View);
     E = -V;
@@ -125,18 +131,20 @@
       vec4 lightColor = g_LightColor[i];
 
       // positional or directional light?
-      //float isPosLight = step(0.5, lightColor.w);
-      //L = normalize(lightPosition.xyz * sign(isPosLight - 0.5) - v_Position * isPosLight);
       if (lightColor.w == 0.0)
       {
         L = -lightPosition.xyz;
+        attenuation = 1.0;
       }
       else
       {
-        L = normalize(lightPosition.xyz - v_Position);
+        L = lightPosition.xyz - v_Position;
+        float dist = length(L);
+        L /= vec3(dist);
+        attenuation = clamp(1.0 - lightPosition.w * dist, 0.0, 1.0);
       }
 
-      calculateFragmentColor(N, L, E, lightColor, gl_FragColor);
+      calculateFragmentColor(N, L, E, lightColor, attenuation, gl_FragColor);
     }
   }
 
