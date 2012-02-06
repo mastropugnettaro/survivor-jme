@@ -158,7 +158,7 @@
     V = v_View;
 
     #ifdef NORMALMAP
-      N = normalize(texture2D(m_NormalMap, v_TexCoord) * v_NormalMapMatrix);
+      N = vec3(normalize(texture2D(m_NormalMap, v_TexCoord) * v_NormalMapMatrix));
     #else
       N = normalize(v_Normal);
     #endif
