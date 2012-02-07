@@ -92,7 +92,13 @@ uniform mat4 g_ViewMatrixInverse;
 
   #if defined(NORMALMAP)
     attribute vec4 inTangent;
-    varying mat4 v_NormalMapMatrix;
+    #define HQ_NORMALMAPPING
+    #ifdef HQ_NORMALMAPPING
+      varying vec3 v_Tangent;
+      varying vec3 v_Bitangent;
+    #else
+      varying mat4 v_NormalMapMatrix;
+    #endif
   #endif
 
 #endif
@@ -108,24 +114,29 @@ void main(void)
     v_View = normalize(v_Position - vec3(g_ViewMatrixInverse * vec4(0, 0, 0, 1)));
     v_Normal = normalize(vec3(g_WorldMatrix * vec4(inNormal, 0.0))); // object space -> world space
 
-    #if defined(NORMALMAP)      
-      vec3 tangent = normalize(vec3(g_WorldMatrix * vec4(inTangent.xyz, 0.0))); // object space -> world space
-      vec3 bitangent = cross(v_Normal, tangent) * -inTangent.w;
-      
-      // tangent space -> world space matrix
-      v_NormalMapMatrix[0] = vec4(tangent.x, bitangent.x, v_Normal.x, 0);
-      v_NormalMapMatrix[1] = vec4(tangent.y, bitangent.y, v_Normal.y, 0);
-      v_NormalMapMatrix[2] = vec4(tangent.z, bitangent.z, v_Normal.z, 0);
-      v_NormalMapMatrix[3] = vec4(        0,           0,          0, 1);
+    #if defined(NORMALMAP)
+      #ifdef HQ_NORMALMAPPING
+        v_Tangent = normalize(vec3(g_WorldMatrix * vec4(inTangent.xyz, 0.0))); // object space -> world space
+        v_Bitangent = cross(v_Normal, v_Tangent) * -inTangent.w;
+      #else
+        vec3 tangent = normalize(vec3(g_WorldMatrix * vec4(inTangent.xyz, 0.0))); // object space -> world space
+        vec3 bitangent = cross(v_Normal, tangent) * -inTangent.w;
 
-      // normal [0, 1] -> [-1, 1] expansion
-      mat4 expansionMatrix = mat4(2, 0, 0, -1,
-                                  0, 2, 0, -1,
-                                  0, 0, 2, -1,
-                                  0, 0, 0,  1);
+        // tangent space -> world space matrix
+        v_NormalMapMatrix[0] = vec4(tangent.x, bitangent.x, v_Normal.x, 0);
+        v_NormalMapMatrix[1] = vec4(tangent.y, bitangent.y, v_Normal.y, 0);
+        v_NormalMapMatrix[2] = vec4(tangent.z, bitangent.z, v_Normal.z, 0);
+        v_NormalMapMatrix[3] = vec4(        0,           0,          0, 1);
 
-      // normal map transformation matrix
-      v_NormalMapMatrix = expansionMatrix * v_NormalMapMatrix;
+        // normal [0, 1] -> [-1, 1] expansion
+        mat4 expansionMatrix = mat4(2, 0, 0, -1,
+                                    0, 2, 0, -1,
+                                    0, 0, 2, -1,
+                                    0, 0, 0,  1);
+
+        // normal map transformation matrix
+        v_NormalMapMatrix = expansionMatrix * v_NormalMapMatrix;
+      #endif
     #endif
   #endif
 

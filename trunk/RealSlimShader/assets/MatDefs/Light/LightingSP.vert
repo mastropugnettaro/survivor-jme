@@ -107,7 +107,7 @@ void main(void)
       v_Bitangent = cross(v_Normal, v_Tangent) * -inTangent.w;
 
       // view space -> tangent space
-      //v_Position = v_Position * mat3(v_Tangent, v_Bitangent, v_Normal);
+      v_View = v_View * mat3(v_Tangent, v_Bitangent, v_Normal);
     #endif
   #endif
 

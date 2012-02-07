@@ -1,11 +1,10 @@
-Material Rock : MatDefs/Light/WorldSpaceLightingSP_SIMD.j3md {
+Material Rock : MatDefs/Light/LightingSP.j3md {
      MaterialParameters {
         Specular : 1.0 1.0 1.0 1.0
         Diffuse : 1.0 1.0 1.0 1.0
         Ambient : 1.0 1.0 1.0 1.0
         UseMaterialColors : true
         Shininess : 100.0
-        NormalMap : Textures/debug_normal.png
      }
     AdditionalRenderState {
     }

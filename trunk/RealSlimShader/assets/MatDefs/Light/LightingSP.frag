@@ -68,8 +68,11 @@
     varying vec3 v_Bitangent;
   #endif
 
-  void calculateFragmentColor(const in vec3 N, const in vec3 L, const in vec3 E, const in vec4 lightColor, inout vec4 fragColor)
+  void calculateFragmentColor(const in vec3 N, const in vec3 L, const in vec3 E, 
+    const in vec4 lightColor, const in float attenuation, inout vec4 fragColor)
   {
+    vec4 fragColorSum = vec4(0.0);
+
     // calculate Diffuse Term:
     #if defined(MATERIAL_COLORS) && defined(DIFFUSE)
       #define NEED_DIFFUSE
@@ -82,7 +85,7 @@
       #ifdef DIFFUSEMAP
         Idiff *= texture2D(m_DiffuseMap, v_TexCoord);
       #endif
-      fragColor += Idiff;
+      fragColorSum += Idiff;
     #endif
 
     // calculate Specular Term:
@@ -98,8 +101,10 @@
       #ifdef SPECULARMAP
         Idiff *= texture2D(m_SpecularMap, v_TexCoord);
       #endif
-      fragColor += Ispec;
+      fragColorSum += Ispec;
     #endif
+
+    fragColor += fragColorSum * attenuation;
   }
 
   void doPerFragmentLighting()
@@ -108,17 +113,22 @@
     vec3 N; // normal vector
     vec3 E; // eye vector
     vec3 L; // light vector
+    float attenuation;
 
     V = normalize(v_View);
     E = -V;
 
     #ifdef NORMALMAP
       N = (texture2D(m_NormalMap, v_TexCoord).xyz * vec3(2.0) - vec3(1.0));
+      
+      vec3 tangent = normalize(v_Tangent);
+      vec3 bitangent = normalize(v_Bitangent);
+      vec3 normal = normalize(v_Normal);
 
       // view space -> tangent space matrix
-      mat4 vsTangentMatrix = mat4(vec4(v_Tangent,     0.0),
-                                  vec4(v_Bitangent,   0.0),
-                                  vec4(v_Normal,      0.0),
+      mat4 vsTangentMatrix = mat4(vec4(tangent,       0.0),
+                                  vec4(bitangent,     0.0),
+                                  vec4(normal,        0.0),
                                   vec4(0.0, 0.0, 0.0, 1.0));
       // world space -> tangent space matrix
       mat4 wsViewTangentMatrix = transpose(vsTangentMatrix) * g_ViewMatrix;
@@ -140,15 +150,17 @@
       vec3 lightVector;
 
       // positional or directional light?
-      //float isPosLight = step(0.5, lightColor.w);
-      //lightVector = normalize(lightPosition.xyz * sign(isPosLight - 0.5) - v_Position * isPosLight);
-      if (lightColor.w == 0)
+      if (lightColor.w == 0.0)
       {
         lightVector = -lightPosition.xyz;
+        attenuation = 1.0;
       }
       else
       {
         lightVector = lightPosition.xyz - v_Position;
+        float dist = length(lightVector);
+        lightVector /= vec3(dist);
+        attenuation = clamp(1.0 - lightPosition.w * dist, 0.0, 1.0);
       }
 
       #ifdef NORMALMAP
@@ -160,7 +172,7 @@
       #endif
 
       L = normalize(L);
-      calculateFragmentColor(N, L, E, lightColor, gl_FragColor);
+      calculateFragmentColor(N, L, E, lightColor, attenuation, gl_FragColor);
     }
   }
 
