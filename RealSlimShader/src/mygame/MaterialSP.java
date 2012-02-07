@@ -84,8 +84,9 @@ public class MaterialSP extends Material
     }
 
     numLights = lightList.size();
-    this.getMaterialDef().addMaterialParam(VarType.Int, "NumLights", numLights, null);
-    this.setInt("NumLights", numLights);
+    final int arraySize = Math.max(numLights, 4); // Intel GMA bug
+    this.getMaterialDef().addMaterialParam(VarType.Int, "NumLights", arraySize, null);
+    this.setInt("NumLights", arraySize);
     
     Uniform lightColor = shader.getUniform("g_LightColor");
     Uniform lightPos = shader.getUniform("g_LightPosition");
@@ -134,9 +135,9 @@ public class MaterialSP extends Material
           break;
         default:
           throw new UnsupportedOperationException("Unknown type of light: " + l.getType());
-      }
+      }      
     }
-
+    
     lightList.clear();
   }
 }

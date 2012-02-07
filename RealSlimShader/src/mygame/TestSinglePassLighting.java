@@ -26,8 +26,8 @@ import org.lwjgl.opengl.GL20;
 public class TestSinglePassLighting extends SimpleApplication
 {
   private static final Logger log = Logger.getLogger(TestSinglePassLighting.class.getName());
-  private static final int SPHERE_SEGMENTS = 256;
-  private static final int NUM_LIGHTS = 15;
+  private static final int SPHERE_SEGMENTS = 128;
+  private static final int NUM_LIGHTS = 200;
   
   public static void main(String[] args)
   {
@@ -71,7 +71,7 @@ public class TestSinglePassLighting extends SimpleApplication
     Sphere sphereMesh = null;
     if (SPHERE_SEGMENTS > 128)
     {
-      sphereMesh = loadSphereMesh();
+      //sphereMesh = loadSphereMesh();
     }
     
     if (sphereMesh == null)
@@ -80,7 +80,11 @@ public class TestSinglePassLighting extends SimpleApplication
       sphereMesh = new Sphere(SPHERE_SEGMENTS, SPHERE_SEGMENTS, 0.5f);
       sphereMesh.setTextureMode(TextureMode.Projected);
       TangentBinormalGenerator.generate(sphereMesh);
-      saveSphereMesh(sphereMesh);
+      
+      if (SPHERE_SEGMENTS > 128)
+      {
+        //saveSphereMesh(sphereMesh);
+      }
     }
     
     Geometry sphere = new Geometry("Sphere", sphereMesh);
@@ -119,7 +123,7 @@ public class TestSinglePassLighting extends SimpleApplication
     pl.setPosition(new Vector3f(0f, 0f, 1f));
     pl.setColor(ColorRGBA.Green);
     pl.setRadius(1.5f);
-    rootNode.addLight(pl);    
+    //rootNode.addLight(pl);    
   }
   
   private void saveSphereMesh(Sphere mesh)
