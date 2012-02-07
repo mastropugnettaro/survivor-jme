@@ -165,9 +165,9 @@
       vec3 tangent = normalize(v_Tangent);
       vec3 bitangent = normalize(v_Bitangent);
       vec3 normal = normalize(v_Normal);
-      mat3 tbnMat = mat3(tangent, bitangent, normal);
-      N = vec3(texture2D(m_NormalMap, v_TexCoord) * vec3(2.0) - vec3(1.0));
-      N = normalize(tbnMat * N);
+      mat3 normalMapMatrix = mat3(tangent, bitangent, normal);
+      N = vec3(texture2D(m_NormalMap, v_TexCoord) * 2.0 - 1.0);
+      N = normalize(normalMapMatrix * N);
 
     #else
       N = normalize(v_Normal);
