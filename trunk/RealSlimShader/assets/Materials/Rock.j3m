@@ -5,6 +5,7 @@ Material Rock : MatDefs/Light/LightingSP.j3md {
         Ambient : 1.0 1.0 1.0 1.0
         UseMaterialColors : true
         Shininess : 100.0
+        NormalMap : Textures/BrickWall_normal.jpg
      }
     AdditionalRenderState {
     }

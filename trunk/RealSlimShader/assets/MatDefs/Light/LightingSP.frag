@@ -119,7 +119,7 @@
     E = -V;
 
     #ifdef NORMALMAP
-      N = (texture2D(m_NormalMap, v_TexCoord).xyz * vec3(2.0) - vec3(1.0));
+      N = normalize(texture2D(m_NormalMap, v_TexCoord).xyz * 2.0 - 1.0);
       
       vec3 tangent = normalize(v_Tangent);
       vec3 bitangent = normalize(v_Bitangent);
