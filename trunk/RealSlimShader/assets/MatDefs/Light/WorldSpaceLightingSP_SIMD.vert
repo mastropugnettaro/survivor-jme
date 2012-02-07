@@ -84,7 +84,9 @@ uniform mat4 g_ViewMatrixInverse;
 
   #if defined(NORMALMAP)
     attribute vec4 inTangent;
-    varying mat4 v_NormalMapMatrix;
+    varying vec3 v_Tangent;
+    varying vec3 v_Bitangent;
+    //varying mat4 v_NormalMapMatrix;
   #endif
 
 #endif
@@ -101,6 +103,9 @@ void main(void)
     v_Normal = normalize(vec3(g_WorldMatrix * vec4(inNormal, 0.0))); // object space -> world space
 
     #if defined(NORMALMAP)      
+      v_Tangent = normalize(vec3(g_WorldMatrix * vec4(inTangent.xyz, 0.0))); // object space -> world space
+      v_Bitangent = cross(v_Normal, v_Tangent) * -inTangent.w;
+/*
       vec3 tangent = normalize(vec3(g_WorldMatrix * vec4(inTangent.xyz, 0.0))); // object space -> world space
       vec3 bitangent = cross(v_Normal, tangent) * -inTangent.w;
       
@@ -118,6 +123,7 @@ void main(void)
 
       // normal map transformation matrix
       v_NormalMapMatrix = expansionMatrix * v_NormalMapMatrix;
+*/
     #endif
   #endif
 

@@ -62,7 +62,9 @@
   varying vec3 v_Normal;
 
   #if defined(NORMALMAP)
-    varying mat4 v_NormalMapMatrix;
+    varying vec3 v_Tangent;
+    varying vec3 v_Bitangent;
+    //varying mat4 v_NormalMapMatrix;
   #endif
 
   #if defined(MATERIAL_COLORS) && defined(DIFFUSE)
@@ -158,7 +160,15 @@
     V = v_View;
 
     #ifdef NORMALMAP
-      N = vec3(normalize(texture2D(m_NormalMap, v_TexCoord) * v_NormalMapMatrix));
+      //N = vec3(normalize(texture2D(m_NormalMap, v_TexCoord) * v_NormalMapMatrix));
+
+      vec3 tangent = normalize(v_Tangent);
+      vec3 bitangent = normalize(v_Bitangent);
+      vec3 normal = normalize(v_Normal);
+      mat3 tbnMat = mat3(tangent, bitangent, normal);
+      N = vec3(texture2D(m_NormalMap, v_TexCoord) * vec3(2.0) - vec3(1.0));
+      N = normalize(tbnMat * N);
+
     #else
       N = normalize(v_Normal);
     #endif
