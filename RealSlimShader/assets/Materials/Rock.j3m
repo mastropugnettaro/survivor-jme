@@ -1,12 +1,15 @@
-Material Rock : MatDefs/Light/WorldSpaceLightingSP_SIMD.j3md {
+Material Rock : MatDefs/Light/LightingSP.j3md {
      MaterialParameters {
         Diffuse : 1.0 1.0 1.0 1.0
         Ambient : 1.0 1.0 1.0 1.0
         UseMaterialColors : true
         Shininess : 100.0
-        NormalMap : Textures/BrickWall_normal.jpg
         DiffuseMap : Textures/BrickWall.jpg
         Specular : 1.0 1.0 1.0 1.0
+        ParallaxMap : Textures/BrickWall_height.jpg
+        ParallaxHeight : 0.04
+        NormalMap : Textures/BrickWall_normal.jpg
+        ParallaxAO : 40.0
      }
     AdditionalRenderState {
     }

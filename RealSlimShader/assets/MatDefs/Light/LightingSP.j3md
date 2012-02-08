@@ -25,6 +25,15 @@ MaterialDef Phong Lighting (Single Pass) {
 
         // Normal map
         Texture2D NormalMap
+
+        // Parallax/height map
+        Texture2D ParallaxMap
+
+        //Sets the relief height for parallax mapping
+        Float ParallaxHeight : 0.05       
+
+        //Sets the relief height for parallax mapping
+        Float ParallaxAO : 40.0       
     }
 
     Technique {
@@ -52,6 +61,7 @@ MaterialDef Phong Lighting (Single Pass) {
             SPECULAR : Specular
             DIFFUSEMAP : DiffuseMap
             NORMALMAP : NormalMap
+            PARALLAXMAP : ParallaxMap
         }
     }
 
