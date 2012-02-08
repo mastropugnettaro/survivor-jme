@@ -105,7 +105,7 @@ public class TestSinglePassLighting extends SimpleApplication
     DirectionalLight dl;
             
     al = new AmbientLight();
-    al.setColor(new ColorRGBA(0.05f, 0.05f, 0.05f, 1f));
+    al.setColor(new ColorRGBA(0.2f, 0.2f, 0.2f, 1f));
     rootNode.addLight(al);
   
     float ci = 0.9f / Math.max(NUM_LIGHTS, 1f);
