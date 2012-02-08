@@ -26,8 +26,8 @@ import org.lwjgl.opengl.GL20;
 public class TestSinglePassLighting extends SimpleApplication
 {
   private static final Logger log = Logger.getLogger(TestSinglePassLighting.class.getName());
-  private static final int SPHERE_SEGMENTS = 256;
-  private static final int NUM_LIGHTS = 247;
+  private static final int SPHERE_SEGMENTS = 32;
+  private static final int NUM_LIGHTS = 4;
   
   public static void main(String[] args)
   {
@@ -51,7 +51,7 @@ public class TestSinglePassLighting extends SimpleApplication
   {
     this.setPauseOnLostFocus(false);
     //setDisplayStatView(false);
-    flyCam.setEnabled(false);
+    //flyCam.setEnabled(false);
     flyCam.setMoveSpeed(3);
     viewPort.setBackgroundColor(ColorRGBA.DarkGray);
 
