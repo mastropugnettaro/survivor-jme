@@ -94,15 +94,13 @@
   void calculateLightVector(const in vec4 lightPosition, const in vec4 lightColor, const in vec3 P, out vec4 L)
   {
     // positional or directional light?
-    //float isPosLight = step(0.5, lightColor.w);
-    //L = vec4(lightPosition.xyz * sign(isPosLight - 0.5) - P * isPosLight, lightPosition.w);
     if (lightColor.w == 0.0)
     {
       L = vec4(-lightPosition.xyz, 0.0);
     }
     else
     {
-      L = vec4(normalize(lightPosition.xyz - P), lightPosition.w);
+      L = vec4(lightPosition.xyz - P, lightPosition.w);
     }
   }
 
@@ -113,11 +111,10 @@
     #if defined(NEED_DIFFUSE) || defined(DIFFUSEMAP) || defined(NEED_SPECULAR) || defined(SPECULARMAP)
       // compute squared lengths in parallel
       vec4 squaredLengths = LX * LX + LY * LY + LZ * LZ;
-      vec4 len = sqrt(squaredLengths) + vec4(0.00000001); // prevent div by zero
+      vec4 len = sqrt(squaredLengths) + vec4(0.000001); // prevent div by zero
 
       // attenuation
       // 1 - d^2 / r^2 for diffuse
-      //vec4 attenuation = clamp(squaredLengths * LW, 0.0, 1.0);
       vec4 attenuation = clamp(1.0 - squaredLengths * LW, 0.0, 1.0);
     #endif
 
@@ -125,12 +122,11 @@
       // compute NdotL in parallel
       vec4 NdotL = LX * N.x + LY * N.y + LZ * N.z;
 
+      // modulate NdotL by attenuation
+      NdotL *= attenuation;
+
       // normalize NdotL
       diffuse = clamp(NdotL / len, 0.0, 1.0);
-
-      // modulate diffuse by attenuation
-      //diffuse = diffuse - clamp(diffuse * attenuation, 0.0, 1.0);
-      diffuse *= attenuation;
     #endif
 
     #if defined(NEED_SPECULAR) || defined(SPECULARMAP)
@@ -139,9 +135,11 @@
       vec3 R = reflect(V, N);
       vec4 RdotL = LX * R.x + LY * R.y + LZ * R.z;
 
+      // modulate RdotL by attenuation
+      RdotL *= attenuation;
+
       // normalize RdotL
       specular = clamp(RdotL / len, 0.0, 1.0);
-      //specular = RdotL / len;
     
       // specular
       //specular = computeSpecularPower(RdotL); // cheap, low quality
@@ -149,10 +147,6 @@
       specular[1] = pow(max(RdotL[1], 0.0), m_Shininess);
       specular[2] = pow(max(RdotL[2], 0.0), m_Shininess);
       specular[3] = pow(max(RdotL[3], 0.0), m_Shininess);
-
-      // modulate specular by attenuation
-      //specular = specular - clamp(specular * attenuation, 0.0, 1.0);
-      specular *= attenuation;
     #endif
   }
 
@@ -161,7 +155,7 @@
     vec3 V; // view vector
     vec3 N; // normal vector
 
-    V = v_View;
+    V = normalize(v_View);
 
     #ifdef NORMALMAP
       #ifdef HQ_NORMALMAPPING
@@ -172,7 +166,7 @@
         N = vec3(texture2D(m_NormalMap, v_TexCoord) * 2.0 - 1.0);
         N = normalize(normalMapMatrix * N);
       #else
-        N = vec3(texture2D(m_NormalMap, v_TexCoord) * v_NormalMapMatrix);
+        N = normalize(vec3(texture2D(m_NormalMap, v_TexCoord) * v_NormalMapMatrix));
       #endif
     #else
       N = normalize(v_Normal);
