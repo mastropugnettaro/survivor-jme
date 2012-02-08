@@ -2,6 +2,13 @@
   #define NUM_LIGHTS 1
 #endif
 
+#if defined(MATERIAL_COLORS) && defined(DIFFUSE)
+  #define NEED_DIFFUSE
+#endif
+#if defined(MATERIAL_COLORS) && defined(SPECULAR)
+  #define NEED_SPECULAR
+#endif
+
 #if defined(DIFFUSEMAP) || defined(NORMALMAP) || defined(SPECULARMAP) || defined(ALPHAMAP)
   varying vec2 v_TexCoord;
 #endif
@@ -62,7 +69,6 @@
   varying vec3 v_Position;
   varying vec3 v_View;
   varying vec3 v_Normal;
-  vec3 normal = normalize(v_Normal);
 
   #if defined(NORMALMAP)
     varying vec3 v_Tangent;
@@ -73,23 +79,35 @@
     uniform sampler2D m_ParallaxMap;
     uniform float m_ParallaxHeight;
     uniform float m_ParallaxAO;
+
+    void calculateParallaxOffset(const in vec3 E, const in vec3 N, const in vec3 Nx,
+      out float parallaxOffset)
+    {
+      float factor1 = dot(N, Nx);
+      float factor2 = max(dot(N, E), 0.0);
+      float parallax = texture2D(m_ParallaxMap, v_TexCoord).r;
+      factor1 = 1.0 - factor1 * factor1;
+      parallaxOffset = factor1 * factor2 * m_ParallaxHeight * parallax;
+    }
   #endif
 
-  vec3 ambientColor;
-  vec3 diffuseColor;
-  vec3 specularColor;
-
-  void calculateColors(const in vec3 E, const in vec3 N, const in vec3 normal,
-    out vec3 ambientColor, out vec3 diffuseColor, out vec3 specularColor, out float alpha)
+  void initializeMaterialColors(
+    #ifdef PARALLAXMAP
+      const in float parallaxOffset,
+    #endif
+      out vec3 ambientColor, 
+      out vec3 diffuseColor, 
+      out vec3 specularColor, 
+      out float alpha)
   {
     #if defined(MATERIAL_COLORS) && defined(AMBIENT)
-      ambientColor = m_Ambient.xyz * g_AmbientLightColor;
+      ambientColor = m_Ambient.rgb;
     #else
-      ambientColor = 0.2 * g_AmbientLightColor;
+      ambientColor = vec3(0.2);
     #endif
     
     #if defined(MATERIAL_COLORS) && defined(DIFFUSE)
-      diffuseColor = m_Diffuse.xyz;
+      diffuseColor = m_Diffuse.rgb;
       alpha = m_Diffuse.a;
     #else
       diffuseColor = 1.0;
@@ -97,18 +115,16 @@
     #endif
 
     #ifdef DIFFUSEMAP
+      vec4 diffuseMapColor;
       #ifdef PARALLAXMAP
-        float factor1 = dot(N, normal);
-        float factor2 = max(dot(N, E), 0.0);
-        float parallax = texture2D(m_ParallaxMap, v_TexCoord).r;
-        factor1 = 1.0 - factor1 * factor1;
-        float deltaTex = factor1 * factor2 * m_ParallaxHeight * parallax;
-        diffuseColor *= texture2D(m_DiffuseMap, v_TexCoord - vec2(deltaTex, deltaTex));
-        float ambientOcclusion = 1.0 - clamp(m_ParallaxAO * deltaTex, 0.0, 1.0);
-        ambientColor *= ambientOcclusion;
+        diffuseMapColor = texture2D(m_DiffuseMap, v_TexCoord - vec2(parallaxOffset, parallaxOffset));
+        ambientColor *= 1.0 - clamp(m_ParallaxAO * parallaxOffset, 0.0, 1.0);
       #else
-        diffuseColor *= texture2D(m_DiffuseMap, v_TexCoord);
+        diffuseMapColor = texture2D(m_DiffuseMap, v_TexCoord);
       #endif
+
+      diffuseColor *= diffuseMapColor.rgb;
+      alpha *= diffuseMapColor.a;
     #endif
 
     #if defined(MATERIAL_COLORS) && defined(SPECULAR)
@@ -120,72 +136,49 @@
     #ifdef SPECULARMAP
       specularColor *= texture2D(m_SpecularMap, v_TexCoord);
     #endif
+
+    // ToDo: light map, alpha map
   }
 
-//  void addLight(const in vec3 N, const in vec3 L, const in vec3 E, 
-//    const in vec4 lightColor, const in float attenuation, inout vec4 fragColor)
-//  {
-//  }
-
-  void calculateFragmentColor(const in vec3 N, const in vec3 L, const in vec3 E, 
-    const in vec4 lightColor, const in float attenuation, inout vec4 fragColor)
+  void calculateLightVector(const in vec4 lightPosition, const in vec4 lightColor, 
+    out vec3 lightVector, out float attenuation)
   {
-    vec4 fragColorSum = vec4(0.0);
+    // positional or directional light?
+    if (lightColor.w == 0.0)
+    {
+      lightVector = -lightPosition.xyz;
+      attenuation = 1.0;
+    }
+    else
+    {
+      lightVector = lightPosition.xyz - v_Position;
+      float dist = length(lightVector);
+      lightVector /= vec3(dist);
+      attenuation = clamp(1.0 - lightPosition.w * dist, 0.0, 1.0);
+    }  
+  }
 
-    // calculate Diffuse Term:
-    #if defined(MATERIAL_COLORS) && defined(DIFFUSE)
-      #define NEED_DIFFUSE
-    #endif
-    #if defined(NEED_DIFFUSE) || defined(DIFFUSEMAP)
-      vec4 Idiff = lightColor * max(dot(N, L), 0.0);
-      vec3 ambient = ambientColor;
-      #ifdef NEED_DIFFUSE
-        vec4 diffuse = m_Diffuse;
-      #else
-        vec4 diffuse = vec4(1.0);
-      #endif
-      #ifdef DIFFUSEMAP
-        #ifdef PARALLAXMAP
-          float Factor2 = max(dot(N, E), 0.0);
-          float Factor1 = dot(N, normal);
-          float parallax = texture2D(m_ParallaxMap, v_TexCoord).r;
-          Factor1 = 1.0 - Factor1 * Factor1;
-          float DeltaTex = Factor2 * Factor1 * m_ParallaxHeight * parallax;
-          float AmbientOcclusionValue = (1.0 - clamp(m_ParallaxAO * DeltaTex, 0.0, 1.0));
-          ambient *= AmbientOcclusionValue;
-          diffuse *= texture2D(m_DiffuseMap, v_TexCoord - vec2(DeltaTex, DeltaTex));
-        #else
-          diffuse *= texture2D(m_DiffuseMap, v_TexCoord);
-        #endif
-      #endif
-      fragColorSum += diffuse * (Idiff + vec4(ambient, 1.0));
-    #endif
+  void addLight(const in vec3 N, const in vec3 L, const in vec3 E, 
+    const in vec3 lightColor, const in float attenuation, 
+    inout vec3 diffuseLightSum, inout vec3 specularLightSum)
+  {
+    diffuseLightSum += lightColor * max(dot(N, L), 0.0) * attenuation;
 
-    // calculate Specular Term:
-    #if defined(MATERIAL_COLORS) && defined(SPECULAR)
-      #define NEED_SPECULAR
-    #endif
-    #if defined(NEED_SPECULAR) || defined(SPECULARMAP)
-      vec3 R = reflect(-L, N);
-      vec4 Ispec = lightColor * pow(max(dot(R, E), 0.0), m_Shininess);
-      #ifdef NEED_SPECULAR
-        Ispec *= m_Specular;
-      #endif
-      #ifdef SPECULARMAP
-        Ispec *= texture2D(m_SpecularMap, v_TexCoord);
-      #endif
-      fragColorSum += Ispec;
-    #endif
-
-    fragColor += fragColorSum * attenuation;
+    vec3 R = reflect(-L, N);
+    specularLightSum += lightColor * pow(max(dot(R, E), 0.0), m_Shininess) * attenuation;
   }
 
   void doPerFragmentLighting()
   {
-    vec3 V; // view vector
-    vec3 N; // normal vector
-    vec3 E; // eye vector
-    vec3 L; // light vector
+    vec3 V;  // view vector
+    vec3 N;  // normal vector
+    vec3 E;  // eye vector
+    vec3 L;  // light vector
+
+    vec3 ambientColor;
+    vec3 diffuseColor;
+    vec3 specularColor;
+    float alpha;
     float attenuation;
 
     V = normalize(v_View);
@@ -199,24 +192,36 @@
       vec3 normal = normalize(v_Normal);
 
       // view space -> tangent space matrix
-      mat4 vsTangentMatrix = mat4(vec4(tangent,       0.0),
-                                  vec4(bitangent,     0.0),
-                                  vec4(normal,        0.0),
-                                  vec4(0.0, 0.0, 0.0, 1.0));
+      mat4 vsTangentMatrix = transpose(mat4(vec4(tangent,       0.0),
+                                            vec4(bitangent,     0.0),
+                                            vec4(normal,        0.0),
+                                            vec4(0.0, 0.0, 0.0, 1.0)));
       // world space -> tangent space matrix
-      mat4 wsViewTangentMatrix = transpose(vsTangentMatrix) * g_ViewMatrix;
+      mat4 wsViewTangentMatrix = vsTangentMatrix * g_ViewMatrix;
+
+      #ifdef PARALLAXMAP
+        float parallaxOffset;
+        vec3 Nx = normalize(vec3(vsTangentMatrix * vec4(normal, 0.0)));
+        calculateParallaxOffset(E, N, Nx, parallaxOffset);
+      #endif
     #else
       N = normalize(v_Normal);
+      #ifdef PARALLAXMAP
+        float parallaxOffset = 0.0;
+      #endif
     #endif
 
-    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
-
-    //calculate Ambient Term:
-    #if defined(MATERIAL_COLORS)
-      ambientColor = vec3(m_Ambient * g_AmbientLightColor);
+    #ifdef PARALLAXMAP
+      initializeMaterialColors(parallaxOffset,
+        ambientColor, diffuseColor, specularColor, alpha);
     #else
-      ambientColor = vec3(vec4(0.2, 0.2, 0.2, 1.0) * g_AmbientLightColor);
+      initializeMaterialColors(
+        ambientColor, diffuseColor, specularColor, alpha);
     #endif
+
+    vec3 ambientLightSum = ambientColor * g_AmbientLightColor.rgb;
+    vec3 diffuseLightSum = vec3(0.0);
+    vec3 specularLightSum = vec3(0.0);
 
     for (int i = 0; i < NUM_LIGHTS; i++)
     {
@@ -224,19 +229,7 @@
       vec4 lightColor = g_LightColor[i];
       vec3 lightVector;
 
-      // positional or directional light?
-      if (lightColor.w == 0.0)
-      {
-        lightVector = -lightPosition.xyz;
-        attenuation = 1.0;
-      }
-      else
-      {
-        lightVector = lightPosition.xyz - v_Position;
-        float dist = length(lightVector);
-        lightVector /= vec3(dist);
-        attenuation = clamp(1.0 - lightPosition.w * dist, 0.0, 1.0);
-      }
+      calculateLightVector(lightPosition, lightColor, lightVector, attenuation);
 
       #ifdef NORMALMAP
         // world space -> tangent space
@@ -247,10 +240,13 @@
       #endif
 
       L = normalize(L);
-      calculateFragmentColor(N, L, E, lightColor, attenuation, gl_FragColor);
-    }
-  }
 
+      addLight(N, L, E, lightColor.rgb, attenuation, diffuseLightSum, specularLightSum);
+    }
+
+    gl_FragColor.rgb = diffuseColor * (ambientLightSum + diffuseLightSum) + specularColor * specularLightSum;
+    gl_FragColor.a = alpha;
+  }
 #endif
 
 void main (void)
