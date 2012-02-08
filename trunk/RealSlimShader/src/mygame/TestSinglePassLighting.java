@@ -26,8 +26,8 @@ import org.lwjgl.opengl.GL20;
 public class TestSinglePassLighting extends SimpleApplication
 {
   private static final Logger log = Logger.getLogger(TestSinglePassLighting.class.getName());
-  private static final int SPHERE_SEGMENTS = 128;
-  private static final int NUM_LIGHTS = 200;
+  private static final int SPHERE_SEGMENTS = 256;
+  private static final int NUM_LIGHTS = 247;
   
   public static void main(String[] args)
   {
@@ -71,7 +71,7 @@ public class TestSinglePassLighting extends SimpleApplication
     Sphere sphereMesh = null;
     if (SPHERE_SEGMENTS > 128)
     {
-      //sphereMesh = loadSphereMesh();
+      sphereMesh = loadSphereMesh();
     }
     
     if (sphereMesh == null)
@@ -83,7 +83,7 @@ public class TestSinglePassLighting extends SimpleApplication
       
       if (SPHERE_SEGMENTS > 128)
       {
-        //saveSphereMesh(sphereMesh);
+        saveSphereMesh(sphereMesh);
       }
     }
     
@@ -123,7 +123,7 @@ public class TestSinglePassLighting extends SimpleApplication
     pl.setPosition(new Vector3f(0f, 0f, 1f));
     pl.setColor(ColorRGBA.Green);
     pl.setRadius(1.5f);
-    //rootNode.addLight(pl);    
+    rootNode.addLight(pl);    
   }
   
   private void saveSphereMesh(Sphere mesh)
@@ -151,5 +151,13 @@ public class TestSinglePassLighting extends SimpleApplication
     } catch (IOException ex) {}
     
     return mesh;
+  }
+  
+  private void deleteSphereMesh()
+  {
+    String tmpDir = System.getProperty("java.io.tmpdir");
+    File file = new File(tmpDir + "/SphereMesh" + SPHERE_SEGMENTS + ".j3o");
+    log.log(Level.SEVERE, "Deleting SphereMesh: " + file.getAbsoluteFile());
+    file.delete();
   }
 }
