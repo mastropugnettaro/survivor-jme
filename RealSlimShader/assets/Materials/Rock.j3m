@@ -8,6 +8,7 @@ Material Rock : MatDefs/Light/LightingSP.j3md {
         DiffuseMap : Textures/BrickWall.jpg
         NormalMap : Textures/BrickWall_normal.jpg
         ParallaxMap : Textures/BrickWall_height.jpg
+        ParallaxHeight : 0.08
      }
     AdditionalRenderState {
     }
