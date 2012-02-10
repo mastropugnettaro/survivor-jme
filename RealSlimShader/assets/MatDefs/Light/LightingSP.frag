@@ -73,50 +73,50 @@
   #if defined(NORMALMAP)
     varying vec3 v_Tangent;
     varying vec3 v_Bitangent;
-  #endif
 
-  #ifdef PARALLAXMAP
-    uniform sampler2D m_ParallaxMap;
-    uniform float m_ParallaxHeight;
-    uniform float m_ParallaxAO;
+    #ifdef PARALLAXMAP
+      uniform sampler2D m_ParallaxMap;
+      uniform float m_ParallaxHeight;
+      uniform float m_ParallaxAO;
 
-    void calculateParallax(const in vec3 E, out vec2 parallaxTexCoord, out float parallaxAO)
-    {
-      float h = texture2D(m_ParallaxMap, v_TexCoord).r;
-      h = (h * m_ParallaxHeight - 0.6 * m_ParallaxHeight) * E.z;
-      vec2 parallaxOffset = h * E.xy;
-      parallaxTexCoord = v_TexCoord + parallaxOffset;
-      parallaxAO = 1 - clamp(m_ParallaxAO * length(parallaxOffset), 0.0, 1.0);
-    }
-/*
-    void calculateParallaxOffset2(const in vec3 E, const in vec3 N, const in vec3 Nx,
-      out vec2 parallaxOffset)
-    {
-      float factor1 = dot(N, Nx);
-      float factor2 = max(dot(N, E), 0.0);
-      float parallax = texture2D(m_ParallaxMap, v_TexCoord).r;
-      factor1 = 1.0 - factor1 * factor1;
-      float offset = -(factor1 * factor2 * m_ParallaxHeight * parallax);
-      parallaxOffset = vec2(offset, offset);
-    }
+      void calculateParallax(const in vec3 E, out vec2 parallaxTexCoord, out float parallaxAO)
+      {
+        float h = texture2D(m_ParallaxMap, v_TexCoord).r;
+        h = (h * m_ParallaxHeight - 0.6 * m_ParallaxHeight) * E.z;
+        vec2 parallaxOffset = h * E.xy;
+        parallaxTexCoord = v_TexCoord + parallaxOffset;
+        parallaxAO = 1 - clamp(m_ParallaxAO * length(parallaxOffset), 0.0, 1.0);
+      }
+  /*
+      void calculateParallaxOffset2(const in vec3 E, const in vec3 N, const in vec3 Nx,
+        out vec2 parallaxOffset)
+      {
+        float factor1 = dot(N, Nx);
+        float factor2 = max(dot(N, E), 0.0);
+        float parallax = texture2D(m_ParallaxMap, v_TexCoord).r;
+        factor1 = 1.0 - factor1 * factor1;
+        float offset = -(factor1 * factor2 * m_ParallaxHeight * parallax);
+        parallaxOffset = vec2(offset, offset);
+      }
 
-    void calculateParallaxOffset3(const in vec3 E, const in vec3 N, const in vec3 Nx,
-      out vec2 parallaxOffset)
-    {
-      float fParallaxLimit = length(E.xy) / E.z;
-      fParallaxLimit *= m_ParallaxHeight;
+      void calculateParallaxOffset3(const in vec3 E, const in vec3 N, const in vec3 Nx,
+        out vec2 parallaxOffset)
+      {
+        float fParallaxLimit = length(E.xy) / E.z;
+        fParallaxLimit *= m_ParallaxHeight;
 
-      parallaxOffset = normalize(-E.xy);
-      parallaxOffset *= fParallaxLimit;
+        parallaxOffset = normalize(-E.xy);
+        parallaxOffset *= fParallaxLimit;
 
-      //int nNumSamples = (int) lerp(nMinSamples, nMaxSamples, dot(E, N));
-      //float fStepSize = 1.0 / (float) nNumSamples;
-    }
-*/
+        //int nNumSamples = (int) lerp(nMinSamples, nMaxSamples, dot(E, N));
+        //float fStepSize = 1.0 / (float) nNumSamples;
+      }
+  */
+    #endif
   #endif
 
   void initializeMaterialColors(
-    #ifdef PARALLAXMAP
+    #if defined(PARALLAXMAP) && defined(NORMALMAP)
       const in vec2 parallaxTexCoord,
       const in float parallaxAO,
     #endif
@@ -241,7 +241,7 @@
       #endif
     #endif
 
-    #ifdef PARALLAXMAP
+    #if defined(PARALLAXMAP) && defined(NORMALMAP)
       initializeMaterialColors(parallaxTexCoord, parallaxAO,
         ambientColor, diffuseColor, specularColor, alpha);
     #else
