@@ -27,7 +27,7 @@ public class TestSinglePassLighting extends SimpleApplication
 {
   private static final Logger log = Logger.getLogger(TestSinglePassLighting.class.getName());
   private static final int SPHERE_SEGMENTS = 32;
-  private static final int NUM_LIGHTS = 4;
+  private static final int NUM_LIGHTS = 0;
   
   public static void main(String[] args)
   {
@@ -105,7 +105,7 @@ public class TestSinglePassLighting extends SimpleApplication
     DirectionalLight dl;
             
     al = new AmbientLight();
-    al.setColor(new ColorRGBA(0.2f, 0.2f, 0.2f, 1f));
+    al.setColor(new ColorRGBA(0.5f, 0.5f, 0.5f, 1f));
     rootNode.addLight(al);
   
     float ci = 0.9f / Math.max(NUM_LIGHTS, 1f);

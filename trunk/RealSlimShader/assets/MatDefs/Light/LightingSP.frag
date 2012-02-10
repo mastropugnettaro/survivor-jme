@@ -9,7 +9,7 @@
   #define NEED_SPECULAR
 #endif
 
-#if defined(DIFFUSEMAP) || defined(NORMALMAP) || defined(SPECULARMAP) || defined(ALPHAMAP)
+#if defined(DIFFUSEMAP) || defined(NORMALMAP) || defined(SPECULARMAP) || defined(ALPHAMAP) || defined(PARALLAXMAP)
   varying vec2 v_TexCoord;
 #endif
 
@@ -80,12 +80,13 @@
     uniform float m_ParallaxHeight;
     uniform float m_ParallaxAO;
 
-    void calculateParallaxOffset(const in vec3 E, const in vec3 N, const in vec3 Nx,
-      out vec2 parallaxOffset)
+    void calculateParallax(const in vec3 E, out vec2 parallaxTexCoord, out float parallaxAO)
     {
       float h = texture2D(m_ParallaxMap, v_TexCoord).r;
       h = (h * m_ParallaxHeight - 0.6 * m_ParallaxHeight) * E.z;
-      parallaxOffset = -(h * E.xy);
+      vec2 parallaxOffset = h * E.xy;
+      parallaxTexCoord = v_TexCoord + parallaxOffset;
+      parallaxAO = 1 - clamp(m_ParallaxAO * length(parallaxOffset), 0.0, 1.0);
     }
 /*
     void calculateParallaxOffset2(const in vec3 E, const in vec3 N, const in vec3 Nx,
@@ -95,7 +96,7 @@
       float factor2 = max(dot(N, E), 0.0);
       float parallax = texture2D(m_ParallaxMap, v_TexCoord).r;
       factor1 = 1.0 - factor1 * factor1;
-      float offset = factor1 * factor2 * m_ParallaxHeight * parallax;
+      float offset = -(factor1 * factor2 * m_ParallaxHeight * parallax);
       parallaxOffset = vec2(offset, offset);
     }
 
@@ -116,7 +117,8 @@
 
   void initializeMaterialColors(
     #ifdef PARALLAXMAP
-      const in vec2 parallaxOffset,
+      const in vec2 parallaxTexCoord,
+      const in float parallaxAO,
     #endif
       out vec3 ambientColor, 
       out vec3 diffuseColor, 
@@ -140,8 +142,8 @@
     #ifdef DIFFUSEMAP
       vec4 diffuseMapColor;
       #ifdef PARALLAXMAP
-        diffuseMapColor = texture2D(m_DiffuseMap, v_TexCoord - parallaxOffset);
-        ambientColor *= 1.0 - clamp(m_ParallaxAO * parallaxOffset.x, 0.0, 1.0);
+        diffuseMapColor = texture2D(m_DiffuseMap, parallaxTexCoord);
+        ambientColor *= parallaxAO;
       #else
         diffuseMapColor = texture2D(m_DiffuseMap, v_TexCoord);
       #endif
@@ -208,8 +210,6 @@
     E = -V;
 
     #ifdef NORMALMAP
-      N = normalize(texture2D(m_NormalMap, v_TexCoord).xyz * 2.0 - 1.0);
-      
       vec3 tangent = normalize(v_Tangent);
       vec3 bitangent = normalize(v_Bitangent);
       vec3 normal = normalize(v_Normal);
@@ -223,19 +223,26 @@
       mat4 wsViewTangentMatrix = vsTangentMatrix * g_ViewMatrix;
 
       #ifdef PARALLAXMAP
-        vec2 parallaxOffset;
-        vec3 Nx = normalize(vec3(vsTangentMatrix * vec4(normal, 0.0)));
-        calculateParallaxOffset(E, N, Nx, parallaxOffset);
+        vec2 parallaxTexCoord;
+        float parallaxAO;
+        //N = normalize(texture2D(m_NormalMap, v_TexCoord).xyz * 2.0 - 1.0);
+        //vec3 Nx = normalize(vec3(vsTangentMatrix * vec4(normal, 0.0)));
+        //calculateParallaxOffset2(E, N, Nx, parallaxOffset);
+
+        calculateParallax(E, parallaxTexCoord, parallaxAO);
+        N = normalize(texture2D(m_NormalMap, parallaxTexCoord).xyz * 2.0 - 1.0);
       #endif
     #else
       N = normalize(v_Normal);
       #ifdef PARALLAXMAP
-        float parallaxOffset = vec2(0.0);
+        vec2 parallaxOffset = vec2(0.0);
+        vec2 parallaxTexCoord = v_TexCoord;
+        float parallaxAO = 1.0;
       #endif
     #endif
 
     #ifdef PARALLAXMAP
-      initializeMaterialColors(parallaxOffset,
+      initializeMaterialColors(parallaxTexCoord, parallaxAO,
         ambientColor, diffuseColor, specularColor, alpha);
     #else
       initializeMaterialColors(
