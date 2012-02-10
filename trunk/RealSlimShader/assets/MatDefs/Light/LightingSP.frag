@@ -81,19 +81,42 @@
     uniform float m_ParallaxAO;
 
     void calculateParallaxOffset(const in vec3 E, const in vec3 N, const in vec3 Nx,
-      out float parallaxOffset)
+      out vec2 parallaxOffset)
+    {
+      float h = texture2D(m_ParallaxMap, v_TexCoord).r;
+      h = (h * m_ParallaxHeight - 0.6 * m_ParallaxHeight) * E.z;
+      parallaxOffset = -(h * E.xy);
+    }
+/*
+    void calculateParallaxOffset2(const in vec3 E, const in vec3 N, const in vec3 Nx,
+      out vec2 parallaxOffset)
     {
       float factor1 = dot(N, Nx);
       float factor2 = max(dot(N, E), 0.0);
       float parallax = texture2D(m_ParallaxMap, v_TexCoord).r;
       factor1 = 1.0 - factor1 * factor1;
-      parallaxOffset = factor1 * factor2 * m_ParallaxHeight * parallax;
+      float offset = factor1 * factor2 * m_ParallaxHeight * parallax;
+      parallaxOffset = vec2(offset, offset);
     }
+
+    void calculateParallaxOffset3(const in vec3 E, const in vec3 N, const in vec3 Nx,
+      out vec2 parallaxOffset)
+    {
+      float fParallaxLimit = length(E.xy) / E.z;
+      fParallaxLimit *= m_ParallaxHeight;
+
+      parallaxOffset = normalize(-E.xy);
+      parallaxOffset *= fParallaxLimit;
+
+      //int nNumSamples = (int) lerp(nMinSamples, nMaxSamples, dot(E, N));
+      //float fStepSize = 1.0 / (float) nNumSamples;
+    }
+*/
   #endif
 
   void initializeMaterialColors(
     #ifdef PARALLAXMAP
-      const in float parallaxOffset,
+      const in vec2 parallaxOffset,
     #endif
       out vec3 ambientColor, 
       out vec3 diffuseColor, 
@@ -117,8 +140,8 @@
     #ifdef DIFFUSEMAP
       vec4 diffuseMapColor;
       #ifdef PARALLAXMAP
-        diffuseMapColor = texture2D(m_DiffuseMap, v_TexCoord - vec2(parallaxOffset, parallaxOffset));
-        ambientColor *= 1.0 - clamp(m_ParallaxAO * parallaxOffset, 0.0, 1.0);
+        diffuseMapColor = texture2D(m_DiffuseMap, v_TexCoord - parallaxOffset);
+        ambientColor *= 1.0 - clamp(m_ParallaxAO * parallaxOffset.x, 0.0, 1.0);
       #else
         diffuseMapColor = texture2D(m_DiffuseMap, v_TexCoord);
       #endif
@@ -170,10 +193,10 @@
 
   void doPerFragmentLighting()
   {
-    vec3 V;  // view vector
-    vec3 N;  // normal vector
-    vec3 E;  // eye vector
-    vec3 L;  // light vector
+    vec3 V; // view vector
+    vec3 N; // normal vector
+    vec3 E; // eye vector
+    vec3 L; // light vector
 
     vec3 ambientColor;
     vec3 diffuseColor;
@@ -200,14 +223,14 @@
       mat4 wsViewTangentMatrix = vsTangentMatrix * g_ViewMatrix;
 
       #ifdef PARALLAXMAP
-        float parallaxOffset;
+        vec2 parallaxOffset;
         vec3 Nx = normalize(vec3(vsTangentMatrix * vec4(normal, 0.0)));
         calculateParallaxOffset(E, N, Nx, parallaxOffset);
       #endif
     #else
       N = normalize(v_Normal);
       #ifdef PARALLAXMAP
-        float parallaxOffset = 0.0;
+        float parallaxOffset = vec2(0.0);
       #endif
     #endif
 
