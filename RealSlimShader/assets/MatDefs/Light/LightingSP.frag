@@ -1,3 +1,5 @@
+//#extension GL_EXT_gpu_shader4 : enable
+
 #ifndef NUM_LIGHTS
   #define NUM_LIGHTS 1
 #endif
@@ -101,8 +103,19 @@
       }
 
   */
+
+      float MipmapLevel(vec2 UV, vec2 TextureSize)
+      {
+        vec2 ddx = dFdx(UV * TextureSize.x);
+        vec2 ddy = dFdy(UV * TextureSize.y);
+        vec2 dist = sqrt(ddx * ddx + ddy * ddy);
+        return log2(max(dist.x,dist.y));
+        //return log2(sqrt(max(dot(ddx,ddx),dot(ddy,ddy))));
+      }
+
       const int nMinSamples = 4;
-      const int	nMaxSamples = 50;
+      const int	nMaxSamples = 500;
+      const float fTexelsPerSide = sqrt(512.0 * 512.0 * 2.0);
 
       void calculateParallax2(const in vec3 E, const in vec3 N, out vec2 parallaxTexCoord, out float parallaxAO)
       {
@@ -113,13 +126,14 @@
         vec2 parallaxOffset = normalize(-E.xy);
         parallaxOffset *= fParallaxLimit;
 
-        int nNumSamples = int(mix(nMinSamples, nMaxSamples, dot(E, N)));
+        int nNumSamples = int(mix(nMinSamples, nMaxSamples, dot(E, N))); // calculate dynamic number of samples (Tatarchuk's method)
+        //int nNumSamples = int(fParallaxLimit * fTexelsPerSide); // calculate dynamic number of samples (Zink's method)
+        //int nNumSamples = 15;
         float fStepSize = 1.0 / nNumSamples;
 
-        vec2 dx, dy;
-        dx = dFdx(v_TexCoord);
-        dy = dFdy(v_TexCoord);
-        vec2 lod = abs(dx) + abs(dy); // fwidth?
+        float lod = MipmapLevel(v_TexCoord, vec2(512.0));
+        //vec2 ddx = dFdx(v_TexCoord * vec2(512.0));
+        //vec2 ddy = dFdy(v_TexCoord * vec2(512.0));
 
         vec2 vOffsetStep = fStepSize * parallaxOffset;
         vec2 vCurrOffset = vec2(0.0, 0.0);
@@ -135,7 +149,9 @@
         while (nCurrSample < nNumSamples)
         {
           parallaxTexCoord = v_TexCoord + vCurrOffset;
-          vCurrSample = texture2DLod(m_ParallaxMap, parallaxTexCoord, lod.x); // sample the current texcoord offset
+          //vCurrSample = texture2D(m_ParallaxMap, parallaxTexCoord);
+          vCurrSample = texture2DLod(m_ParallaxMap, parallaxTexCoord, lod); // sample the current texcoord offset
+          //vCurrSample = texture2DGrad(m_ParallaxMap, parallaxTexCoord, ddx, ddy); // sample the corrected tex coords
           if (vCurrSample.r > stepHeight)
           {
             // calculate the linear intersection point
@@ -143,7 +159,9 @@
             vFinalOffset = vLastOffset + Ua * vOffsetStep;
 
             parallaxTexCoord = v_TexCoord + vCurrOffset;
-            vCurrSample = texture2DLod(m_ParallaxMap, parallaxTexCoord, lod.x); // sample the corrected tex coords
+            //vCurrSample = texture2D(m_ParallaxMap, parallaxTexCoord);
+            vCurrSample = texture2DLod(m_ParallaxMap, parallaxTexCoord, lod); // sample the corrected tex coords
+            //vCurrSample = texture2DGrad(m_ParallaxMap, parallaxTexCoord, ddx, ddy); // sample the corrected tex coords
             nCurrSample = nNumSamples + 1; // exit the while loop
           }
           else
@@ -270,12 +288,12 @@
       #ifdef PARALLAXMAP
         vec2 parallaxTexCoord;
         float parallaxAO;
-        N = normalize(texture2D(m_NormalMap, v_TexCoord).xyz * 2.0 - 1.0);
-        //vec3 Nx = normalize(vec3(vsTangentMatrix * vec4(normal, 0.0)));
+        //N = normalize(texture2D(m_NormalMap, v_TexCoord).xyz * 2.0 - 1.0);
+        vec3 Nx = vec3(normalize(vsTangentMatrix * vec4(normal, 0.0)));
         //calculateParallaxOffset2(E, N, Nx, parallaxOffset);
 
-        //calculateParallax2(E, parallaxTexCoord, parallaxAO);
-        calculateParallax2(E, N, parallaxTexCoord, parallaxAO);
+        //calculateParallax(E, parallaxTexCoord, parallaxAO);
+        calculateParallax2(E, Nx, parallaxTexCoord, parallaxAO);
 
         N = normalize(texture2D(m_NormalMap, parallaxTexCoord).xyz * 2.0 - 1.0);
       #endif
