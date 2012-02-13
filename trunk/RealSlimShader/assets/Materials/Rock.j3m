@@ -5,11 +5,10 @@ Material Rock : MatDefs/Light/LightingSP.j3md {
         UseMaterialColors : true
         Shininess : 100.0
         Specular : 1.0 1.0 1.0 1.0
-        ParallaxHeight : 0.08
+        ParallaxHeight : 0.04
         ParallaxMap : Textures/BrickWall_height.jpg
         NormalMap : Textures/BrickWall_normal.jpg
         DiffuseMap : Textures/BrickWall.jpg
-        ParallaxAO : 20.0
      }
     AdditionalRenderState {
     }
