@@ -82,10 +82,11 @@
       void calculateParallax(const in vec3 E, out vec2 parallaxTexCoord, out float parallaxAO)
       {
         float h = texture2D(m_ParallaxMap, v_TexCoord).r;
-        h = (h * m_ParallaxHeight - 0.6 * m_ParallaxHeight) * E.z;
+        h = (h - 0.6) * m_ParallaxHeight * E.z;
         vec2 parallaxOffset = h * E.xy;
         parallaxTexCoord = v_TexCoord + parallaxOffset;
-        parallaxAO = 1 - clamp(m_ParallaxAO * length(parallaxOffset), 0.0, 1.0);
+        //parallaxAO = 1.0 - clamp(m_ParallaxAO * length(parallaxOffset), 0.0, 1.0);
+        parallaxAO = 1.0;
       }
   /*
       void calculateParallaxOffset2(const in vec3 E, const in vec3 N, const in vec3 Nx,
@@ -99,19 +100,63 @@
         parallaxOffset = vec2(offset, offset);
       }
 
-      void calculateParallaxOffset3(const in vec3 E, const in vec3 N, const in vec3 Nx,
-        out vec2 parallaxOffset)
+  */
+      const int nMinSamples = 4;
+      const int	nMaxSamples = 50;
+
+      void calculateParallax2(const in vec3 E, const in vec3 N, out vec2 parallaxTexCoord, out float parallaxAO)
       {
+        parallaxAO = 1.0;
         float fParallaxLimit = length(E.xy) / E.z;
         fParallaxLimit *= m_ParallaxHeight;
 
-        parallaxOffset = normalize(-E.xy);
+        vec2 parallaxOffset = normalize(-E.xy);
         parallaxOffset *= fParallaxLimit;
 
-        //int nNumSamples = (int) lerp(nMinSamples, nMaxSamples, dot(E, N));
-        //float fStepSize = 1.0 / (float) nNumSamples;
+        int nNumSamples = int(mix(nMinSamples, nMaxSamples, dot(E, N)));
+        float fStepSize = 1.0 / nNumSamples;
+
+        vec2 dx, dy;
+        dx = dFdx(v_TexCoord);
+        dy = dFdy(v_TexCoord);
+        vec2 lod = abs(dx) + abs(dy); // fwidth?
+
+        vec2 vOffsetStep = fStepSize * parallaxOffset;
+        vec2 vCurrOffset = vec2(0.0, 0.0);
+        vec2 vLastOffset = vec2(0.0, 0.0);
+        vec2 vFinalOffset = vec2(0.0, 0.0);
+
+        vec4 vCurrSample;
+	      vec4 vLastSample;
+
+	      float stepHeight = 1.0;	
+	      int nCurrSample = 0;
+
+        while (nCurrSample < nNumSamples)
+        {
+          parallaxTexCoord = v_TexCoord + vCurrOffset;
+          vCurrSample = texture2DLod(m_ParallaxMap, parallaxTexCoord, lod.x); // sample the current texcoord offset
+          if (vCurrSample.r > stepHeight)
+          {
+            // calculate the linear intersection point
+            float Ua = (vLastSample.r - (stepHeight + fStepSize)) / ( fStepSize + (vCurrSample.r - vLastSample.r));
+            vFinalOffset = vLastOffset + Ua * vOffsetStep;
+
+            parallaxTexCoord = v_TexCoord + vCurrOffset;
+            vCurrSample = texture2DLod(m_ParallaxMap, parallaxTexCoord, lod.x); // sample the corrected tex coords
+            nCurrSample = nNumSamples + 1; // exit the while loop
+          }
+          else
+          {
+            nCurrSample++;              // increment to the next sample
+            stepHeight -= fStepSize;    // change the required height-map height
+            vLastOffset = vCurrOffset;  // remember this texcoord offset for next time
+            vCurrOffset += vOffsetStep; // increment to the next texcoord offset
+            vLastSample = vCurrSample;
+          }
+        }
       }
-  */
+  
     #endif
   #endif
 
@@ -225,11 +270,13 @@
       #ifdef PARALLAXMAP
         vec2 parallaxTexCoord;
         float parallaxAO;
-        //N = normalize(texture2D(m_NormalMap, v_TexCoord).xyz * 2.0 - 1.0);
+        N = normalize(texture2D(m_NormalMap, v_TexCoord).xyz * 2.0 - 1.0);
         //vec3 Nx = normalize(vec3(vsTangentMatrix * vec4(normal, 0.0)));
         //calculateParallaxOffset2(E, N, Nx, parallaxOffset);
 
-        calculateParallax(E, parallaxTexCoord, parallaxAO);
+        //calculateParallax2(E, parallaxTexCoord, parallaxAO);
+        calculateParallax2(E, N, parallaxTexCoord, parallaxAO);
+
         N = normalize(texture2D(m_NormalMap, parallaxTexCoord).xyz * 2.0 - 1.0);
       #endif
     #else
