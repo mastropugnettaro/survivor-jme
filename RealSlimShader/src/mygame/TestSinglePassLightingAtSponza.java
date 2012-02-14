@@ -1,6 +1,8 @@
 package mygame;
 
 import com.jme3.app.SimpleApplication;
+import com.jme3.export.binary.BinaryExporter;
+import com.jme3.export.binary.BinaryImporter;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
@@ -12,7 +14,11 @@ import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.scene.Geometry;
+import com.jme3.scene.Mesh;
 import com.jme3.texture.Texture;
+import com.jme3.util.TangentBinormalGenerator;
+import java.io.File;
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -60,7 +66,7 @@ public class TestSinglePassLightingAtSponza extends SimpleApplication {
 
     flyCam.setMoveSpeed(50);
 
-    Material mat = new MaterialSP(assetManager, "MatDefs/Light/WorldSpaceLightingSP_SIMD.j3md");
+    Material mat = new MaterialSP(assetManager, "MatDefs/Light/LightingSP.j3md");
     //Material mat = new MaterialSP(assetManager, "MatDefs/Light/Lighting.j3md");
     Texture diff = assetManager.loadTexture("Textures/BrickWall.jpg");
     diff.setWrap(Texture.WrapMode.Repeat);
@@ -72,15 +78,25 @@ public class TestSinglePassLightingAtSponza extends SimpleApplication {
     norm.setAnisotropicFilter(16);
     norm.setMinFilter(Texture.MinFilter.Trilinear);
     norm.setMagFilter(Texture.MagFilter.Bilinear);
+    Texture height = assetManager.loadTexture("Textures/BrickWall_height.jpg");
+    height.setWrap(Texture.WrapMode.Repeat);
+    height.setAnisotropicFilter(16);
+    height.setMinFilter(Texture.MinFilter.Trilinear);
+    height.setMagFilter(Texture.MagFilter.Bilinear);
     mat.setTexture("DiffuseMap", diff);
     mat.setTexture("NormalMap", norm);
-//    mat.setBoolean("UseMaterialColors", true);
-//    mat.setColor("Diffuse", ColorRGBA.White.clone());
-//    mat.setColor("Specular", ColorRGBA.DarkGray.clone());
-//    mat.setFloat("Shininess", 1.0f);
+    mat.setTexture("ParallaxMap", height);
+    //mat.setFloat("ParallaxHeight", 0.05f);
+    //mat.setBoolean("SteepParallax", true);
+    //mat.setBoolean("UseMaterialColors", true);
+    //mat.setColor("Diffuse", ColorRGBA.White.clone());
+    //mat.setColor("Specular", ColorRGBA.DarkGray.clone());
+    //mat.setFloat("Shininess", 1.0f);
 
     model = (Geometry) assetManager.loadModel("Models/Sponza.j3o");
     model.getMesh().scaleTextureCoordinates(new Vector2f(2, 2));
+    //TangentBinormalGenerator.generate(model);
+    //saveSponzaGeometry(model);
     model.setMaterial(mat);
     rootNode.attachChild(model);
 
@@ -90,5 +106,40 @@ public class TestSinglePassLightingAtSponza extends SimpleApplication {
 //    viewPort.addProcessor(fpp);
 
     log.log(Level.SEVERE, "*** NUM_LIGHTS: {0} ***", NUM_LIGHTS_HALF * 2);
+  }
+  
+  private void saveSponzaGeometry(Geometry geom)
+  {
+    String tmpDir = System.getProperty("java.io.tmpdir");
+    BinaryExporter exporter = BinaryExporter.getInstance();
+    File file = new File(tmpDir + "/Sponza.j3o");
+    log.log(Level.SEVERE, "Saving Sponza: " + file.getAbsoluteFile());
+    try {
+      exporter.save(geom, file);
+    } catch (IOException ex) {
+      log.log(Level.SEVERE, "Failed to save geometry!", ex);
+    }
+  }
+  
+  private Geometry loadSponzaGeometry()
+  {
+    Geometry geom = null;
+    String tmpDir = System.getProperty("java.io.tmpdir");
+    BinaryImporter importer = BinaryImporter.getInstance();
+    File file = new File(tmpDir + "/Sponza.j3o");
+    log.log(Level.SEVERE, "Loading Sponza: " + file.getAbsoluteFile());
+    try {
+      geom = (Geometry) importer.load(file);
+    } catch (IOException ex) {}
+    
+    return geom;
+  }
+  
+  private void deleteSponzaGeometry()
+  {
+    String tmpDir = System.getProperty("java.io.tmpdir");
+    File file = new File(tmpDir + "/Sponza.j3o");
+    log.log(Level.SEVERE, "Deleting Sponza: " + file.getAbsoluteFile());
+    file.delete();
   }
 }
