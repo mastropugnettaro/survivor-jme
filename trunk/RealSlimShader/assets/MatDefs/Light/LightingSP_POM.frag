@@ -1,3 +1,5 @@
+#extension GL_EXT_gpu_shader4 : enable
+
 #ifndef NUM_LIGHTS
   #define NUM_LIGHTS 1
 #endif
@@ -77,20 +79,110 @@
     #ifdef PARALLAXMAP
       uniform sampler2D m_ParallaxMap;
       uniform float m_ParallaxHeight;
+      uniform float m_ParallaxAO;
 
-      void calculateParallax(const in vec3 E, out vec2 parallaxTexCoord)
+      void calculateParallax(const in vec3 E, out vec2 parallaxTexCoord, out float parallaxAO)
       {
         float h = texture2D(m_ParallaxMap, v_TexCoord).r;
         h = (h - 0.6) * m_ParallaxHeight * E.z;
         vec2 parallaxOffset = h * E.xy;
         parallaxTexCoord = v_TexCoord + parallaxOffset;
+        //parallaxAO = 1.0 - clamp(m_ParallaxAO * length(parallaxOffset), 0.0, 1.0);
+        parallaxAO = 1.0;
       }
+  /*
+      void calculateParallaxOffset2(const in vec3 E, const in vec3 N, const in vec3 Nx,
+        out vec2 parallaxOffset)
+      {
+        float factor1 = dot(N, Nx);
+        float factor2 = max(dot(N, E), 0.0);
+        float parallax = texture2D(m_ParallaxMap, v_TexCoord).r;
+        factor1 = 1.0 - factor1 * factor1;
+        float offset = -(factor1 * factor2 * m_ParallaxHeight * parallax);
+        parallaxOffset = vec2(offset, offset);
+      }
+
+  */
+
+      float MipmapLevel(vec2 UV, vec2 TextureSize)
+      {
+        vec2 ddx = dFdx(UV * TextureSize.x);
+        vec2 ddy = dFdy(UV * TextureSize.y);
+        vec2 dist = sqrt(ddx * ddx + ddy * ddy);
+        return log2(max(dist.x,dist.y));
+        //return log2(sqrt(max(dot(ddx,ddx),dot(ddy,ddy))));
+      }
+
+      const int nMinSamples = 4;
+      const int	nMaxSamples = 500;
+      const float fTexelsPerSide = sqrt(512.0 * 512.0 * 2.0);
+
+      void calculateParallax2(const in vec3 E, const in vec3 N, out vec2 parallaxTexCoord, out float parallaxAO)
+      {
+        parallaxAO = 1.0;
+        float fParallaxLimit = length(E.xy) / E.z;
+        fParallaxLimit *= m_ParallaxHeight;
+
+        vec2 parallaxOffset = normalize(-E.xy);
+        parallaxOffset *= fParallaxLimit;
+
+        int nNumSamples = int(mix(nMinSamples, nMaxSamples, dot(E, N))); // calculate dynamic number of samples (Tatarchuk's method)
+        //int nNumSamples = int(fParallaxLimit * fTexelsPerSide); // calculate dynamic number of samples (Zink's method)
+        //int nNumSamples = 15;
+        float fStepSize = 1.0 / nNumSamples;
+
+        vec2 ddx = dFdx(v_TexCoord * vec2(512.0));
+        vec2 ddy = dFdy(v_TexCoord * vec2(512.0));
+        vec2 dist = sqrt(ddx * ddx + ddy * ddy);
+        float lod = log2(max(dist.x, dist.y));
+
+        vec2 vOffsetStep = fStepSize * parallaxOffset;
+        vec2 vCurrOffset = vec2(0.0, 0.0);
+        vec2 vLastOffset = vec2(0.0, 0.0);
+        vec2 vFinalOffset = vec2(0.0, 0.0);
+
+        vec4 vCurrSample;
+	      vec4 vLastSample;
+
+	      float stepHeight = 1.0;	
+	      int nCurrSample = 0;
+
+        while (nCurrSample < nNumSamples)
+        {
+          parallaxTexCoord = v_TexCoord + vCurrOffset;
+          //vCurrSample = texture2D(m_ParallaxMap, parallaxTexCoord);
+          vCurrSample = texture2DLod(m_ParallaxMap, parallaxTexCoord, lod); // sample the current texcoord offset
+          //vCurrSample = texture2DGrad(m_ParallaxMap, parallaxTexCoord, ddx, ddy); // sample the current texcoord offset
+          if (vCurrSample.r > stepHeight)
+          {
+            // calculate the linear intersection point
+            float Ua = (vLastSample.r - (stepHeight + fStepSize)) / (fStepSize + (vCurrSample.r - vLastSample.r));
+            vFinalOffset = vLastOffset + Ua * vOffsetStep;
+
+            parallaxTexCoord = v_TexCoord + vCurrOffset;
+            //vCurrSample = texture2D(m_ParallaxMap, parallaxTexCoord);
+            vCurrSample = texture2DLod(m_ParallaxMap, parallaxTexCoord, lod); // sample the corrected tex coords
+            //vCurrSample = texture2DGrad(m_ParallaxMap, parallaxTexCoord, ddx, ddy); // sample the corrected tex coords
+            nCurrSample = nNumSamples + 1; // exit the while loop
+          }
+          else
+          {
+            nCurrSample++;              // increment to the next sample
+            stepHeight -= fStepSize;    // change the required height-map height
+            vLastOffset = vCurrOffset;  // remember this texcoord offset for next time
+            vCurrOffset += vOffsetStep; // increment to the next texcoord offset
+            vLastSample = vCurrSample;
+          }
+        }
+      }
+  
     #endif
   #endif
 
   void initializeMaterialColors(
     #if defined(PARALLAXMAP) && defined(NORMALMAP)
       const in vec2 parallaxTexCoord,
+      const in float parallaxAO,
     #endif
       out vec3 ambientColor, 
       out vec3 diffuseColor, 
@@ -115,6 +207,7 @@
       vec4 diffuseMapColor;
       #ifdef PARALLAXMAP
         diffuseMapColor = texture2D(m_DiffuseMap, parallaxTexCoord);
+        ambientColor *= parallaxAO;
       #else
         diffuseMapColor = texture2D(m_DiffuseMap, v_TexCoord);
       #endif
@@ -186,27 +279,36 @@
       vec3 normal = normalize(v_Normal);
 
       // view space -> tangent space matrix
-      mat4 vsTangentMatrix = mat4(vec4(tangent.x, bitangent.x, normal.x, 0.0),
-                                  vec4(tangent.y, bitangent.y, normal.y, 0.0),
-                                  vec4(tangent.z, bitangent.z, normal.z, 0.0),
-                                  vec4(      0.0,         0.0,      0.0, 1.0));
-
+      mat4 vsTangentMatrix = transpose(mat4(vec4(tangent,       0.0),
+                                            vec4(bitangent,     0.0),
+                                            vec4(normal,        0.0),
+                                            vec4(0.0, 0.0, 0.0, 1.0)));
       // world space -> tangent space matrix
       mat4 wsViewTangentMatrix = vsTangentMatrix * g_ViewMatrix;
 
       #ifdef PARALLAXMAP
         vec2 parallaxTexCoord;
-        calculateParallax(E, parallaxTexCoord);
+        float parallaxAO;
+        //N = normalize(texture2D(m_NormalMap, v_TexCoord).xyz * 2.0 - 1.0);
+        vec3 Nx = vec3(normalize(vsTangentMatrix * vec4(normal, 0.0)));
+        //calculateParallaxOffset2(E, N, Nx, parallaxOffset);
+        calculateParallax2(E, Nx, parallaxTexCoord, parallaxAO);
+
+        //calculateParallax(E, parallaxTexCoord, parallaxAO);
+
         N = normalize(texture2D(m_NormalMap, parallaxTexCoord).xyz * 2.0 - 1.0);
-      #else
-        N = normalize(texture2D(m_NormalMap, v_TexCoord).xyz * 2.0 - 1.0);
       #endif
     #else
       N = normalize(v_Normal);
+      #ifdef PARALLAXMAP
+        vec2 parallaxOffset = vec2(0.0);
+        vec2 parallaxTexCoord = v_TexCoord;
+        float parallaxAO = 1.0;
+      #endif
     #endif
 
     #if defined(PARALLAXMAP) && defined(NORMALMAP)
-      initializeMaterialColors(parallaxTexCoord,
+      initializeMaterialColors(parallaxTexCoord, parallaxAO,
         ambientColor, diffuseColor, specularColor, alpha);
     #else
       initializeMaterialColors(
