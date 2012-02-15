@@ -107,7 +107,7 @@
       diffuseColor = m_Diffuse.rgb;
       alpha = m_Diffuse.a;
     #else
-      diffuseColor = 1.0;
+      diffuseColor = vec3(1.0);
       alpha = 1.0;
     #endif
 
@@ -126,7 +126,7 @@
     #if defined(MATERIAL_COLORS) && defined(SPECULAR)
       specularColor = m_Specular.xyz;
     #else
-      specularColor = 0.0;
+      specularColor = vec3(0.0);
     #endif
 
     #ifdef SPECULARMAP
