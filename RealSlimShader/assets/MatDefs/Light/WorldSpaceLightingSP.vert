@@ -56,7 +56,7 @@ uniform mat4 g_ViewMatrixInverse;
     float attenuation;
 
     P = vec3(g_WorldMatrix * position); // object space -> world space
-    V = normalize(P - vec3(g_ViewMatrixInverse * vec4(0, 0, 0, 1)));
+    V = normalize(P - vec3(g_ViewMatrixInverse * vec4(0.0, 0.0, 0.0, 1.0)));
     E = -V;
     N = normalize(vec3(g_WorldMatrix * vec4(inNormal, 0.0))); // object space -> world space
     gl_FrontColor = m_Ambient * g_AmbientLightColor;
@@ -111,7 +111,7 @@ void main(void)
     doPerVertexLighting(position);
   #else
     v_Position = vec3(g_WorldMatrix * position); // object space -> world space      
-    v_View = normalize(v_Position - vec3(g_ViewMatrixInverse * vec4(0, 0, 0, 1)));
+    v_View = normalize(v_Position - vec3(g_ViewMatrixInverse * vec4(0.0, 0.0, 0.0, 1.0)));
     v_Normal = normalize(vec3(g_WorldMatrix * vec4(inNormal, 0.0))); // object space -> world space
 
     #if defined(NORMALMAP)
@@ -123,16 +123,16 @@ void main(void)
         vec3 bitangent = cross(v_Normal, tangent) * -inTangent.w;
 
         // tangent space -> world space matrix
-        v_NormalMapMatrix[0] = vec4(tangent.x, bitangent.x, v_Normal.x, 0);
-        v_NormalMapMatrix[1] = vec4(tangent.y, bitangent.y, v_Normal.y, 0);
-        v_NormalMapMatrix[2] = vec4(tangent.z, bitangent.z, v_Normal.z, 0);
-        v_NormalMapMatrix[3] = vec4(        0,           0,          0, 1);
+        v_NormalMapMatrix[0] = vec4(tangent.x, bitangent.x, v_Normal.x, 0.0);
+        v_NormalMapMatrix[1] = vec4(tangent.y, bitangent.y, v_Normal.y, 0.0);
+        v_NormalMapMatrix[2] = vec4(tangent.z, bitangent.z, v_Normal.z, 0.0);
+        v_NormalMapMatrix[3] = vec4(      0.0,         0.0,        0.0, 1.0);
 
         // normal [0, 1] -> [-1, 1] expansion
-        mat4 expansionMatrix = mat4(2, 0, 0, -1,
-                                    0, 2, 0, -1,
-                                    0, 0, 2, -1,
-                                    0, 0, 0,  1);
+        mat4 expansionMatrix = mat4(2.0, 0.0, 0.0, -1.0,
+                                    0.0, 2.0, 0.0, -1.0,
+                                    0.0, 0.0, 2.0, -1.0,
+                                    0.0, 0.0, 0.0,  1.0);
 
         // normal map transformation matrix
         v_NormalMapMatrix = expansionMatrix * v_NormalMapMatrix;
