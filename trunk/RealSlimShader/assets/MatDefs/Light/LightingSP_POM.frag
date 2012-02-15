@@ -111,7 +111,7 @@
 
         int nNumSamples = int(mix(nMinSamples, nMaxSamples, dot(E, N))); // calculate dynamic number of samples (Tatarchuk's method)
         //int nNumSamples = int(fParallaxLimit * fTexelsPerSide); // calculate dynamic number of samples (Zink's method)
-        //int nNumSamples = 15;
+        //int nNumSamples = 50;
         float fStepSize = 1.0 / nNumSamples;
 
         vec2 ddx = dFdx(v_TexCoord * vec2(512.0));
@@ -263,7 +263,9 @@
 
       #ifdef PARALLAXMAP
         vec2 parallaxTexCoord;
-        calculateParallax(E, parallaxTexCoord);
+        //calculateParallax(E, parallaxTexCoord);
+        vec3 Nx = normalize(texture2D(m_NormalMap, v_TexCoord).xyz * 2.0 - 1.0);        
+        calculateParallax2(E, Nx, parallaxTexCoord);
         N = normalize(texture2D(m_NormalMap, parallaxTexCoord).xyz * 2.0 - 1.0);
       #else
         N = normalize(texture2D(m_NormalMap, v_TexCoord).xyz * 2.0 - 1.0);
