@@ -253,6 +253,7 @@
 
     #ifdef NORMALMAP
       V = normalize(v_tsView);
+      E = -V;
       vec3 wsTangent = normalize(v_wsTangent);
       vec3 wsBitangent = normalize(v_wsBitangent);
       vec3 wsNormal = normalize(v_wsNormal);
@@ -269,10 +270,9 @@
       #endif
     #else
       V = normalize(v_wsView);
+      E = -V;
       N = normalize(v_wsNormal);
     #endif
-
-    E = -V;
 
     #if defined(PARALLAXMAP) && defined(NORMALMAP)
       initializeMaterialColors(parallaxTexCoord,
