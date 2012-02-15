@@ -14,6 +14,7 @@ uniform mat4 g_WorldViewProjectionMatrix;
 uniform mat4 g_WorldViewMatrix;
 uniform mat4 g_WorldMatrix;
 uniform mat4 g_ViewMatrix;
+uniform mat4 g_ViewMatrixInverse;
 uniform mat3 g_NormalMatrix;
 
 #ifdef VERTEX_LIGHTING
@@ -79,35 +80,35 @@ uniform mat3 g_NormalMatrix;
 
 #else // per fragment lighting
 
-  varying vec3 v_Position;
-  varying vec3 v_View;
-  varying vec3 v_Normal;
+  varying vec3 v_wsPosition;
+  varying vec3 v_wsView;
+  varying vec3 v_wsNormal;
 
   #if defined(NORMALMAP)
     attribute vec4 inTangent;
-    varying vec3 v_Tangent;
-    varying vec3 v_Bitangent;
+    varying vec3 v_wsTangent;
+    varying vec3 v_wsBitangent;
+    varying vec3 v_tsView;
   #endif
 
 #endif
 
 void main(void)
 {
-  vec4 position = vec4(inPosition, 1.0);
+  vec4 osPosition = vec4(inPosition, 1.0);
 
   #ifdef VERTEX_LIGHTING
     doPerVertexLighting(position);
   #else
-    v_Position = vec3(g_WorldMatrix * position); // object space -> world space
-    v_View = normalize(vec3(g_WorldViewMatrix * position)); // object space -> view space
-    v_Normal = normalize(g_NormalMatrix * inNormal); // object space -> view space
+    vec3 wsEyePosition = vec3(g_ViewMatrixInverse * vec4(0.0, 0.0, 0.0, 1.0));
+    v_wsPosition = vec3(g_WorldMatrix * osPosition); // object space -> world space
+    v_wsView = normalize(v_wsPosition - wsEyePosition);
+    v_wsNormal = normalize(mat3(g_WorldMatrix) * inNormal); // object space -> world space
 
-    #if defined(NORMALMAP)      
-      v_Tangent = normalize(g_NormalMatrix * inTangent.xyz); // object space -> view space
-      v_Bitangent = cross(v_Normal, v_Tangent) * -inTangent.w;
-
-      // view space -> tangent space
-      v_View = v_View * mat3(v_Tangent, v_Bitangent, v_Normal);
+    #if defined(NORMALMAP)
+      v_wsTangent = normalize(mat3(g_WorldMatrix) * inTangent.xyz); // object space -> world space
+      v_wsBitangent = vec3(cross(v_wsNormal, v_wsTangent) * -inTangent.w);      
+      v_tsView = v_wsView * mat3(v_wsTangent, v_wsBitangent, v_wsNormal); // world space -> tangent space
     #endif
   #endif
 
@@ -115,5 +116,5 @@ void main(void)
     v_TexCoord = inTexCoord;
   #endif
 
-  gl_Position = g_WorldViewProjectionMatrix * position; // object space -> projection space
+  gl_Position = g_WorldViewProjectionMatrix * osPosition; // object space -> projection space
 }
