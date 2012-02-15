@@ -1,5 +1,3 @@
-#extension GL_EXT_gpu_shader4 : enable
-
 #ifndef NUM_LIGHTS
   #define NUM_LIGHTS 1
 #endif
@@ -68,41 +66,27 @@
   #endif
   uniform float m_Shininess;
 
-  varying vec3 v_Position;
-  varying vec3 v_View;
-  varying vec3 v_Normal;
+  varying vec3 v_wsPosition;
+  varying vec3 v_wsView;
+  varying vec3 v_wsNormal;
 
   #if defined(NORMALMAP)
-    varying vec3 v_Tangent;
-    varying vec3 v_Bitangent;
+    varying vec3 v_wsTangent;
+    varying vec3 v_wsBitangent;
+    varying vec3 v_tsView;
 
     #ifdef PARALLAXMAP
       uniform sampler2D m_ParallaxMap;
       uniform float m_ParallaxHeight;
       uniform float m_ParallaxAO;
 
-      void calculateParallax(const in vec3 E, out vec2 parallaxTexCoord, out float parallaxAO)
+      void calculateParallax(const in vec3 E, out vec2 parallaxTexCoord)
       {
         float h = texture2D(m_ParallaxMap, v_TexCoord).r;
         h = (h - 0.6) * m_ParallaxHeight * E.z;
         vec2 parallaxOffset = h * E.xy;
         parallaxTexCoord = v_TexCoord + parallaxOffset;
-        //parallaxAO = 1.0 - clamp(m_ParallaxAO * length(parallaxOffset), 0.0, 1.0);
-        parallaxAO = 1.0;
       }
-  /*
-      void calculateParallaxOffset2(const in vec3 E, const in vec3 N, const in vec3 Nx,
-        out vec2 parallaxOffset)
-      {
-        float factor1 = dot(N, Nx);
-        float factor2 = max(dot(N, E), 0.0);
-        float parallax = texture2D(m_ParallaxMap, v_TexCoord).r;
-        factor1 = 1.0 - factor1 * factor1;
-        float offset = -(factor1 * factor2 * m_ParallaxHeight * parallax);
-        parallaxOffset = vec2(offset, offset);
-      }
-
-  */
 
       float MipmapLevel(vec2 UV, vec2 TextureSize)
       {
@@ -117,9 +101,8 @@
       const int	nMaxSamples = 500;
       const float fTexelsPerSide = sqrt(512.0 * 512.0 * 2.0);
 
-      void calculateParallax2(const in vec3 E, const in vec3 N, out vec2 parallaxTexCoord, out float parallaxAO)
+      void calculateParallax2(const in vec3 E, const in vec3 N, out vec2 parallaxTexCoord)
       {
-        parallaxAO = 1.0;
         float fParallaxLimit = length(E.xy) / E.z;
         fParallaxLimit *= m_ParallaxHeight;
 
@@ -182,7 +165,6 @@
   void initializeMaterialColors(
     #if defined(PARALLAXMAP) && defined(NORMALMAP)
       const in vec2 parallaxTexCoord,
-      const in float parallaxAO,
     #endif
       out vec3 ambientColor, 
       out vec3 diffuseColor, 
@@ -207,7 +189,6 @@
       vec4 diffuseMapColor;
       #ifdef PARALLAXMAP
         diffuseMapColor = texture2D(m_DiffuseMap, parallaxTexCoord);
-        ambientColor *= parallaxAO;
       #else
         diffuseMapColor = texture2D(m_DiffuseMap, v_TexCoord);
       #endif
@@ -219,7 +200,7 @@
     #if defined(MATERIAL_COLORS) && defined(SPECULAR)
       specularColor = m_Specular.xyz;
     #else
-      specularColor = 0.0;
+      specularColor = vec3(0.0);
     #endif
 
     #ifdef SPECULARMAP
@@ -240,7 +221,7 @@
     }
     else
     {
-      lightVector = lightPosition.xyz - v_Position;
+      lightVector = lightPosition.xyz - v_wsPosition;
       float dist = length(lightVector);
       lightVector /= vec3(dist);
       attenuation = clamp(1.0 - lightPosition.w * dist, 0.0, 1.0);
@@ -270,45 +251,31 @@
     float alpha;
     float attenuation;
 
-    V = normalize(v_View);
-    E = -V;
-
     #ifdef NORMALMAP
-      vec3 tangent = normalize(v_Tangent);
-      vec3 bitangent = normalize(v_Bitangent);
-      vec3 normal = normalize(v_Normal);
+      V = normalize(v_tsView);
+      vec3 wsTangent = normalize(v_wsTangent);
+      vec3 wsBitangent = normalize(v_wsBitangent);
+      vec3 wsNormal = normalize(v_wsNormal);
 
-      // view space -> tangent space matrix
-      mat4 vsTangentMatrix = transpose(mat4(vec4(tangent,       0.0),
-                                            vec4(bitangent,     0.0),
-                                            vec4(normal,        0.0),
-                                            vec4(0.0, 0.0, 0.0, 1.0)));
       // world space -> tangent space matrix
-      mat4 wsViewTangentMatrix = vsTangentMatrix * g_ViewMatrix;
+      mat3 wsTangentMatrix = mat3(wsTangent, wsBitangent, wsNormal);
 
       #ifdef PARALLAXMAP
         vec2 parallaxTexCoord;
-        float parallaxAO;
-        //N = normalize(texture2D(m_NormalMap, v_TexCoord).xyz * 2.0 - 1.0);
-        vec3 Nx = vec3(normalize(vsTangentMatrix * vec4(normal, 0.0)));
-        //calculateParallaxOffset2(E, N, Nx, parallaxOffset);
-        calculateParallax2(E, Nx, parallaxTexCoord, parallaxAO);
-
-        //calculateParallax(E, parallaxTexCoord, parallaxAO);
-
+        calculateParallax(E, parallaxTexCoord);
         N = normalize(texture2D(m_NormalMap, parallaxTexCoord).xyz * 2.0 - 1.0);
+      #else
+        N = normalize(texture2D(m_NormalMap, v_TexCoord).xyz * 2.0 - 1.0);
       #endif
     #else
-      N = normalize(v_Normal);
-      #ifdef PARALLAXMAP
-        vec2 parallaxOffset = vec2(0.0);
-        vec2 parallaxTexCoord = v_TexCoord;
-        float parallaxAO = 1.0;
-      #endif
+      V = normalize(v_wsView);
+      N = normalize(v_wsNormal);
     #endif
 
+    E = -V;
+
     #if defined(PARALLAXMAP) && defined(NORMALMAP)
-      initializeMaterialColors(parallaxTexCoord, parallaxAO,
+      initializeMaterialColors(parallaxTexCoord,
         ambientColor, diffuseColor, specularColor, alpha);
     #else
       initializeMaterialColors(
@@ -327,12 +294,10 @@
 
       calculateLightVector(lightPosition, lightColor, lightVector, attenuation);
 
-      #ifdef NORMALMAP
-        // world space -> tangent space
-        L = vec3(wsViewTangentMatrix * vec4(lightVector, 0.0));
-      #else        
-        // world space -> view space
-        L = vec3(g_ViewMatrix * vec4(lightVector, 0.0));
+      #ifdef NORMALMAP        
+        L = lightVector * wsTangentMatrix; // world space -> tangent space
+      #else
+        L = lightVector; // world space
       #endif
 
       L = normalize(L);
@@ -345,7 +310,7 @@
   }
 #endif
 
-void main (void)
+void main(void)
 {
   #ifdef VERTEX_LIGHTING
     textureVertexFragment();

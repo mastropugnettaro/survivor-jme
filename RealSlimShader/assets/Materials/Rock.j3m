@@ -1,13 +1,11 @@
-Material Rock : MatDefs/Light/LightingSP.j3md {
+Material Rock : MatDefs/Light/LightingSP_POM.j3md {
      MaterialParameters {
         Diffuse : 1.0 1.0 1.0 1.0
         Ambient : 1.0 1.0 1.0 1.0
         UseMaterialColors : true
         Shininess : 100.0
         Specular : 1.0 1.0 1.0 1.0
-        NormalMap : Textures/BrickWall_normal.jpg
-        DiffuseMap : Textures/BrickWall.jpg
-        ParallaxMap : Textures/BrickWall_height.jpg
+        NormalMap : Textures/debug_normal.png
      }
     AdditionalRenderState {
     }
