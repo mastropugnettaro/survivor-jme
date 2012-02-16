@@ -251,7 +251,7 @@
 
     #ifdef DIFFUSEMAP
       vec4 diffuseMapColor;
-      #if defined(PARALLAXMAP) || defined(NORMALMAP_PARALLAX)
+      #if (defined(PARALLAXMAP) || defined(NORMALMAP_PARALLAX)) && defined(NORMALMAP)
         diffuseMapColor = texture2D(m_DiffuseMap, parallaxTexCoord);
       #else
         diffuseMapColor = texture2D(m_DiffuseMap, v_TexCoord);
