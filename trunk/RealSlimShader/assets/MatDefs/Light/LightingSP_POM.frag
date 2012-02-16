@@ -117,10 +117,10 @@
         parallaxTexCoord = v_TexCoord + parallaxOffset;
       }
 
-      float MipmapLevel(vec2 UV, vec2 TextureSize)
+      float MipmapLevel(in vec2 uv, in vec2 TextureSize)
       {
-        vec2 ddx = dFdx(UV * TextureSize.x);
-        vec2 ddy = dFdy(UV * TextureSize.y);
+        vec2 ddx = dFdx(uv * TextureSize.x);
+        vec2 ddy = dFdy(uv * TextureSize.y);
         vec2 dist = sqrt(ddx * ddx + ddy * ddy);
         return log2(max(dist.x,dist.y));
         //return log2(sqrt(max(dot(ddx,ddx),dot(ddy,ddy))));
