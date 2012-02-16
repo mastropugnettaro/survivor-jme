@@ -25,7 +25,7 @@ import java.util.logging.Logger;
 public class TestSinglePassLightingAtSponza extends SimpleApplication {
 
   private static final Logger log = Logger.getLogger(TestSinglePassLightingAtSponza.class.getName());
-  private static final int NUM_LIGHTS_HALF = 2;
+  private static final int NUM_LIGHTS_HALF = 1;
   Geometry model;
 
   public static void main(String[] args) 
@@ -66,7 +66,7 @@ public class TestSinglePassLightingAtSponza extends SimpleApplication {
 
     flyCam.setMoveSpeed(50);
 
-    Material mat = new MaterialSP(assetManager, "MatDefs/Light/LightingSP.j3md");
+    Material mat = new MaterialSP(assetManager, "MatDefs/Light/LightingSP_POM.j3md");
     //Material mat = new MaterialSP(assetManager, "MatDefs/Light/Lighting.j3md");
     Texture diff = assetManager.loadTexture("Textures/BrickWall.jpg");
     diff.setWrap(Texture.WrapMode.Repeat);
@@ -94,7 +94,7 @@ public class TestSinglePassLightingAtSponza extends SimpleApplication {
     //mat.setFloat("Shininess", 1.0f);
 
     model = (Geometry) assetManager.loadModel("Models/Sponza.j3o");
-    model.getMesh().scaleTextureCoordinates(new Vector2f(2, 2));
+    //model.getMesh().scaleTextureCoordinates(new Vector2f(2, 2));
     //TangentBinormalGenerator.generate(model);
     //saveSponzaGeometry(model);
     model.setMaterial(mat);
