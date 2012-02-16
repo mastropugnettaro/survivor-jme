@@ -92,10 +92,15 @@ public class TestSinglePassLighting extends SimpleApplication
     Material sphereMat = new MaterialSP("Materials/Rock.j3m", assetManager);    
     sphere.setMaterial(sphereMat);
 
+    Geometry floor = (Geometry) assetManager.loadModel("Models/floor.j3o");    
+    Material floorMat = new MaterialSP("Materials/floor.j3m", assetManager);    
+    floor.setMaterial(floorMat);
+
     Node node = new Node();
     node.setLocalTranslation(1f, 1f, 1f);
     node.attachChild(sphere);
     rootNode.attachChild(node);
+    rootNode.attachChild(floor);
 
     cam.setLocation(new Vector3f(0f, 2f, 1f));
     cam.lookAt(node.getLocalTranslation().clone(), Vector3f.UNIT_Y.clone());

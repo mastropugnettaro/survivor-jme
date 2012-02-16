@@ -26,6 +26,9 @@ MaterialDef Phong Lighting (Single Pass) {
         // Normal map
         Texture2D NormalMap
 
+        //Set to true is parallax map is stored in the alpha channel of the normal map
+        Boolean PackedNormalParallax
+
         // Parallax/height map
         Texture2D ParallaxMap
 
@@ -59,6 +62,7 @@ MaterialDef Phong Lighting (Single Pass) {
             SPECULAR : Specular
             DIFFUSEMAP : DiffuseMap
             NORMALMAP : NormalMap
+            NORMALMAP_PARALLAX : PackedNormalParallax
             PARALLAXMAP : ParallaxMap
         }
     }
