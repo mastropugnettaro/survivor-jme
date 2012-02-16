@@ -139,7 +139,8 @@
         parallaxOffset *= fParallaxLimit;
 
         // calculate dynamic number of samples (Tatarchuk's method)
-        int nNumSamples = int(mix(float(nMinSamples), float(nMaxSamples), clamp(0.0, 1.0, dot(E, N)))); 
+        //int nNumSamples = int(mix(float(nMinSamples), float(nMaxSamples), clamp(0.0, 1.0, dot(E, N))));
+        int nNumSamples = 50;
         float fStepSize = 1.0 / nNumSamples;
 
         vec2 ddx = dFdx(v_TexCoord * vec2(512.0));
@@ -328,7 +329,7 @@
       #if defined(PARALLAXMAP) || defined(NORMALMAP_PARALLAX)
         vec2 parallaxTexCoord;
         //calculateParallax(E, parallaxTexCoord);
-        vec3 Nx = normalize(texture2D(m_NormalMap, v_TexCoord).xyz * 2.0 - 1.0);        
+        vec3 Nx = normalize(texture2D(m_NormalMap, v_TexCoord).xyz * 2.0 - 1.0);
         calculateParallax2(E, Nx, parallaxTexCoord);
         N = normalize(texture2D(m_NormalMap, parallaxTexCoord).xyz * 2.0 - 1.0);
       #else
