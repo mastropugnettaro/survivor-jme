@@ -1,15 +1,16 @@
 Material MyMaterial : MatDefs/Light/LightingSP_POM.j3md {
-    MaterialParameters {
+     MaterialParameters {
         UseMaterialColors : true
         Diffuse : 1.0 1.0 1.0 1.0
         Ambient : 1.0 1.0 1.0 1.0
         Specular : 1.0 1.0 1.0 1.0
+        ParallaxHeight : 0.20000002
+        PackedNormalParallax : false
+        NormalMap : Textures/BrickWall_normal.jpg
+        ParallaxMap : Textures/BrickWall_height.jpg
+        DiffuseMap : Textures/wood.jpg
         Shininess : 100.0
-        DiffuseMap : Repeat Textures/wood.jpg
-        NormalMap : Repeat Textures/four_NM_height.tga
-        PackedNormalParallax : true
-        ParallaxHeight : 0.5
-    }
+     }
     AdditionalRenderState {
     }
 }

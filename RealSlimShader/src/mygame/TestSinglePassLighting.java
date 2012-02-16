@@ -9,9 +9,13 @@ import com.jme3.light.PointLight;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
+import com.jme3.math.Matrix3f;
+import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
+import com.jme3.scene.debug.Arrow;
+import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Sphere;
 import com.jme3.scene.shape.Sphere.TextureMode;
 import com.jme3.system.AppSettings;
@@ -92,15 +96,19 @@ public class TestSinglePassLighting extends SimpleApplication
     Material sphereMat = new MaterialSP("Materials/Rock.j3m", assetManager);    
     sphere.setMaterial(sphereMat);
 
-    Geometry floor = (Geometry) assetManager.loadModel("Models/floor.j3o");    
-    Material floorMat = new MaterialSP("Materials/floor.j3m", assetManager);    
+    Box box = new Box(2f, 0.1f, 2f);
+    TangentBinormalGenerator.generate(box);
+    //Geometry floor = (Geometry) assetManager.loadModel("Models/floor.j3o");
+    Geometry floor = new Geometry("floor", box);
+    floor.setLocalTranslation(0f, -2f, 0f);
+    Material floorMat = new MaterialSP("Materials/floor.j3m", assetManager);
     floor.setMaterial(floorMat);
 
     Node node = new Node();
     node.setLocalTranslation(1f, 1f, 1f);
     node.attachChild(sphere);
+    node.attachChild(floor);
     rootNode.attachChild(node);
-    rootNode.attachChild(floor);
 
     cam.setLocation(new Vector3f(0f, 2f, 1f));
     cam.lookAt(node.getLocalTranslation().clone(), Vector3f.UNIT_Y.clone());
@@ -112,16 +120,25 @@ public class TestSinglePassLighting extends SimpleApplication
     al = new AmbientLight();
     al.setColor(new ColorRGBA(0.05f, 0.05f, 0.05f, 1f));
     rootNode.addLight(al);
-  
+    
     float ci = 0.9f / Math.max(NUM_LIGHTS, 1f);
     for (int i = 0; i < NUM_LIGHTS; i++)
     { 
       float x = 1f + i % 2;
       float y = FastMath.sign(1.5f - i % 4);
       dl = new DirectionalLight();
-      dl.setDirection(new Vector3f(x, y, -1f).normalizeLocal());
+      dl.setDirection(new Vector3f(x, -y, -1f).normalizeLocal());
       dl.setColor(new ColorRGBA(ci, ci, ci, 1.0f));
       rootNode.addLight(dl);
+      
+      if (i == 0)
+      {
+        addDebugArrow(new Vector3f(0f, 1f, 0f), dl.getDirection());
+      }
+      else if (i == 1)
+      {
+        addDebugArrow(new Vector3f(0f, 1f, 0f), dl.getDirection());
+      }
     }
     
     PointLight pl = new PointLight();
@@ -129,6 +146,21 @@ public class TestSinglePassLighting extends SimpleApplication
     pl.setColor(ColorRGBA.Green);
     pl.setRadius(1.5f);
     rootNode.addLight(pl);    
+  }
+  
+  private void addDebugArrow(Vector3f pos, Vector3f dir)
+  {
+    Arrow arrow = new Arrow(dir.clone());
+    arrow.setLineWidth(3f);
+    Geometry geom = new Geometry("", arrow);
+    geom.setLocalTranslation(pos);
+//    Quaternion q = new Quaternion();
+//    q.lookAt(dir, Vector3f.UNIT_Y.clone());
+//    geom.setLocalRotation(q);
+    Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+    mat.setColor("Color", ColorRGBA.Blue);
+    geom.setMaterial(mat);
+    rootNode.attachChild(geom);
   }
   
   private void saveSphereMesh(Sphere mesh)
