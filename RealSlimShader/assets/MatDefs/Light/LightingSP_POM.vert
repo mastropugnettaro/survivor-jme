@@ -80,7 +80,7 @@ uniform mat3 g_NormalMatrix;
 
 #else // per fragment lighting
 
-  //varying vec3 v_wsPosition;
+  varying vec3 v_wsPosition;
   varying vec3 v_wsView;
   varying vec3 v_wsNormal;
 
@@ -101,8 +101,8 @@ void main(void)
     doPerVertexLighting(position);
   #else
     vec3 wsEyePosition = vec3(g_ViewMatrixInverse * vec4(0.0, 0.0, 0.0, 1.0));
-    vec3 wsPosition = vec3(g_WorldMatrix * osPosition); // object space -> world space
-    v_wsView = wsPosition - wsEyePosition;
+    v_wsPosition = vec3(g_WorldMatrix * osPosition); // object space -> world space
+    v_wsView = v_wsPosition - wsEyePosition; // DO ... NOT ... NORMALIZE ! ! !
     v_wsNormal = normalize(mat3(g_WorldMatrix) * inNormal); // object space -> world space
 
     #if defined(NORMALMAP)
