@@ -5,9 +5,9 @@ Material Rock : MatDefs/Light/LightingSP_POM.j3md {
         UseMaterialColors : true
         Shininess : 100.0
         Specular : 1.0 1.0 1.0 1.0
-        NormalMap : Textures/BrickWall_normal.jpg
-        DiffuseMap : Textures/BrickWall.jpg
         ParallaxMap : Textures/BrickWall_height.jpg
+        DiffuseMap : Textures/BrickWall.jpg
+        NormalMap : Textures/BrickWall_normal.jpg
      }
     AdditionalRenderState {
     }
