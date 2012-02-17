@@ -79,6 +79,26 @@
 
     #if defined(PARALLAXMAP) || defined(NORMALMAP_PARALLAX)
       uniform float m_ParallaxHeight;
+      uniform float m_PomShadowSoftening;
+      uniform int m_PomMinSamples;
+      uniform int	m_PomMaxSamples;
+      uniform int m_TextureSize;
+
+      //#define POM_USE_TEX_GRAD
+      //#define POM_USE_TEX_LOD
+      #define POM_ENABLE_SHADOWS
+
+      #if (defined(POM_USE_TEX_GRAD) && defined(GL_EXT_gpu_shader4)) || defined(POM_USE_TEX_LOD)
+        vec2 g_ddx = dFdx(v_TexCoord);
+        vec2 g_ddy = dFdy(v_TexCoord);
+        //vec2 g_ddx = dFdx(v_TexCoord * m_TextureSize);
+        //vec2 g_ddy = dFdy(v_TexCoord * m_TextureSize);
+      #endif
+      #if defined(POM_USE_TEX_LOD)
+        vec2 g_dist = sqrt(g_ddx * g_ddx + g_ddy * g_ddy);
+        float g_lod = log2(max(g_dist.x, g_dist.y));
+        //float g_lod = log2(sqrt(max(dot(g_ddx, g_ddx), dot(g_ddy, g_ddy))));
+      #endif
 
       float getHeightSample(const in vec2 texCoord)
       {
@@ -108,8 +128,28 @@
           #endif
         }
       #endif
+      
+      float getPomHeightSample(const in vec2 texCoord)
+      {
+        #if (defined(POM_USE_TEX_GRAD) && defined(GL_EXT_gpu_shader4))
+          return getHeightSample(texCoord, g_ddx, g_ddy);
+        #elif defined(POM_USE_TEX_LOD)
+          return getHeightSample(texCoord, g_lod);
+        #else
+          return getHeightSample(texCoord);
+        #endif
+      }
 
-      void calculateParallax(const in vec3 E, out vec2 parallaxTexCoord)
+      float getMipmapLevel(in vec2 uv, in vec2 textureSize)
+      {
+        vec2 ddx = dFdx(uv * textureSize.x);
+        vec2 ddy = dFdy(uv * textureSize.y);
+        vec2 dist = sqrt(ddx * ddx + ddy * ddy);
+        return log2(max(dist.x,dist.y));
+        //return log2(sqrt(max(dot(ddx,ddx),dot(ddy,ddy))));
+      }
+
+      void calculateSimpleParallax(const in vec3 E, out vec2 parallaxTexCoord)
       {
         float h = getHeightSample(v_TexCoord);
         h = (h - 0.6) * m_ParallaxHeight * E.z;
@@ -117,20 +157,7 @@
         parallaxTexCoord = v_TexCoord + parallaxOffset;
       }
 
-      float MipmapLevel(in vec2 uv, in vec2 TextureSize)
-      {
-        vec2 ddx = dFdx(uv * TextureSize.x);
-        vec2 ddy = dFdy(uv * TextureSize.y);
-        vec2 dist = sqrt(ddx * ddx + ddy * ddy);
-        return log2(max(dist.x,dist.y));
-        //return log2(sqrt(max(dot(ddx,ddx),dot(ddy,ddy))));
-      }
-
-      const int nMinSamples = 4;
-      const int	nMaxSamples = 200;
-      const float fTexelsPerSide = sqrt(512.0 * 512.0 * 2.0);
-
-      void calculateParallax2(const in vec3 E, const in vec3 N, out vec2 parallaxTexCoord)
+      void calculatePomParallax(const in vec3 E, const in vec3 N, out vec2 parallaxTexCoord)
       {
         float fParallaxLimit = length(E.xy) / E.z;
         fParallaxLimit *= m_ParallaxHeight;
@@ -138,15 +165,10 @@
         vec2 parallaxOffset = normalize(-E.xy);
         parallaxOffset *= fParallaxLimit;
 
-        // calculate dynamic number of samples (Tatarchuk's method)
-        int nNumSamples = int(mix(float(nMinSamples), float(nMaxSamples), clamp(0.0, 1.0, dot(E, N))));
-        //int nNumSamples = 500;
+        // calculate dynamic number of samples
+        int nNumSamples = int(mix(float(m_PomMinSamples), float(m_PomMaxSamples), clamp(0.0, 1.0, dot(E, N))));
+        //int nNumSamples = 200;
         float fStepSize = 1.0 / nNumSamples;
-
-        vec2 ddx = dFdx(v_TexCoord);
-        vec2 ddy = dFdy(v_TexCoord);
-        vec2 dist = sqrt(ddx * ddx + ddy * ddy);
-        float lod = log2(max(dist.x, dist.y));
 
         vec2 vOffsetStep = fStepSize * parallaxOffset;
         vec2 vCurrOffset = vec2(0.0, 0.0);
@@ -162,19 +184,20 @@
         while (nCurrSample < nNumSamples)
         {
           parallaxTexCoord = v_TexCoord + vCurrOffset;
-          //fCurrSample = getHeightSample(parallaxTexCoord);
-          fCurrSample = getHeightSample(parallaxTexCoord, lod); // sample the current texcoord offset
-          //fCurrSample = getHeightSample(parallaxTexCoord, ddx, ddy); // sample the current texcoord offset
+
+          // sample the current texcoord offset
+          fCurrSample = getPomHeightSample(parallaxTexCoord);
+
           if (fCurrSample > stepHeight)
           {
             // calculate the linear intersection point
             float Ua = (fLastSample - (stepHeight + fStepSize)) / (fStepSize + (fCurrSample - fLastSample));
             vFinalOffset = vLastOffset + Ua * vOffsetStep;
-
             parallaxTexCoord = v_TexCoord + vCurrOffset;
-            //fCurrSample = getHeightSample(parallaxTexCoord);
-            fCurrSample = getHeightSample(parallaxTexCoord, lod); // sample the corrected tex coords
-            //fCurrSample = getHeightSample(parallaxTexCoord, ddx, ddy); // sample the corrected tex coords
+
+            // sample the corrected tex coords
+            fCurrSample = getPomHeightSample(parallaxTexCoord);
+
             nCurrSample = nNumSamples + 1; // exit the while loop
           }
           else
@@ -188,22 +211,20 @@
         }
       }
 
-      const float m_ShadowSoftening = 0.58;
-
-      void addOcclusionShadow(const in vec3 L, const in vec2 parallaxTexCoord, inout float occlusionShadowSum)
+      void addPomShadow(const in vec3 L, const in vec2 parallaxTexCoord, inout float pomShadowSum)
       {
         vec2 vLightRayTS = L.xy * m_ParallaxHeight;
 
         // Compute the soft blurry shadows taking into account self-occlusion for 
         // features of the height field:
-        float sh0 =  getHeightSample(parallaxTexCoord);
-        float shA = (getHeightSample(parallaxTexCoord + vLightRayTS * 0.88) - sh0 - 0.88) *  1.0 * m_ShadowSoftening;
-        float sh9 = (getHeightSample(parallaxTexCoord + vLightRayTS * 0.77) - sh0 - 0.77) *  2.0 * m_ShadowSoftening;
-        float sh8 = (getHeightSample(parallaxTexCoord + vLightRayTS * 0.66) - sh0 - 0.66) *  4.0 * m_ShadowSoftening;
-        float sh7 = (getHeightSample(parallaxTexCoord + vLightRayTS * 0.55) - sh0 - 0.55) *  6.0 * m_ShadowSoftening;
-        float sh6 = (getHeightSample(parallaxTexCoord + vLightRayTS * 0.44) - sh0 - 0.44) *  8.0 * m_ShadowSoftening;
-        float sh5 = (getHeightSample(parallaxTexCoord + vLightRayTS * 0.33) - sh0 - 0.33) * 10.0 * m_ShadowSoftening;
-        float sh4 = (getHeightSample(parallaxTexCoord + vLightRayTS * 0.22) - sh0 - 0.22) * 12.0 * m_ShadowSoftening;
+        float sh0 =  getPomHeightSample(parallaxTexCoord);
+        float shA = (getPomHeightSample(parallaxTexCoord + vLightRayTS * 0.88) - sh0 - 0.88) *  1.0 * m_PomShadowSoftening;
+        float sh9 = (getPomHeightSample(parallaxTexCoord + vLightRayTS * 0.77) - sh0 - 0.77) *  2.0 * m_PomShadowSoftening;
+        float sh8 = (getPomHeightSample(parallaxTexCoord + vLightRayTS * 0.66) - sh0 - 0.66) *  4.0 * m_PomShadowSoftening;
+        float sh7 = (getPomHeightSample(parallaxTexCoord + vLightRayTS * 0.55) - sh0 - 0.55) *  6.0 * m_PomShadowSoftening;
+        float sh6 = (getPomHeightSample(parallaxTexCoord + vLightRayTS * 0.44) - sh0 - 0.44) *  8.0 * m_PomShadowSoftening;
+        float sh5 = (getPomHeightSample(parallaxTexCoord + vLightRayTS * 0.33) - sh0 - 0.33) * 10.0 * m_PomShadowSoftening;
+        float sh4 = (getPomHeightSample(parallaxTexCoord + vLightRayTS * 0.22) - sh0 - 0.22) * 12.0 * m_PomShadowSoftening;
 
         // Compute the actual shadow strength:
         float fOcclusionShadow = 1.0 - max(max(max(max(max(max(shA, sh9), sh8), sh7), sh6), sh5), sh4);
@@ -211,56 +232,8 @@
         // The previous computation overbrightens the image, let's adjust for that:
         //fOcclusionShadow = clamp(0.0, 1.0, fOcclusionShadow * 0.4 + 0.4);
         fOcclusionShadow = fOcclusionShadow * 0.4 + 0.4;
-        occlusionShadowSum *= fOcclusionShadow;
-      }
-  
-      void addOcclusionShadow(const in vec3 L, const in vec2 parallaxTexCoord, const in float lod, inout float occlusionShadowSum)
-      {
-        vec2 vLightRayTS = L.xy * m_ParallaxHeight;
-
-        // Compute the soft blurry shadows taking into account self-occlusion for 
-        // features of the height field:
-        float sh0 =  getHeightSample(parallaxTexCoord, lod);
-        float shA = (getHeightSample(parallaxTexCoord + vLightRayTS * 0.88, lod) - sh0 - 0.88) *  1.0 * m_ShadowSoftening;
-        float sh9 = (getHeightSample(parallaxTexCoord + vLightRayTS * 0.77, lod) - sh0 - 0.77) *  2.0 * m_ShadowSoftening;
-        float sh8 = (getHeightSample(parallaxTexCoord + vLightRayTS * 0.66, lod) - sh0 - 0.66) *  4.0 * m_ShadowSoftening;
-        float sh7 = (getHeightSample(parallaxTexCoord + vLightRayTS * 0.55, lod) - sh0 - 0.55) *  6.0 * m_ShadowSoftening;
-        float sh6 = (getHeightSample(parallaxTexCoord + vLightRayTS * 0.44, lod) - sh0 - 0.44) *  8.0 * m_ShadowSoftening;
-        float sh5 = (getHeightSample(parallaxTexCoord + vLightRayTS * 0.33, lod) - sh0 - 0.33) * 10.0 * m_ShadowSoftening;
-        float sh4 = (getHeightSample(parallaxTexCoord + vLightRayTS * 0.22, lod) - sh0 - 0.22) * 12.0 * m_ShadowSoftening;
-        // Compute the actual shadow strength:
-        float fOcclusionShadow = 1.0 - max(max(max(max(max(max(shA, sh9), sh8), sh7), sh6), sh5), sh4);
-
-        // The previous computation overbrightens the image, let's adjust for that:
-        fOcclusionShadow = clamp(0.0, 1.0, fOcclusionShadow * 0.4 + 0.4);
-        //fOcclusionShadow = fOcclusionShadow * 0.4 + 0.4;
-        occlusionShadowSum *= fOcclusionShadow;
-      }
-  
-      #ifdef GL_EXT_gpu_shader4
-        void addOcclusionShadow(const in vec3 L, const in vec2 parallaxTexCoord, const in vec2 ddx, in vec2 ddy, inout float occlusionShadowSum)
-        {
-          vec2 vLightRayTS = L.xy * m_ParallaxHeight;
-
-          // Compute the soft blurry shadows taking into account self-occlusion for 
-          // features of the height field:
-          float sh0 =  getHeightSample(parallaxTexCoord, ddx, ddy);
-          float shA = (getHeightSample(parallaxTexCoord + vLightRayTS * 0.88, ddx, ddy) - sh0 - 0.88) *  1.0 * m_ShadowSoftening;
-          float sh9 = (getHeightSample(parallaxTexCoord + vLightRayTS * 0.77, ddx, ddy) - sh0 - 0.77) *  2.0 * m_ShadowSoftening;
-          float sh8 = (getHeightSample(parallaxTexCoord + vLightRayTS * 0.66, ddx, ddy) - sh0 - 0.66) *  4.0 * m_ShadowSoftening;
-          float sh7 = (getHeightSample(parallaxTexCoord + vLightRayTS * 0.55, ddx, ddy) - sh0 - 0.55) *  6.0 * m_ShadowSoftening;
-          float sh6 = (getHeightSample(parallaxTexCoord + vLightRayTS * 0.44, ddx, ddy) - sh0 - 0.44) *  8.0 * m_ShadowSoftening;
-          float sh5 = (getHeightSample(parallaxTexCoord + vLightRayTS * 0.33, ddx, ddy) - sh0 - 0.33) * 10.0 * m_ShadowSoftening;
-          float sh4 = (getHeightSample(parallaxTexCoord + vLightRayTS * 0.22, ddx, ddy) - sh0 - 0.22) * 12.0 * m_ShadowSoftening;
-          // Compute the actual shadow strength:
-          float fOcclusionShadow = 1.0 - max(max(max(max(max(max(shA, sh9), sh8), sh7), sh6), sh5), sh4);
-
-          // The previous computation overbrightens the image, let's adjust for that:
-          fOcclusionShadow = clamp(0.0, 1.0, fOcclusionShadow * 0.4 + 0.4);
-          //fOcclusionShadow = fOcclusionShadow * 0.4 + 0.4;
-          occlusionShadowSum *= fOcclusionShadow;
-        }
-      #endif
+        pomShadowSum *= fOcclusionShadow;
+      }  
     #endif
   #endif
 
@@ -365,9 +338,9 @@
 
       #if defined(PARALLAXMAP) || defined(NORMALMAP_PARALLAX)
         vec2 parallaxTexCoord;
-        //calculateParallax(E, parallaxTexCoord);
+        //calculateSimpleParallax(E, parallaxTexCoord);
         vec3 Nx = normalize(texture2D(m_NormalMap, v_TexCoord).xyz * 2.0 - 1.0);
-        calculateParallax2(E, Nx, parallaxTexCoord);
+        calculatePomParallax(E, Nx, parallaxTexCoord);
         N = normalize(texture2D(m_NormalMap, parallaxTexCoord).xyz * 2.0 - 1.0);
       #else
         N = normalize(texture2D(m_NormalMap, v_TexCoord).xyz * 2.0 - 1.0);
@@ -381,11 +354,9 @@
     #if (defined(PARALLAXMAP) || defined(NORMALMAP_PARALLAX)) && defined(NORMALMAP)
       initializeMaterialColors(parallaxTexCoord,
         ambientColor, diffuseColor, specularColor, alpha);
-      float occlusionShadowSum = 1.0;
-      vec2 ddx = dFdx(v_TexCoord);
-      vec2 ddy = dFdy(v_TexCoord);
-      vec2 dist = sqrt(ddx * ddx + ddy * ddy);
-      float lod = log2(max(dist.x, dist.y));
+      #if defined(POM_ENABLE_SHADOWS)
+        float pomShadowSum = 1.0;
+      #endif
     #else
       initializeMaterialColors(
         ambientColor, diffuseColor, specularColor, alpha);
@@ -412,13 +383,13 @@
       //L = normalize(L);
 
       addLight(N, normalize(L), E, lightColor.rgb, attenuation, diffuseLightSum, specularLightSum);
-      #if (defined(PARALLAXMAP) || defined(NORMALMAP_PARALLAX)) && defined(NORMALMAP)
-        addOcclusionShadow(L, parallaxTexCoord, occlusionShadowSum);
+      #if (defined(PARALLAXMAP) || defined(NORMALMAP_PARALLAX)) && defined(NORMALMAP) && defined(POM_ENABLE_SHADOWS)
+        addPomShadow(L, parallaxTexCoord, pomShadowSum);
       #endif
     }
 
-    #if (defined(PARALLAXMAP) || defined(NORMALMAP_PARALLAX)) && defined(NORMALMAP)
-      diffuseColor *= occlusionShadowSum;
+    #if (defined(PARALLAXMAP) || defined(NORMALMAP_PARALLAX)) && defined(NORMALMAP) && defined(POM_ENABLE_SHADOWS)
+      diffuseColor *= pomShadowSum;
     #endif
 
     gl_FragColor.rgb = diffuseColor * (ambientLightSum + diffuseLightSum) + specularColor * specularLightSum;

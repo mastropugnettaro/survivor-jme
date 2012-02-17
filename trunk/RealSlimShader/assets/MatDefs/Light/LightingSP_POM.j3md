@@ -20,6 +20,9 @@ MaterialDef Phong Lighting (Single Pass) {
         // Specular power/shininess
         Float Shininess (MaterialShininess) : 1
 
+        // Size of textures (s = t = 2^n and all textures same size assumed)
+        Int TextureSize : 512
+
         // Diffuse map
         Texture2D DiffuseMap
 
@@ -34,6 +37,10 @@ MaterialDef Phong Lighting (Single Pass) {
 
         //Sets the relief height for parallax mapping
         Float ParallaxHeight : 0.05
+
+        Float PomShadowSoftening : 0.58
+        Int PomMinSamples : 4
+        Int PomMaxSamples : 64;
     }
 
     Technique {
