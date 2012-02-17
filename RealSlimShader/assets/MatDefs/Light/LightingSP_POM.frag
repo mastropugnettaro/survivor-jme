@@ -167,7 +167,7 @@
 
         // calculate dynamic number of samples
         //int nNumSamples = int(mix(float(m_PomMinSamples), float(m_PomMaxSamples), clamp(0.0, 1.0, dot(E, N))));
-        int nNumSamples = int(mix(float(m_PomMinSamples), float(m_PomMaxSamples), 1.0 - E.z * E.z * 0.2));
+        int nNumSamples = int(mix(float(m_PomMinSamples), float(m_PomMaxSamples), 1.0 - E.z * E.z * 0.1));
         //int nNumSamples = 200;
         float fStepSize = 1.0 / nNumSamples;
 
