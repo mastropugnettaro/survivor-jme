@@ -31,7 +31,7 @@ public class TestSinglePassLighting extends SimpleApplication
 {
   private static final Logger log = Logger.getLogger(TestSinglePassLighting.class.getName());
   private static final int SPHERE_SEGMENTS = 32;
-  private static final int NUM_LIGHTS = 4;
+  private static final int NUM_LIGHTS = 1;
   
   public static void main(String[] args)
   {
@@ -100,7 +100,7 @@ public class TestSinglePassLighting extends SimpleApplication
     TangentBinormalGenerator.generate(box);
     //Geometry floor = (Geometry) assetManager.loadModel("Models/floor.j3o");
     Geometry floor = new Geometry("floor", box);
-    floor.setLocalTranslation(0f, -2f, 0f);
+    floor.setLocalTranslation(0f, -1f, 0f);
     Material floorMat = new MaterialSP("Materials/floor.j3m", assetManager);
     floor.setMaterial(floorMat);
 
@@ -125,27 +125,24 @@ public class TestSinglePassLighting extends SimpleApplication
     for (int i = 0; i < NUM_LIGHTS; i++)
     { 
       float x = 1f + i % 2;
-      float y = FastMath.sign(1.5f - i % 4);
+      //float y = FastMath.sign(1.5f - i % 4);
+      float y = 1f;
       dl = new DirectionalLight();
       dl.setDirection(new Vector3f(x, -y, -1f).normalizeLocal());
       dl.setColor(new ColorRGBA(ci, ci, ci, 1.0f));
       rootNode.addLight(dl);
       
-      if (i == 0)
-      {
-        addDebugArrow(new Vector3f(0f, 1f, 0f), dl.getDirection());
-      }
-      else if (i == 1)
-      {
-        addDebugArrow(new Vector3f(0f, 1f, 0f), dl.getDirection());
-      }
+//      if (i < 4)
+//      {
+//        addDebugArrow(Vector3f.UNIT_XYZ.subtract(dl.getDirection()), dl.getDirection());
+//      }
     }
     
     PointLight pl = new PointLight();
     pl.setPosition(new Vector3f(0f, 0f, 1f));
     pl.setColor(ColorRGBA.Green);
     pl.setRadius(1.5f);
-    rootNode.addLight(pl);    
+    //rootNode.addLight(pl);    
   }
   
   private void addDebugArrow(Vector3f pos, Vector3f dir)
@@ -154,11 +151,8 @@ public class TestSinglePassLighting extends SimpleApplication
     arrow.setLineWidth(3f);
     Geometry geom = new Geometry("", arrow);
     geom.setLocalTranslation(pos);
-//    Quaternion q = new Quaternion();
-//    q.lookAt(dir, Vector3f.UNIT_Y.clone());
-//    geom.setLocalRotation(q);
     Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-    mat.setColor("Color", ColorRGBA.Blue);
+    mat.setColor("Color", ColorRGBA.Yellow);
     geom.setMaterial(mat);
     rootNode.attachChild(geom);
   }
