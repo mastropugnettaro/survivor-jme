@@ -10,6 +10,7 @@ Material MyMaterial : MatDefs/Light/LightingSP_POM.j3md {
         NormalMap : Textures/four_normal.png
         ParallaxMap : Textures/four_height.png
         Specular : 1.0 1.0 1.0 1.0
+        PomMaxSamples : 1000
      }
     AdditionalRenderState {
     }
