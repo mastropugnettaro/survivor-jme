@@ -272,7 +272,6 @@ void main(){
        gl_FragColor.rgb =  AmbientSum       * diffuseColor.rgb  +
                            DiffuseSum.rgb   * diffuseColor.rgb  * vec3(light.x) +
                            SpecularSum2.rgb * specularColor.rgb * vec3(light.y);
-       gl_FragColor.rgb = clamp(gl_FragColor.rgb, 0.0, 1.0);
     #endif
     gl_FragColor.a = alpha;
 }
