@@ -13,12 +13,15 @@ import com.jme3.math.Matrix3f;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
+import com.jme3.scene.Mesh.Mode;
 import com.jme3.scene.Node;
 import com.jme3.scene.debug.Arrow;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Sphere;
 import com.jme3.scene.shape.Sphere.TextureMode;
 import com.jme3.system.AppSettings;
+import com.jme3.texture.Texture.MagFilter;
+import com.jme3.texture.Texture.MinFilter;
 import com.jme3.util.TangentBinormalGenerator;
 import java.io.File;
 import java.io.IOException;
@@ -31,7 +34,10 @@ public class TestSinglePassLighting extends SimpleApplication
 {
   private static final Logger log = Logger.getLogger(TestSinglePassLighting.class.getName());
   private static final int SPHERE_SEGMENTS = 32;
-  private static final int NUM_LIGHTS = 1;
+  private static final int NUM_LIGHTS = 0;
+  
+  private DirectionalLight rotatingLight;
+  private float angle;
   
   public static void main(String[] args)
   {
@@ -94,7 +100,11 @@ public class TestSinglePassLighting extends SimpleApplication
     Geometry sphere = new Geometry("Sphere", sphereMesh);
     sphere.rotate(FastMath.HALF_PI, 0f, 0f);
     Material sphereMat = new MaterialSP("Materials/Rock.j3m", assetManager);    
+    //sphereMat.getTextureParam("DiffuseMap").getTextureValue().setMinFilter(MinFilter.NearestLinearMipMap);
+    //sphereMat.getTextureParam("DiffuseMap").getTextureValue().setMagFilter(MagFilter.Nearest);
+    sphereMat.getTextureParam("DiffuseMap").getTextureValue().setAnisotropicFilter(16);
     sphere.setMaterial(sphereMat);
+    
 
     Box box = new Box(2f, 0.1f, 2f);
     TangentBinormalGenerator.generate(box);
@@ -102,6 +112,9 @@ public class TestSinglePassLighting extends SimpleApplication
     Geometry floor = new Geometry("floor", box);
     floor.setLocalTranslation(0f, -1f, 0f);
     Material floorMat = new MaterialSP("Materials/floor.j3m", assetManager);
+    //floorMat.getTextureParam("DiffuseMap").getTextureValue().setMinFilter(MinFilter.NearestLinearMipMap);
+    //floorMat.getTextureParam("DiffuseMap").getTextureValue().setMagFilter(MagFilter.Nearest);
+    floorMat.getTextureParam("DiffuseMap").getTextureValue().setAnisotropicFilter(16);
     floor.setMaterial(floorMat);
 
     Node node = new Node();
@@ -138,11 +151,22 @@ public class TestSinglePassLighting extends SimpleApplication
 //      }
     }
     
+    rotatingLight = new DirectionalLight();
+    rotatingLight.setColor(new ColorRGBA(ci, ci, ci, 1f));
+    rootNode.addLight(rotatingLight);
+    
     PointLight pl = new PointLight();
     pl.setPosition(new Vector3f(0f, 0f, 1f));
     pl.setColor(ColorRGBA.Green);
     pl.setRadius(1.5f);
     //rootNode.addLight(pl);    
+  }
+  
+  @Override
+  public void simpleUpdate(float tpf)
+  {
+    angle += tpf;
+    rotatingLight.setDirection(new Vector3f(FastMath.cos(angle), -1f, FastMath.sin(angle)).normalizeLocal());
   }
   
   private void addDebugArrow(Vector3f pos, Vector3f dir)
