@@ -89,6 +89,11 @@ uniform mat3 g_NormalMatrix;
     varying vec3 v_wsTangent;
     varying vec3 v_wsBitangent;
     varying vec3 v_tsView;
+
+    #if defined(PARALLAXMAP) || defined(NORMALMAP_PARALLAX)
+      uniform float m_ParallaxHeight;
+      varying vec2 v_tsParallaxOffset;
+    #endif
   #endif
 
 #endif
@@ -102,13 +107,32 @@ void main(void)
   #else
     vec3 wsEyePosition = vec3(g_ViewMatrixInverse * vec4(0.0, 0.0, 0.0, 1.0));
     v_wsPosition = vec3(g_WorldMatrix * osPosition); // object space -> world space
-    v_wsView = v_wsPosition - wsEyePosition; // DO ... NOT ... NORMALIZE ! ! !
+    v_wsView = v_wsPosition - wsEyePosition;
     v_wsNormal = normalize(mat3(g_WorldMatrix) * inNormal); // object space -> world space
 
     #if defined(NORMALMAP)
       v_wsTangent = normalize(mat3(g_WorldMatrix) * inTangent.xyz); // object space -> world space
-      v_wsBitangent = vec3(cross(v_wsNormal, v_wsTangent) * -inTangent.w);
+      v_wsBitangent = vec3(cross(v_wsNormal, v_wsTangent) * -inTangent.w);      
       v_tsView = v_wsView * mat3(v_wsTangent, v_wsBitangent, v_wsNormal); // world space -> tangent space
+
+      #if defined(PARALLAXMAP) || defined(NORMALMAP_PARALLAX)
+        // Compute the ray direction for intersecting the height field profile with 
+        // current view ray. See the above paper for derivation of this computation.
+
+        // Compute initial parallax displacement direction:
+        vec2 vParallaxDirection = normalize(v_tsView.xy);
+
+        // The length of this vector determines the furthest amount of displacement:
+        float fLength           = length(v_tsView);
+        float fParallaxLength   = sqrt(fLength * fLength - v_tsView.z * v_tsView.z) / v_tsView.z;
+
+        // Compute the actual reverse parallax displacement vector:
+        v_tsParallaxOffset = vParallaxDirection * fParallaxLength;
+
+        // Need to scale the amount of displacement to account for different height ranges
+        // in height maps. This is controlled by an artist-editable parameter:
+        v_tsParallaxOffset *= m_ParallaxHeight;
+      #endif
     #endif
   #endif
 

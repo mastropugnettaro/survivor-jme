@@ -5,10 +5,10 @@ Material Rock : MatDefs/Light/LightingSP_POM.j3md {
         UseMaterialColors : true
         Shininess : 100.0
         Specular : 1.0 1.0 1.0 1.0
-        PomMaxSamples : 512
-        NormalMap : Textures/BrickWall_normal.jpg
+        PomMaxSamples : 64
         ParallaxMap : Textures/BrickWall_height.jpg
         DiffuseMap : Textures/BrickWall.jpg
+        NormalMap : Textures/BrickWall_normal.jpg
      }
     AdditionalRenderState {
     }
