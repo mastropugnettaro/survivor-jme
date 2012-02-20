@@ -102,7 +102,7 @@ public class TestSinglePassLighting extends SimpleApplication
     Material sphereMat = new MaterialSP("Materials/Rock.j3m", assetManager);    
     //sphereMat.getTextureParam("DiffuseMap").getTextureValue().setMinFilter(MinFilter.NearestLinearMipMap);
     //sphereMat.getTextureParam("DiffuseMap").getTextureValue().setMagFilter(MagFilter.Nearest);
-    sphereMat.getTextureParam("DiffuseMap").getTextureValue().setAnisotropicFilter(16);
+    //sphereMat.getTextureParam("DiffuseMap").getTextureValue().setAnisotropicFilter(16);
     sphere.setMaterial(sphereMat);
     
 
@@ -114,7 +114,7 @@ public class TestSinglePassLighting extends SimpleApplication
     Material floorMat = new MaterialSP("Materials/floor.j3m", assetManager);
     //floorMat.getTextureParam("DiffuseMap").getTextureValue().setMinFilter(MinFilter.NearestLinearMipMap);
     //floorMat.getTextureParam("DiffuseMap").getTextureValue().setMagFilter(MagFilter.Nearest);
-    floorMat.getTextureParam("DiffuseMap").getTextureValue().setAnisotropicFilter(16);
+    //floorMat.getTextureParam("DiffuseMap").getTextureValue().setAnisotropicFilter(16);
     floor.setMaterial(floorMat);
 
     Node node = new Node();
@@ -123,8 +123,8 @@ public class TestSinglePassLighting extends SimpleApplication
     node.attachChild(floor);
     rootNode.attachChild(node);
 
-    cam.setLocation(new Vector3f(0f, 2f, 1f));
-    cam.lookAt(node.getLocalTranslation().clone(), Vector3f.UNIT_Y.clone());
+    cam.setLocation(new Vector3f(-1.1f, 3f, -1f));
+    cam.lookAt(floor.getWorldTranslation().clone(), Vector3f.UNIT_Y.clone());
     cam.setFrustumPerspective(45, (float) settings.getWidth() / settings.getHeight(), 0.1f, 100.0f);
 
     AmbientLight al;
