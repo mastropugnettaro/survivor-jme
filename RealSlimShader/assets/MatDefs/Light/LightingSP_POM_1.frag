@@ -1,4 +1,5 @@
-#extension GL_EXT_gpu_shader4 : enable
+//#extension GL_EXT_gpu_shader4 : enable
+#import "MatDefs/Light/Parallax.glsllib"
 
 #ifndef NUM_LIGHTS
   #define NUM_LIGHTS 1
@@ -339,7 +340,7 @@
           addPomShadow(tsLight, pomTexCoord, pomShadow);
         }
       }
-*/
+
       vec2 steepParallaxOffset(const in sampler2D parallaxMap, const in vec3 vViewDir, const in vec2 texCoord, in float parallaxScale)
       {
         vec2 vParallaxDirection = normalize(vViewDir.xy);
@@ -403,6 +404,7 @@
         vec2 vParallaxOffset = vParallaxOffsetTS * (1.0 - fParallaxAmount );
         return texCoord - vParallaxOffset;  
       }
+*/
     #endif
   #endif
 

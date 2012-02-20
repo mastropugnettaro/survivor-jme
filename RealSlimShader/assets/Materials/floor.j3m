@@ -1,4 +1,4 @@
-Material MyMaterial : MatDefs/Light/LightingSP_POM_1.j3md {
+Material MyMaterial : MatDefs/Light/LightingSP_POM.j3md {
      MaterialParameters {
         UseMaterialColors : true
         Diffuse : 1.0 1.0 1.0 1.0
@@ -8,6 +8,7 @@ Material MyMaterial : MatDefs/Light/LightingSP_POM_1.j3md {
         DiffuseMap : Textures/wood.jpg
         NormalMap : Textures/four_normal.png
         ParallaxMap : Textures/four_height.png
+        ParallaxHeight : 0.3
      }
     AdditionalRenderState {
     }

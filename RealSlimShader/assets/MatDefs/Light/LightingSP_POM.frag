@@ -88,7 +88,7 @@
 
       #define POM_USE_TEX_GRAD
       //#define POM_USE_TEX_LOD
-      //#define POM_ENABLE_SHADOWS
+      #define POM_ENABLE_SHADOWS
 
       const int g_nLODThreshold = 4;
       const bool g_bVisualizeLOD = false;
