@@ -86,9 +86,12 @@
       uniform int m_TextureSize;
       varying vec2 v_tsParallaxOffset;
 
-      //#define POM_USE_TEX_GRAD
-      #define POM_USE_TEX_LOD
-      #define POM_ENABLE_SHADOWS
+      #define POM_USE_TEX_GRAD
+      //#define POM_USE_TEX_LOD
+      //#define POM_ENABLE_SHADOWS
+
+      const int g_nLODThreshold = 4;
+      const bool g_bVisualizeLOD = false;
 
       // Adaptive in-shader level-of-detail system implementation. Compute the 
       // current mip level explicitly in the pixel shader and use this information 
@@ -113,7 +116,7 @@
       // Standard mipmapping uses max here
       float tmp_fMinTexCoordDelta = max(tmp_dTexCoords.x, tmp_dTexCoords.y); 
       // Compute the current mip level  (* 0.5 is effectively computing a square root before )
-      float fMipLevel = max(0.5 * log2(tmp_fMinTexCoordDelta), 0);
+      float fMipLevel = max(0.5 * log2(tmp_fMinTexCoordDelta), 0.0);
 
       float getHeightSample(const in vec2 texCoord)
       {
@@ -154,9 +157,6 @@
           return getHeightSample(texCoord);
         #endif
       }
-
-      const int g_nLODThreshold = 1;
-      const bool g_bVisualizeLOD = false;
 
       void calculatePomTexCoord(const in vec3 wsView, const in vec3 wsNormal, inout vec2 pomTexCoord)
       {
@@ -215,9 +215,7 @@
           vTexCurrentOffset -= vTexOffsetPerStep;
 
           // Sample height map which in this case is stored in the alpha channel of the normal map:
-          // fCurrHeight = tex2Dgrad( tNormalHeightMap, vTexCurrentOffset, dx, dy ).a;
-          //fCurrHeight = getHeightSample(vTexCurrentOffset, dx, dy);
-          fCurrHeight = getHeightSample(vTexCurrentOffset, fMipLevel);
+          fCurrHeight = getPomHeightSample(vTexCurrentOffset);
 
           fCurrentBound -= fStepSize;
 
