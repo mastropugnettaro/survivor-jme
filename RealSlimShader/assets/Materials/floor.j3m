@@ -1,14 +1,12 @@
-Material MyMaterial : MatDefs/Light/LightingSP_POM.j3md {
+Material MyMaterial : MatDefs/Light/LightingSP_POM_1.j3md {
      MaterialParameters {
         UseMaterialColors : true
         Diffuse : 1.0 1.0 1.0 1.0
         Ambient : 1.0 1.0 1.0 1.0
-        PackedNormalParallax : false
         Shininess : 100.0
+        Specular : 1.0 1.0 1.0 1.0
         DiffuseMap : Textures/wood.jpg
         NormalMap : Textures/four_normal.png
-        Specular : 1.0 1.0 1.0 1.0
-        ParallaxHeight : 0.5
         ParallaxMap : Textures/four_height.png
      }
     AdditionalRenderState {
