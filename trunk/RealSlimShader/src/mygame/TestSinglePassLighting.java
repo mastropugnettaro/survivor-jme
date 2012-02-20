@@ -33,7 +33,7 @@ import org.lwjgl.opengl.GL20;
 public class TestSinglePassLighting extends SimpleApplication
 {
   private static final Logger log = Logger.getLogger(TestSinglePassLighting.class.getName());
-  private static final int SPHERE_SEGMENTS = 32;
+  private static final int SPHERE_SEGMENTS = 64;
   private static final int NUM_LIGHTS = 0;
   
   private DirectionalLight rotatingLight;
