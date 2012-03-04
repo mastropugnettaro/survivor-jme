@@ -130,6 +130,7 @@
         #endif
       }
 
+      #ifdef GL_ATI_shader_texture_lod
       float getHeightSample(const in vec2 texCoord, const in float lod)
       {
         #if defined(PARALLAXMAP)
@@ -138,6 +139,7 @@
           return texture2DLod(m_NormalMap, texCoord, lod).a;
         #endif
       }
+      #endif
 
       #ifdef GL_EXT_gpu_shader4
         float getHeightSample(const in vec2 texCoord, const in vec2 dx, in vec2 dy)
@@ -154,7 +156,7 @@
       {
         #if (defined(USE_TEXTURE2D_GRAD) && defined(GL_EXT_gpu_shader4))
           return getHeightSample(texCoord, dx, dy);
-        #elif defined(USE_TEXTURE2D_LOD)
+        #elif (defined(USE_TEXTURE2D_LOD) && defined(GL_ATI_shader_texture_lod))
           return getHeightSample(texCoord, fMipLevel);
         #else
           return getHeightSample(texCoord);
