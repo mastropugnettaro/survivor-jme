@@ -13,6 +13,7 @@ import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.debug.Arrow;
+import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Sphere;
 import com.jme3.scene.shape.Sphere.TextureMode;
 import com.jme3.system.AppSettings;
@@ -25,9 +26,9 @@ import java.util.logging.Logger;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 
-public class TestSinglePassLighting extends SimpleApplication
+public class TestParallaxShadows extends SimpleApplication
 {
-  private static final Logger log = Logger.getLogger(TestSinglePassLighting.class.getName());
+  private static final Logger log = Logger.getLogger(TestParallaxShadows.class.getName());
   private static final int SPHERE_SEGMENTS = 32;
   private static final int NUM_LIGHTS = 4;
   
@@ -37,7 +38,7 @@ public class TestSinglePassLighting extends SimpleApplication
   public static void main(String[] args)
   {
     Logger.getLogger("").setLevel(Level.SEVERE);    
-    TestSinglePassLighting app = new TestSinglePassLighting();
+    TestParallaxShadows app = new TestParallaxShadows();
     app.setSettings(new AppSettings(true));
 //    app.settings.setResolution(1152, 864);
 //    app.settings.setSamples(16);
@@ -48,7 +49,7 @@ public class TestSinglePassLighting extends SimpleApplication
   @Override
   public void setSettings(AppSettings settings)
   { 
-    settings.setTitle("TestSinglePassLighting");
+    settings.setTitle("TestParallaxShadows");
     //settings.setRenderer(AppSettings.LWJGL_OPENGL1);
     super.setSettings(settings);
   }  
@@ -96,21 +97,32 @@ public class TestSinglePassLighting extends SimpleApplication
     
     Geometry sphere = new Geometry("Sphere", sphereMesh);
     sphere.rotate(FastMath.HALF_PI, 0f, 0f);
-    Material sphereMat = new MaterialSP("Materials/Rock.j3m", assetManager);    
+    Material sphereMat = new MaterialSP("Materials/Rock2.j3m", assetManager);    
     //sphereMat.getTextureParam("DiffuseMap").getTextureValue().setMinFilter(MinFilter.NearestLinearMipMap);
     //sphereMat.getTextureParam("DiffuseMap").getTextureValue().setMagFilter(MagFilter.Nearest);
     //sphereMat.getTextureParam("DiffuseMap").getTextureValue().setAnisotropicFilter(16);
     sphere.setMaterial(sphereMat);
     
 
+    Box box = new Box(2f, 0.1f, 2f);
+    TangentBinormalGenerator.generate(box);
+    //Geometry floor = (Geometry) assetManager.loadModel("Models/floor.j3o");
+    Geometry floor = new Geometry("floor", box);
+    floor.setLocalTranslation(0f, -1f, 0f);
+    Material floorMat = new MaterialSP("Materials/floor.j3m", assetManager);
+    //floorMat.getTextureParam("DiffuseMap").getTextureValue().setMinFilter(MinFilter.NearestLinearMipMap);
+    //floorMat.getTextureParam("DiffuseMap").getTextureValue().setMagFilter(MagFilter.Nearest);
+    //floorMat.getTextureParam("DiffuseMap").getTextureValue().setAnisotropicFilter(16);
+    floor.setMaterial(floorMat);
+
     Node node = new Node();
     node.setLocalTranslation(1f, 1f, 1f);
     node.attachChild(sphere);
+    node.attachChild(floor);
     rootNode.attachChild(node);
 
-    cam.setLocation(new Vector3f(0.3f, 2f, 0.3f));
-    cam.lookAt(node.getWorldTranslation().clone(), Vector3f.UNIT_Y.clone());
-    cam.setFrustumPerspective(45, (float) settings.getWidth() / settings.getHeight(), 0.1f, 100.0f);
+    cam.setLocation(new Vector3f(-1.1f, 3f, -1f));
+    cam.lookAt(floor.getWorldTranslation().clone(), Vector3f.UNIT_Y.clone());
 
     AmbientLight al;
     DirectionalLight dl;
@@ -130,13 +142,13 @@ public class TestSinglePassLighting extends SimpleApplication
       dl.setColor(new ColorRGBA(ci, ci, ci, 1.0f));
       rootNode.addLight(dl);
       lightList.add(dl);
-    }    
+    }
     
     PointLight pl = new PointLight();
     pl.setPosition(new Vector3f(0f, 0f, 1f));
     pl.setColor(ColorRGBA.Green);
     pl.setRadius(1.5f);
-    //rootNode.addLight(pl);    
+    //rootNode.addLight(pl);
   }
   
   @Override
@@ -149,7 +161,8 @@ public class TestSinglePassLighting extends SimpleApplication
     for (int i = 0; i < lightList.size(); i++)
     {
       float x = 0.1f + i % 2;
-      float y = FastMath.sign(1.5f - i % 4) + 1 + x;
+      //float y = FastMath.sign(1.5f - i % 4);
+      float y = 1f;
       float z = NUM_LIGHTS * 0.00001f -0.1f;
       lightList.get(i).setDirection(new Vector3f(cosAngle + x, -y, sinAngle + z).normalizeLocal());
     }
