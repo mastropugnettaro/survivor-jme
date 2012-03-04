@@ -1,4 +1,5 @@
 #extension GL_EXT_gpu_shader4 : enable
+#extension GL_ATI_shader_texture_lod : enable
 
 #ifndef NUM_LIGHTS
   #define NUM_LIGHTS 1
