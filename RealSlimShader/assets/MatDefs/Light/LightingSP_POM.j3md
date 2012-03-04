@@ -20,9 +20,6 @@ MaterialDef Phong Lighting (Single Pass) {
         // Specular power/shininess
         Float Shininess (MaterialShininess) : 1
 
-        // Size of textures (s = t = 2^n and all textures same size assumed)
-        Int TextureSize : 512
-
         // Diffuse map
         Texture2D DiffuseMap
 
@@ -38,14 +35,18 @@ MaterialDef Phong Lighting (Single Pass) {
         //Sets the relief height for parallax mapping
         Float ParallaxHeight : 0.05
 
-        // Softness of the POM shadow
-        Float PomShadowSoftening : 0.58
+        // Size of textures (s = t = 2^n assumed)
+        Int HeightMapSize : 256
 
-        // Minimum samples / iterations when calculation POM
-        Int PomMinSamples : 4
+        // Set to true to activate Parallax Occlusion Mapping 
+        // Parameter name is for Lighting.j3md compatibility
+        Boolean SteepParallax
 
-        // Maximum samples / iterations when calculation POM
-        Int PomMaxSamples : 64;
+        // Enable parallax shadows
+        Boolean ParallaxShadows
+
+        // Softness of the parallax shadows
+        Float ParallaxShadowSoftening : 0.58
     }
 
     Technique {
@@ -77,6 +78,9 @@ MaterialDef Phong Lighting (Single Pass) {
             NORMALMAP : NormalMap
             NORMALMAP_PARALLAX : PackedNormalParallax
             PARALLAXMAP : ParallaxMap
+            PARALLAX_HEIGHT : ParallaxHeight
+            STEEP_PARALLAX : SteepParallax
+            PARALLAX_SHADOWS : ParallaxShadows
         }
     }
 

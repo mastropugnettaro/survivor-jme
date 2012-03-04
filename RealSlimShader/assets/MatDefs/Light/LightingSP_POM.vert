@@ -13,7 +13,7 @@ attribute vec3 inNormal;
 uniform mat4 g_WorldViewProjectionMatrix;
 uniform mat4 g_WorldViewMatrix;
 uniform mat4 g_WorldMatrix;
-uniform mat3 g_WorldMatrixInverseTranspose;
+// uniform mat3 g_WorldMatrixInverseTranspose; // until fixed in stable
 uniform mat4 g_ViewMatrix;
 uniform mat4 g_ViewMatrixInverse;
 uniform mat3 g_NormalMatrix;
@@ -94,6 +94,7 @@ uniform mat3 g_NormalMatrix;
     #if defined(PARALLAXMAP) || defined(NORMALMAP_PARALLAX)
       uniform float m_ParallaxHeight;
       varying vec2 v_tsParallaxOffset;
+      const float c_ParallaxScale = PARALLAX_HEIGHT * 0.3; // steep compatibility
     #endif
   #endif
 
@@ -104,8 +105,9 @@ void main(void)
   vec4 osPosition = vec4(inPosition, 1.0);
 
   #ifdef VERTEX_LIGHTING
-    doPerVertexLighting(position);
+    doPerVertexLighting(osPosition);
   #else
+    mat3 g_WorldMatrixInverseTranspose = mat3(g_WorldMatrix); // until fixed in stable
     vec3 wsEyePosition = vec3(g_ViewMatrixInverse * vec4(0.0, 0.0, 0.0, 1.0));
     v_wsPosition = vec3(g_WorldMatrix * osPosition); // object space -> world space
     v_wsView = v_wsPosition - wsEyePosition;
@@ -124,15 +126,15 @@ void main(void)
         vec2 vParallaxDirection = normalize(v_tsView.xy);
 
         // The length of this vector determines the furthest amount of displacement:
-        float fLength           = length(v_tsView);
-        float fParallaxLength   = sqrt(fLength * fLength - v_tsView.z * v_tsView.z) / v_tsView.z;
+        float fLength = length(v_tsView);
+        float fParallaxLength = sqrt(fLength * fLength - v_tsView.z * v_tsView.z) / v_tsView.z;
 
         // Compute the actual reverse parallax displacement vector:
         v_tsParallaxOffset = vParallaxDirection * fParallaxLength;
 
         // Need to scale the amount of displacement to account for different height ranges
         // in height maps. This is controlled by an artist-editable parameter:
-        v_tsParallaxOffset *= m_ParallaxHeight;
+        v_tsParallaxOffset *= c_ParallaxScale; // steep compatibility
       #endif
     #endif
   #endif
