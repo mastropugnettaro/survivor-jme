@@ -86,9 +86,9 @@
       uniform int m_TextureSize;
       varying vec2 v_tsParallaxOffset;
 
-      #define POM_USE_TEX_GRAD
-      //#define POM_USE_TEX_LOD
-      #define POM_ENABLE_SHADOWS
+      //#define POM_USE_TEX_GRAD
+      #define POM_USE_TEX_LOD
+      //#define POM_ENABLE_SHADOWS
 
       const int g_nLODThreshold = 4;
       const bool g_bVisualizeLOD = false;
@@ -158,25 +158,29 @@
         #endif
       }
 
-      void calculatePomTexCoord(const in vec3 wsView, const in vec3 wsNormal, inout vec2 pomTexCoord)
+      int calculateNumSteps(const in vec3 wsView, const in vec3 wsNormal)
       {
-        // Multiplier for visualizing the level of detail (see notes for 'nLODThreshold' variable
-        // for how that is done visually)
-        // vec4 cLODColoring = vec4(1.0, 1.0, 3.0, 1.0);
-
-        float  fMipLevelInt;    // mip level integer portion
-        float  fMipLevelFrac;   // mip level fractional amount for blending in between levels
-
-        //===============================================//
-        // Parallax occlusion mapping offset computation //
-        //===============================================//
-
         // Utilize dynamic flow control to change the number of samples per ray 
         // depending on the viewing angle for the surface. Oblique angles require 
         // smaller step sizes to achieve more accurate precision for computing displacement.
         // We express the sampling rate as a linear function of the angle between 
         // the geometric normal and the view direction ray:
-        int nNumSteps = int(mix(float(m_PomMaxSamples), float(m_PomMinSamples), dot(wsView, wsNormal)));
+        return int(mix(float(m_PomMaxSamples), float(m_PomMinSamples), dot(wsView, wsNormal)));
+      }
+
+      int calculateNumSteps(const in vec3 V)
+      {
+        // jME method
+        float nMinSamples = 6.0;
+        float nMaxSamples = 1000.0 * m_ParallaxHeight;
+        return int(mix(nMinSamples, nMaxSamples, 1.0 - V.z));
+      }
+
+      void calculatePomTexCoord(const in int nNumSteps, inout vec2 pomTexCoord)
+      {
+        //===============================================//
+        // Parallax occlusion mapping offset computation //
+        //===============================================//
 
         // Intersect the view ray with the height field profile along the direction of
         // the parallax offset ray (computed in the vertex shader. Note that the code is
@@ -195,20 +199,19 @@
         float fCurrHeight = 0.0;
         float fStepSize   = 1.0 / float(nNumSteps);
         float fPrevHeight = 1.0;
-        float fNextHeight = 0.0;
 
-        int    nStepIndex = 0;
-        bool   bCondition = true;
+        int   nStepIndex = 0;
+        bool  bCondition = true;
 
-        vec2   vTexOffsetPerStep = fStepSize * v_tsParallaxOffset;
-        vec2   vTexCurrentOffset = v_TexCoord;
-        float  fCurrentBound     = 1.0;
-        float  fParallaxAmount   = 0.0;
+        vec2  vTexOffsetPerStep = fStepSize * v_tsParallaxOffset;
+        vec2  vTexCurrentOffset = v_TexCoord;
+        float fCurrentBound     = 1.0;
+        float fParallaxAmount   = 0.0;
 
-        vec2   pt1 = vec2(0.0);
-        vec2   pt2 = vec2(0.0);
+        vec2  pt1 = vec2(0.0);
+        vec2  pt2 = vec2(0.0);
 
-        vec2   texOffset2 = vec2(0.0);
+        vec2  texOffset2 = vec2(0.0);
 
         while (nStepIndex < nNumSteps)
         {
@@ -226,7 +229,7 @@
 
             texOffset2 = vTexCurrentOffset - vTexOffsetPerStep;
 
-            nStepIndex = nNumSteps + 1;
+            nStepIndex = nNumSteps + 1; // leave loop
             fPrevHeight = fCurrHeight;
           }
           else
@@ -258,9 +261,16 @@
         vec2 texSampleBase = v_TexCoord - vParallaxOffset;
         pomTexCoord = texSampleBase;
 
-        // Lerp to bump mapping only if we are in between, transition section:
+        // Multiplier for visualizing the level of detail (see notes for 'nLODThreshold' variable
+        // for how that is done visually)
+        // vec4 cLODColoring = vec4(1.0, 1.0, 3.0, 1.0);
 
         // cLODColoring = vec4(1.0, 1.0, 1.0, 1.0);
+
+        float  fMipLevelInt;    // mip level integer portion
+        float  fMipLevelFrac;   // mip level fractional amount for blending in between levels
+
+        // Lerp to bump mapping only if we are in between, transition section:
 
         if (fMipLevel > float(g_nLODThreshold - 1))
         {
@@ -304,7 +314,7 @@
         pomShadowSum *= fOcclusionShadow;
       }
 
-      void calculatePom(const in vec3 wsView, const in vec3 wsNormal, const in vec3 tsLight, out vec2 pomTexCoord, out float pomShadow)
+      void calculatePom(const in int nNumSteps, const in vec3 tsLight, out vec2 pomTexCoord, out float pomShadow)
       {
         // Start the current sample located at the input texture coordinate, which would correspond
         // to computing a bump mapping result:
@@ -317,7 +327,7 @@
 
         if (fMipLevel <= float(g_nLODThreshold))
         {
-          calculatePomTexCoord(wsView, wsNormal, pomTexCoord);
+          calculatePomTexCoord(nNumSteps, pomTexCoord);
           addPomShadow(tsLight, pomTexCoord, pomShadow);
         }
       }
@@ -431,7 +441,8 @@
 
         if (fMipLevel <= float(g_nLODThreshold))
         {
-          calculatePomTexCoord(wsView, wsNormal, pomTexCoord);
+          int nNumSteps = calculateNumSteps(V);
+          calculatePomTexCoord(nNumSteps, pomTexCoord);
         }
 
         N = normalize(texture2D(m_NormalMap, pomTexCoord).xyz * 2.0 - 1.0);

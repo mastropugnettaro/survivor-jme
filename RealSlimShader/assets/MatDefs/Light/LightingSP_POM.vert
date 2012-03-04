@@ -13,6 +13,7 @@ attribute vec3 inNormal;
 uniform mat4 g_WorldViewProjectionMatrix;
 uniform mat4 g_WorldViewMatrix;
 uniform mat4 g_WorldMatrix;
+uniform mat3 g_WorldMatrixInverseTranspose;
 uniform mat4 g_ViewMatrix;
 uniform mat4 g_ViewMatrixInverse;
 uniform mat3 g_NormalMatrix;
@@ -108,10 +109,10 @@ void main(void)
     vec3 wsEyePosition = vec3(g_ViewMatrixInverse * vec4(0.0, 0.0, 0.0, 1.0));
     v_wsPosition = vec3(g_WorldMatrix * osPosition); // object space -> world space
     v_wsView = v_wsPosition - wsEyePosition;
-    v_wsNormal = normalize(mat3(g_WorldMatrix) * inNormal); // object space -> world space
+    v_wsNormal = normalize(g_WorldMatrixInverseTranspose * inNormal);  // object space -> world space
 
     #if defined(NORMALMAP)
-      v_wsTangent = normalize(mat3(g_WorldMatrix) * inTangent.xyz); // object space -> world space
+      v_wsTangent = normalize(g_WorldMatrixInverseTranspose * inTangent.xyz); // object space -> world space
       v_wsBitangent = vec3(cross(v_wsNormal, v_wsTangent) * -inTangent.w);      
       v_tsView = v_wsView * mat3(v_wsTangent, v_wsBitangent, v_wsNormal); // world space -> tangent space
 
