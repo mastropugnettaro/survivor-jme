@@ -10,6 +10,8 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
+import com.jme3.post.FilterPostProcessor;
+import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.scene.Geometry;
 import com.jme3.texture.Texture;
 import java.io.File;
@@ -59,30 +61,25 @@ public class TestSinglePassLightingAtSponza extends SimpleApplication {
       rootNode.addLight(dl);
     }
 
-    flyCam.setMoveSpeed(50);
+    flyCam.setMoveSpeed(10);
 
     Material mat = new MaterialSP(assetManager, "MatDefs/Light/LightingSP_POM.j3md");
     //Material mat = new MaterialSP(assetManager, "MatDefs/Light/Lighting.j3md");
     Texture diff = assetManager.loadTexture("Textures/BrickWall.jpg");
     diff.setWrap(Texture.WrapMode.Repeat);
     diff.setAnisotropicFilter(16);
-    diff.setMinFilter(Texture.MinFilter.Trilinear);
-    diff.setMagFilter(Texture.MagFilter.Bilinear);
     Texture norm = assetManager.loadTexture("Textures/BrickWall_normal.jpg");
     norm.setWrap(Texture.WrapMode.Repeat);
     norm.setAnisotropicFilter(16);
-    norm.setMinFilter(Texture.MinFilter.Trilinear);
-    norm.setMagFilter(Texture.MagFilter.Bilinear);
     Texture height = assetManager.loadTexture("Textures/BrickWall_height.jpg");
     height.setWrap(Texture.WrapMode.Repeat);
     height.setAnisotropicFilter(16);
-    height.setMinFilter(Texture.MinFilter.Trilinear);
-    height.setMagFilter(Texture.MagFilter.Bilinear);
     mat.setTexture("DiffuseMap", diff);
     mat.setTexture("NormalMap", norm);
     mat.setTexture("ParallaxMap", height);
     mat.setFloat("ParallaxHeight", 0.1f);
     mat.setBoolean("SteepParallax", true);
+    mat.setBoolean("ParallaxShadows", true);
     mat.setBoolean("UseMaterialColors", true);
     mat.setColor("Diffuse", ColorRGBA.White.clone());
     mat.setColor("Specular", ColorRGBA.DarkGray.clone());
@@ -95,10 +92,10 @@ public class TestSinglePassLightingAtSponza extends SimpleApplication {
     model.setMaterial(mat);
     rootNode.attachChild(model);
 
-//    FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
-//    SSAOFilter ssaoFilter = new SSAOFilter(12.940201f, 43.928635f, 0.32999992f, 0.6059958f);
-//    fpp.addFilter(ssaoFilter);
-//    viewPort.addProcessor(fpp);
+    FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
+    SSAOFilter ssaoFilter = new SSAOFilter(12.940201f, 43.928635f, 0.32999992f, 0.6059958f);
+    fpp.addFilter(ssaoFilter);
+    viewPort.addProcessor(fpp);
 
     log.log(Level.SEVERE, "*** NUM_LIGHTS: {0} ***", NUM_LIGHTS_HALF * 2);
   }

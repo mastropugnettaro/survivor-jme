@@ -97,8 +97,6 @@ public class TestSinglePassLighting extends SimpleApplication
     Geometry sphere = new Geometry("Sphere", sphereMesh);
     sphere.rotate(FastMath.HALF_PI, 0f, 0f);
     Material sphereMat = new MaterialSP("Materials/Rock.j3m", assetManager);    
-    //sphereMat.getTextureParam("DiffuseMap").getTextureValue().setMinFilter(MinFilter.NearestLinearMipMap);
-    //sphereMat.getTextureParam("DiffuseMap").getTextureValue().setMagFilter(MagFilter.Nearest);
     //sphereMat.getTextureParam("DiffuseMap").getTextureValue().setAnisotropicFilter(16);
     sphere.setMaterial(sphereMat);
     

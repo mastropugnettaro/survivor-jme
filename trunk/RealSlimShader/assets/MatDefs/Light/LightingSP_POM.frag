@@ -249,9 +249,9 @@
 
         // SM 3.0 requires a check for divide by zero, since that operation will generate
         // an 'Inf' number instead of 0, as previous models (conveniently) did:
-        if (fDenominator == 0.0f)
+        if (fDenominator == 0.0)
         {
-          fParallaxAmount = 0.0f;
+          fParallaxAmount = 0.0;
         }
         else
         {
@@ -330,7 +330,7 @@
         // Start the current sample located at the input texture coordinate, which would correspond
         // to computing a bump mapping result:
         pomTexCoord = v_TexCoord;
-        parallaxShadow = 1.0;
+        parallaxShadow = 0.0;
 
         // Multiplier for visualizing the level of detail (see notes for 'nLODThreshold' variable
         // for how that is done visually)
@@ -340,6 +340,10 @@
         {
           calculatePomTexCoord(nNumSteps, pomTexCoord);
           addParallaxShadow(tsLight, pomTexCoord, parallaxShadow);
+        }
+        else
+        {
+          parallaxShadow = 1.0;
         }
       }
     #endif
@@ -509,11 +513,16 @@
         {
           addParallaxShadow(lightVector, parallaxTexCoord, parallaxShadowSum);
         }
+        else
+        {
+          parallaxShadowSum = 1.0;
+        }
       #endif
     }
 
     #if (defined(PARALLAXMAP) || defined(NORMALMAP_PARALLAX)) && defined(NORMALMAP) && defined(PARALLAX_SHADOWS)
-      diffuseColor *= parallaxShadowSum;
+      diffuseColor *= clamp(parallaxShadowSum, 0.0, 1.0);
+      //diffuseColor *= parallaxShadowSum;
     #endif
 
     gl_FragColor.rgb = diffuseColor * (ambientLightSum + diffuseLightSum) + specularColor * specularLightSum;
