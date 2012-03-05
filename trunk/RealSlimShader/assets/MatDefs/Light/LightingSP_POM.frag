@@ -49,11 +49,6 @@
 
 #else // per fragment lighting
 
-  uniform mat4 g_WorldViewProjectionMatrix;
-  uniform mat4 g_WorldViewMatrix;
-  uniform mat4 g_ViewMatrix;
-  uniform mat3 g_NormalMatrix;
-
   uniform vec4 g_LightPosition[NUM_LIGHTS];
   uniform vec4 g_LightColor[NUM_LIGHTS];
   uniform vec4 g_AmbientLightColor;
@@ -154,9 +149,9 @@
       
       float getHeightSampleEx(const in vec2 texCoord)
       {
-        #if (defined(USE_TEXTURE2D_GRAD) && defined(GL_EXT_gpu_shader4))
+        #if defined(USE_TEXTURE2D_GRAD) && defined(GL_EXT_gpu_shader4)
           return getHeightSample(texCoord, dx, dy);
-        #elif (defined(USE_TEXTURE2D_LOD) && defined(GL_ATI_shader_texture_lod))
+        #elif defined(USE_TEXTURE2D_LOD) && defined(GL_ATI_shader_texture_lod)
           return getHeightSample(texCoord, fMipLevel);
         #else
           return getHeightSample(texCoord);
@@ -339,7 +334,11 @@
         if (fMipLevel <= float(c_nLODThreshold))
         {
           calculatePomTexCoord(nNumSteps, pomTexCoord);
-          addParallaxShadow(tsLight, pomTexCoord, parallaxShadow);
+          #ifdef PARALLAX_SHADOWS
+            addParallaxShadow(tsLight, pomTexCoord, parallaxShadow);
+          #else
+            parallaxShadow = 1.0;
+          #endif
         }
         else
         {
