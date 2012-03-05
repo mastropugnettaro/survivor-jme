@@ -98,8 +98,6 @@ public class TestParallaxShadows extends SimpleApplication
     Geometry sphere = new Geometry("Sphere", sphereMesh);
     sphere.rotate(FastMath.HALF_PI, 0f, 0f);
     Material sphereMat = new MaterialSP("Materials/Rock2.j3m", assetManager);    
-    //sphereMat.getTextureParam("DiffuseMap").getTextureValue().setMinFilter(MinFilter.NearestLinearMipMap);
-    //sphereMat.getTextureParam("DiffuseMap").getTextureValue().setMagFilter(MagFilter.Nearest);
     //sphereMat.getTextureParam("DiffuseMap").getTextureValue().setAnisotropicFilter(16);
     sphere.setMaterial(sphereMat);
     
@@ -110,8 +108,6 @@ public class TestParallaxShadows extends SimpleApplication
     Geometry floor = new Geometry("floor", box);
     floor.setLocalTranslation(0f, -1f, 0f);
     Material floorMat = new MaterialSP("Materials/floor.j3m", assetManager);
-    //floorMat.getTextureParam("DiffuseMap").getTextureValue().setMinFilter(MinFilter.NearestLinearMipMap);
-    //floorMat.getTextureParam("DiffuseMap").getTextureValue().setMagFilter(MagFilter.Nearest);
     //floorMat.getTextureParam("DiffuseMap").getTextureValue().setAnisotropicFilter(16);
     floor.setMaterial(floorMat);
 
