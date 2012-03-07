@@ -10,13 +10,12 @@ uniform sampler2D m_ProjectiveMap;
 
 void main() 
 {
-  vec2 pCoord = projCoord.xy / projCoord.w;
-  vec4 projColor = texture2D(m_ProjectiveMap, pCoord);
-
   if (projCoord.w > 0.0)
   {
     if (cosAngle > 0.0)
     {   
+      vec4 projColor = texture2DProj(m_ProjectiveMap, projCoord);
+
       if (cosAngle < 0.2)
       {
         projColor.a *= cosAngle * 5.0;
