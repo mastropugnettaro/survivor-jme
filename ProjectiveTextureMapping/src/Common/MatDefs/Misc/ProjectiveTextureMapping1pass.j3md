@@ -34,6 +34,22 @@ MaterialDef Projective Texture Mapping {
         Vector3 ProjectorDirection5
         Vector3 ProjectorDirection6
         Vector3 ProjectorDirection7
+        Float FallOffDistance0
+        Float FallOffDistance1
+        Float FallOffDistance2
+        Float FallOffDistance3
+        Float FallOffDistance4
+        Float FallOffDistance5
+        Float FallOffDistance6
+        Float FallOffDistance7
+        Float FallOffPower0
+        Float FallOffPower1
+        Float FallOffPower2
+        Float FallOffPower3
+        Float FallOffPower4
+        Float FallOffPower5
+        Float FallOffPower6
+        Float FallOffPower7
     }
 
     Technique {
@@ -59,6 +75,14 @@ MaterialDef Projective Texture Mapping {
             IS_PARALLEL_PROJECTION5: ProjectorDirection5
             IS_PARALLEL_PROJECTION6: ProjectorDirection6
             IS_PARALLEL_PROJECTION7: ProjectorDirection7
+            FALL_OFF0 : FallOffDistance0
+            FALL_OFF1 : FallOffDistance1
+            FALL_OFF2 : FallOffDistance2
+            FALL_OFF3 : FallOffDistance3
+            FALL_OFF4 : FallOffDistance4
+            FALL_OFF5 : FallOffDistance5
+            FALL_OFF6 : FallOffDistance6
+            FALL_OFF7 : FallOffDistance7
         }
     }
 

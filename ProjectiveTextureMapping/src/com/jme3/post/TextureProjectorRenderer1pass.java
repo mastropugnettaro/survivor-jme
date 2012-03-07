@@ -34,21 +34,11 @@ package com.jme3.post;
 import com.jme3.material.Material;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.asset.AssetManager;
-import com.jme3.material.MatParam;
-import com.jme3.material.RenderState;
-import com.jme3.math.Matrix4f;
-import com.jme3.math.Vector3f;
 import com.jme3.post.SceneProcessor;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
-import com.jme3.renderer.lwjgl.LwjglRenderer;
 import com.jme3.renderer.queue.GeometryList;
-import com.jme3.shader.Shader;
-import com.jme3.shader.Uniform;
-import com.jme3.shader.VarType;
 import com.jme3.texture.FrameBuffer;
-import com.jme3.texture.Texture2D;
-import com.jme3.texture.TextureArray;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -148,37 +138,76 @@ public class TextureProjectorRenderer1pass implements SceneProcessor
   @Override
   public void postFrame(FrameBuffer out) 
   { 
-    int numProjectors = textureProjectors.size();    
-    textureMat.setInt("NumProjectors", numProjectors);
+    renderManager.setForcedMaterial(textureMat);
+    int numProjectors = textureProjectors.size();
+    int numPasses = (numProjectors + 7) / 8;
+    int numProjectorsThisPass;
+    int currentProjector = 0;
     
-    for (int i = 0; i < numProjectors; i++)
+    for (int pass = 0; pass < numPasses; pass++)
     {
-      TextureProjector textureProjector = textureProjectors.get(i);
-      
-      textureMat.setTexture("ProjectiveMap" + i, textureProjector.getProjectiveTexture());
-      textureMat.setMatrix4("ProjectorViewProjectionMatrix" + i, textureProjector.getProjectorViewProjectionMatrix());
-      
-      if (textureProjector.isParallelProjection())
+      if (pass < (numPasses-1))
       {
-        textureMat.clearParam("ProjectorLocation" + i);
-        textureMat.setVector3("ProjectorDirection" + i, textureProjector.getProjectorDirection());
+        numProjectorsThisPass = 8;
       }
       else
       {
-        textureMat.clearParam("ProjectorDirection" + i);
-        textureMat.setVector3("ProjectorLocation" + i, textureProjector.getProjectorLocation());
-      }           
-    }
+        numProjectorsThisPass = numProjectors - currentProjector;
+      }
 
-    renderManager.setForcedMaterial(textureMat);
-    
-    if (targetGeometryList != null)
-    {
-      renderManager.renderGeometryList(targetGeometryList);
-    }
-    else
-    {
-      renderManager.renderViewPortRaw(viewPort);
+      textureMat.setInt("NumProjectors", numProjectorsThisPass);
+        
+      for (int i = 0; i < 8; i++, currentProjector++)
+      {      
+        if (i < numProjectorsThisPass)
+        {
+          TextureProjector textureProjector = textureProjectors.get(currentProjector);
+          float fallOffDistance = textureProjector.getFallOffDistance();
+
+          textureMat.setTexture("ProjectiveMap" + i, textureProjector.getProjectiveTexture());
+          textureMat.setMatrix4("ProjectorViewProjectionMatrix" + i, textureProjector.getProjectorViewProjectionMatrix());
+
+          if (textureProjector.isParallelProjection())
+          {
+            textureMat.clearParam("ProjectorLocation" + i);
+            textureMat.setVector3("ProjectorDirection" + i, textureProjector.getProjectorDirection());
+          }
+          else
+          {
+            textureMat.clearParam("ProjectorDirection" + i);
+            textureMat.setVector3("ProjectorLocation" + i, textureProjector.getProjectorLocation());
+          }
+
+          if (fallOffDistance != Float.MAX_VALUE)
+          {
+            textureMat.setFloat("FallOffDistance" + i, textureProjector.getFallOffDistance());
+            textureMat.setFloat("FallOffPower" + i, textureProjector.getFallOffPower());          
+          }
+          else
+          {
+            textureMat.clearParam("FallOffDistance" + i);        
+            textureMat.clearParam("FallOffPower" + i);
+          }
+        }
+        else
+        {
+          textureMat.clearParam("ProjectiveMap" + i);
+          textureMat.clearParam("ProjectorViewProjectionMatrix" + i);
+          textureMat.clearParam("ProjectorLocation" + i);
+          textureMat.clearParam("ProjectorDirection" + i);
+          textureMat.clearParam("FallOffDistance" + i);        
+          textureMat.clearParam("FallOffPower" + i);          
+        }
+      }
+
+      if (targetGeometryList != null)
+      {
+        renderManager.renderGeometryList(targetGeometryList);
+      }
+      else
+      {
+        renderManager.renderViewPortRaw(viewPort);
+      }
     }
     
     renderManager.setForcedMaterial(null);

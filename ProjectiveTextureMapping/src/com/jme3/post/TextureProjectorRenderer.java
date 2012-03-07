@@ -118,7 +118,7 @@ public class TextureProjectorRenderer implements SceneProcessor
   { 
     for (TextureProjector textureProjector : textureProjectors)
     { 
-      float fadeOutDistance = textureProjector.getFallOffDistance();
+      float fallOffDistance = textureProjector.getFallOffDistance();
       textureMat.setTexture("ProjectiveMap", textureProjector.getProjectiveTexture());
       textureMat.setMatrix4("ProjectorViewProjectionMatrix", textureProjector.getProjectorViewProjectionMatrix());      
 
@@ -133,7 +133,7 @@ public class TextureProjectorRenderer implements SceneProcessor
         textureMat.setVector3("ProjectorLocation", textureProjector.getProjectorLocation());        
       }
       
-      if (fadeOutDistance != Float.MAX_VALUE)
+      if (fallOffDistance != Float.MAX_VALUE)
       {
         textureMat.setFloat("FallOffDistance", textureProjector.getFallOffDistance());
         textureMat.setFloat("FallOffPower", textureProjector.getFallOffPower());          

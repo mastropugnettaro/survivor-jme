@@ -39,10 +39,8 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
 import com.jme3.post.SimpleTextureProjector;
-import com.jme3.post.TextureProjectorRenderer;
 import com.jme3.post.TextureProjectorRenderer1pass;
 import com.jme3.renderer.Camera;
-import com.jme3.renderer.lwjgl.LwjglRenderer;
 import com.jme3.renderer.queue.GeometryList;
 import com.jme3.renderer.queue.OpaqueComparator;
 import com.jme3.renderer.queue.RenderQueue.ShadowMode;
@@ -146,6 +144,9 @@ public class TestProjectiveTextureMapping1pass extends SimpleApplication
     initProjectorData(pd1, new Vector3f(1f, 2.1f, 0f), texture1);
     initProjectorData(pd2, new Vector3f(1f, 2.1f, 2f), texture2);
         
+    pd1.projector.setFallOffDistance(2.1f);
+    pd1.projector.setFallOffPower(4f);    
+        
     GeometryList gl = new GeometryList(new OpaqueComparator());
     gl.add(geom1);
     
@@ -162,7 +163,9 @@ public class TestProjectiveTextureMapping1pass extends SimpleApplication
 //    ptr.getTextureProjectors().add(pd2.projector);
 //    ptr.getTextureProjectors().add(pd1.projector);
 //    ptr.getTextureProjectors().add(pd2.projector);
-    Logger.getLogger("").severe("NUM_PROJECTORS: " + ptr.getTextureProjectors().size());
+    
+    Logger.getLogger("").severe("NUM_PROJECTORS: " + ptr.getTextureProjectors().size() + 
+      ", NUM_PASSES: " + ((ptr.getTextureProjectors().size() + 7) / 8));
     viewPort.addProcessor(ptr);        
   }
   
