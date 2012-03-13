@@ -73,15 +73,16 @@
 
 void main() 
 {
+  gl_FragColor = vec4(0.0);
+
   #if NUM_PROJECTORS > 0
     vec4 projColor;
-    vec4 blendColor;
 
     if (projCoord0.w > 0.0)
     {
       if (cosAngle0 > 0.0)
       {   
-        projColor = texture2DProj(m_ProjectiveMap0, projCoord0);
+        projColor = clamp(texture2DProj(m_ProjectiveMap0, projCoord0), 0.0, 1.0);
 
         if (cosAngle0 < 0.2)
         {
@@ -96,7 +97,7 @@ void main()
           }        
         #endif
 
-        blendColor = projColor;
+        gl_FragColor = projColor;
       }
     }
   #endif
@@ -121,7 +122,7 @@ void main()
           }        
         #endif
 
-        blendColor = mix(blendColor, projColor, projColor.a);
+        gl_FragColor = mix(gl_FragColor, projColor, projColor.a);
       }
     }
   #endif
@@ -146,7 +147,7 @@ void main()
           }        
         #endif
 
-        blendColor = mix(blendColor, projColor, projColor.a);
+        gl_FragColor = mix(gl_FragColor, projColor, projColor.a);
       }
     }
   #endif
@@ -171,7 +172,7 @@ void main()
           }        
         #endif
 
-        blendColor = mix(blendColor, projColor, projColor.a);
+        gl_FragColor = mix(gl_FragColor, projColor, projColor.a);
       }
     }
   #endif
@@ -196,7 +197,7 @@ void main()
           }        
         #endif
 
-        blendColor = mix(blendColor, projColor, projColor.a);
+        gl_FragColor = mix(gl_FragColor, projColor, projColor.a);
       }
     }
   #endif
@@ -221,7 +222,7 @@ void main()
           }        
         #endif
 
-        blendColor = mix(blendColor, projColor, projColor.a);
+        gl_FragColor = mix(gl_FragColor, projColor, projColor.a);
       }
     }
   #endif
@@ -246,7 +247,7 @@ void main()
           }        
         #endif
 
-        blendColor = mix(blendColor, projColor, projColor.a);
+        gl_FragColor = mix(gl_FragColor, projColor, projColor.a);
       }
     }
   #endif
@@ -271,12 +272,8 @@ void main()
           }        
         #endif
 
-        blendColor = mix(blendColor, projColor, projColor.a);
+        gl_FragColor = mix(gl_FragColor, projColor, projColor.a);
       }
     }
-  #endif
-
-  #if NUM_PROJECTORS > 0
-    gl_FragColor = blendColor;
   #endif
 }

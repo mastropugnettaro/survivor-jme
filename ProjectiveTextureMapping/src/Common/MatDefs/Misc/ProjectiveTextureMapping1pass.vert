@@ -115,8 +115,12 @@ const mat4 biasMat = mat4(0.5, 0.0, 0.0, 0.0,
 
 void main() 
 {
-  gl_Position = g_WorldViewProjectionMatrix * vec4(inPosition, 1.0);
   vec4 worldPos = g_WorldMatrix * vec4(inPosition, 1.0);
+  gl_Position = g_WorldViewProjectionMatrix * vec4(inPosition, 1.0);
+
+  // prevent z-fighting
+  //gl_Position.z *= 0.99999; 
+  //gl_Position.z -= 0.00001;
 
   #if NUM_PROJECTORS > 0
     projCoord0 = biasMat * m_ProjectorViewProjectionMatrix0 * worldPos;
