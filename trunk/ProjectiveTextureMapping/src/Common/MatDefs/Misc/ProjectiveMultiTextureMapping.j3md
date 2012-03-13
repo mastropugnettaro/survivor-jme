@@ -53,8 +53,8 @@ MaterialDef Projective Texture Mapping {
     }
 
     Technique {
-        VertexShader GLSL100:   Common/MatDefs/Misc/ProjectiveTextureMapping1pass.vert
-        FragmentShader GLSL100: Common/MatDefs/Misc/ProjectiveTextureMapping1pass.frag
+        VertexShader GLSL100:   Common/MatDefs/Misc/ProjectiveMultiTextureMapping.vert
+        FragmentShader GLSL100: Common/MatDefs/Misc/ProjectiveMultiTextureMapping.frag
 
         WorldParameters {
             WorldViewProjectionMatrix

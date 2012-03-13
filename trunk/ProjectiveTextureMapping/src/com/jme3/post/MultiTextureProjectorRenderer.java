@@ -41,6 +41,7 @@ import com.jme3.renderer.queue.GeometryList;
 import com.jme3.texture.FrameBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * A SceneProcessor that renders TextureProjectors, which means it projects 
@@ -48,7 +49,7 @@ import java.util.List;
  * 
  * @author survivor
  */
-public class TextureProjectorRenderer1pass implements SceneProcessor 
+public class MultiTextureProjectorRenderer implements SceneProcessor 
 {
   private RenderManager renderManager;
   private ViewPort viewPort;
@@ -56,10 +57,10 @@ public class TextureProjectorRenderer1pass implements SceneProcessor
   private ArrayList<TextureProjector> textureProjectors;
   private GeometryList targetGeometryList;  
 
-  public TextureProjectorRenderer1pass(AssetManager assetManager) 
+  public MultiTextureProjectorRenderer(AssetManager assetManager) 
   { 
-    textureMat = new Material(assetManager, "Common/MatDefs/Misc/ProjectiveTextureMapping1pass.j3md");
-    textureMat.getAdditionalRenderState().setPolyOffset(-1f, -1f);
+    textureMat = new Material(assetManager, "Common/MatDefs/Misc/ProjectiveMultiTextureMapping.j3md");
+    textureMat.getAdditionalRenderState().setPolyOffset(-1f, -1f); // prevent z-fighting
     textureProjectors = new ArrayList<TextureProjector>();
     renderManager = null;
     viewPort = null;
@@ -139,7 +140,13 @@ public class TextureProjectorRenderer1pass implements SceneProcessor
   @Override
   public void postFrame(FrameBuffer out) 
   { 
+    if (viewPort.getOutputFrameBuffer() != out)
+    {
+      Logger.getLogger("").severe("FFFFFFFFFFFFFFFFFFF");
+    }
+    
     renderManager.getRenderer().setFrameBuffer(out);
+    //renderManager.getRenderer().setFrameBuffer(viewPort.getOutputFrameBuffer());
     renderManager.setForcedMaterial(textureMat);
     int numProjectors = textureProjectors.size();
     int numPasses = (numProjectors + 7) / 8;
