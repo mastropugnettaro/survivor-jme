@@ -38,9 +38,11 @@ import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
+import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.HDRRenderer;
 import com.jme3.post.SimpleTextureProjector;
-import com.jme3.post.TextureProjectorRenderer1pass;
+import com.jme3.post.MultiTextureProjectorRenderer;
+import com.jme3.post.filters.BloomFilter;
 import com.jme3.renderer.Camera;
 import com.jme3.renderer.queue.GeometryList;
 import com.jme3.renderer.queue.OpaqueComparator;
@@ -59,14 +61,14 @@ import java.util.logging.Logger;
  * Test application for Projective Texture Mapping.
  * @author survivor
  */
-public class TestProjectiveTextureMapping1pass extends SimpleApplication 
+public class TestProjectiveMultiTextureMapping extends SimpleApplication 
 {
   private ProjectorData pd1, pd2;
-  private TextureProjectorRenderer1pass ptr, ptr2;
+  private MultiTextureProjectorRenderer ptr, ptr2;
 
   public static void main(String[] args) 
   {
-    TestProjectiveTextureMapping1pass app = new TestProjectiveTextureMapping1pass();
+    TestProjectiveMultiTextureMapping app = new TestProjectiveMultiTextureMapping();
     app.start();
     Logger.getLogger("").setLevel(Level.SEVERE);
   }
@@ -154,11 +156,11 @@ public class TestProjectiveTextureMapping1pass extends SimpleApplication
     pd2.projector.getProjectorCamera().setParallelProjection(true);
     pd2.projector.getProjectorCamera().setFrustumPerspective(90f, 1f, 1f, 5f);
     
-    ptr = new TextureProjectorRenderer1pass(assetManager);
+    ptr = new MultiTextureProjectorRenderer(assetManager);
     ptr.setTargetGeometryList(gl);
     ptr.getTextureProjectors().add(pd1.projector);
     
-    ptr2 = new TextureProjectorRenderer1pass(assetManager);
+    ptr2 = new MultiTextureProjectorRenderer(assetManager);
     ptr2.getTextureProjectors().add(pd2.projector);
     //ptr.getTextureProjectors().add(pd1.projector);
     //ptr.getTextureProjectors().add(pd2.projector);
@@ -169,10 +171,14 @@ public class TestProjectiveTextureMapping1pass extends SimpleApplication
     
     Logger.getLogger("").severe("NUM_PROJECTORS: " + ptr.getTextureProjectors().size() + 
       ", NUM_PASSES: " + ((ptr.getTextureProjectors().size() + 7) / 8));
-    HDRRenderer hdr = new HDRRenderer(assetManager, renderer);
-    viewPort.addProcessor(ptr2);
-    viewPort.addProcessor(hdr);
+    
+    FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
+    BloomFilter bf = new BloomFilter();
+    fpp.addFilter(bf);
+    
+    viewPort.addProcessor(fpp);
     viewPort.addProcessor(ptr);
+    viewPort.addProcessor(ptr2);
   }
   
   private void initProjectorData(ProjectorData pd, Vector3f location, Texture2D texture)
