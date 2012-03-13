@@ -59,6 +59,7 @@ public class TextureProjectorRenderer1pass implements SceneProcessor
   public TextureProjectorRenderer1pass(AssetManager assetManager) 
   { 
     textureMat = new Material(assetManager, "Common/MatDefs/Misc/ProjectiveTextureMapping1pass.j3md");
+    textureMat.getAdditionalRenderState().setPolyOffset(-1f, -1f);
     textureProjectors = new ArrayList<TextureProjector>();
     renderManager = null;
     viewPort = null;
@@ -138,6 +139,7 @@ public class TextureProjectorRenderer1pass implements SceneProcessor
   @Override
   public void postFrame(FrameBuffer out) 
   { 
+    renderManager.getRenderer().setFrameBuffer(out);
     renderManager.setForcedMaterial(textureMat);
     int numProjectors = textureProjectors.size();
     int numPasses = (numProjectors + 7) / 8;

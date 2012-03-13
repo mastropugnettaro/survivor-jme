@@ -38,6 +38,7 @@ import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
+import com.jme3.post.HDRRenderer;
 import com.jme3.post.SimpleTextureProjector;
 import com.jme3.post.TextureProjectorRenderer1pass;
 import com.jme3.renderer.Camera;
@@ -61,7 +62,7 @@ import java.util.logging.Logger;
 public class TestProjectiveTextureMapping1pass extends SimpleApplication 
 {
   private ProjectorData pd1, pd2;
-  private TextureProjectorRenderer1pass ptr;
+  private TextureProjectorRenderer1pass ptr, ptr2;
 
   public static void main(String[] args) 
   {
@@ -156,17 +157,22 @@ public class TestProjectiveTextureMapping1pass extends SimpleApplication
     ptr = new TextureProjectorRenderer1pass(assetManager);
     ptr.setTargetGeometryList(gl);
     ptr.getTextureProjectors().add(pd1.projector);
-    ptr.getTextureProjectors().add(pd2.projector);
-//    ptr.getTextureProjectors().add(pd1.projector);
-//    ptr.getTextureProjectors().add(pd2.projector);
-//    ptr.getTextureProjectors().add(pd1.projector);
-//    ptr.getTextureProjectors().add(pd2.projector);
-//    ptr.getTextureProjectors().add(pd1.projector);
-//    ptr.getTextureProjectors().add(pd2.projector);
+    
+    ptr2 = new TextureProjectorRenderer1pass(assetManager);
+    ptr2.getTextureProjectors().add(pd2.projector);
+    //ptr.getTextureProjectors().add(pd1.projector);
+    //ptr.getTextureProjectors().add(pd2.projector);
+    //ptr.getTextureProjectors().add(pd1.projector);
+    //ptr.getTextureProjectors().add(pd2.projector);
+    //ptr.getTextureProjectors().add(pd1.projector);
+    //ptr.getTextureProjectors().add(pd2.projector);
     
     Logger.getLogger("").severe("NUM_PROJECTORS: " + ptr.getTextureProjectors().size() + 
       ", NUM_PASSES: " + ((ptr.getTextureProjectors().size() + 7) / 8));
-    viewPort.addProcessor(ptr);        
+    HDRRenderer hdr = new HDRRenderer(assetManager, renderer);
+    viewPort.addProcessor(ptr2);
+    viewPort.addProcessor(hdr);
+    viewPort.addProcessor(ptr);
   }
   
   private void initProjectorData(ProjectorData pd, Vector3f location, Texture2D texture)
