@@ -137,7 +137,7 @@
       #endif
 
       #ifdef GL_EXT_gpu_shader4
-        float getHeightSample(const in vec2 texCoord, const in vec2 dx, in vec2 dy)
+        float getHeightSample(const in vec2 texCoord, const in vec2 dx, const in vec2 dy)
         {
           #if defined(PARALLAXMAP)
             return texture2DGrad(m_ParallaxMap, texCoord, dx, dy).r;
@@ -228,14 +228,19 @@
             texOffset2 = vTexCurrentOffset - vTexOffsetPerStep;
 
             nStepIndex = nNumSteps + 1; // leave loop
-            fPrevHeight = fCurrHeight;
+            //fPrevHeight = fCurrHeight;
           }
           else
           {
             nStepIndex++;
             fPrevHeight = fCurrHeight;
           }
-        }   
+        }
+
+//        if (fPrevHeight == fCurrHeight)
+//        {
+//          discard;
+//        }
 
         float fDelta2 = pt2.x - pt2.y;
         float fDelta1 = pt1.x - pt1.y;
@@ -258,6 +263,11 @@
         // The computed texture offset for the displaced point on the pseudo-extruded surface:
         vec2 texSampleBase = pomTexCoord - vParallaxOffset;
         pomTexCoord = texSampleBase;
+
+        //if (pomTexCoord.x < 0.0) discard;
+        //if (pomTexCoord.x > 1.0) discard;
+        //if (pomTexCoord.y < 0.0) discard;
+        //if (pomTexCoord.y > 1.0) discard;	
 
         // Multiplier for visualizing the level of detail (see notes for 'nLODThreshold' variable
         // for how that is done visually)
