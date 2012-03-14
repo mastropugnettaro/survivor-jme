@@ -38,11 +38,8 @@ import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
-import com.jme3.post.FilterPostProcessor;
-import com.jme3.post.HDRRenderer;
 import com.jme3.post.SimpleTextureProjector;
 import com.jme3.post.MultiTextureProjectorRenderer;
-import com.jme3.post.filters.BloomFilter;
 import com.jme3.renderer.Camera;
 import com.jme3.renderer.queue.GeometryList;
 import com.jme3.renderer.queue.OpaqueComparator;
@@ -184,11 +181,6 @@ public class TestProjectiveMultiTextureMapping extends SimpleApplication
             (((ptr1.getTextureProjectors().size() + 7) / 8) + 
              ((ptr2.getTextureProjectors().size() + 7) / 8)));
     
-    FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
-    BloomFilter bf = new BloomFilter();
-    fpp.addFilter(bf);
-    
-    //viewPort.addProcessor(fpp);
     viewPort.addProcessor(ptr1);
     viewPort.addProcessor(ptr2);
   }
