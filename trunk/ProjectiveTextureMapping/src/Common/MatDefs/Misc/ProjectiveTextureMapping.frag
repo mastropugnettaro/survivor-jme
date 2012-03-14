@@ -8,6 +8,9 @@ uniform sampler2D m_ProjectiveMap;
   uniform float m_FallOffPower;
 #endif
 
+const float SOFTNESS = 0.2;
+const float SOFTNESS_INV = 1.0 / SOFTNESS;
+
 void main() 
 {
   gl_FragColor = vec4(0.0);
@@ -18,9 +21,9 @@ void main()
     {   
       vec4 projColor = texture2DProj(m_ProjectiveMap, projCoord);
 
-      if (cosAngle < 0.2)
+      if (cosAngle < SOFTNESS)
       {
-        projColor.a *= cosAngle * 5.0;
+        projColor.a *= cosAngle * SOFTNESS_INV;
       }
       
       #ifdef FALL_OFF
