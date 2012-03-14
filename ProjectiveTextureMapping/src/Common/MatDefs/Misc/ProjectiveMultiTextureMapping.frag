@@ -70,6 +70,8 @@
   uniform float m_FallOffPower7;
 #endif
 
+const float SOFTNESS = 0.2;
+const float SOFTNESS_INV = 1.0 / SOFTNESS;
 
 void main() 
 {
@@ -84,9 +86,9 @@ void main()
       {   
         projColor = clamp(texture2DProj(m_ProjectiveMap0, projCoord0), 0.0, 1.0);
 
-        if (cosAngle0 < 0.2)
+        if (cosAngle0 < SOFTNESS)
         {
-          projColor.a *= cosAngle0 * 5.0;
+          projColor.a *= cosAngle0 * SOFTNESS_INV;
         }
 
         #ifdef FALL_OFF0
@@ -109,9 +111,9 @@ void main()
       {   
         projColor = texture2DProj(m_ProjectiveMap1, projCoord1);
 
-        if (cosAngle1 < 0.2)
+        if (cosAngle1 < SOFTNESS)
         {
-          projColor.a *= cosAngle1 * 5.0;
+          projColor.a *= cosAngle1 * SOFTNESS_INV;
         }
 
         #ifdef FALL_OFF1
@@ -134,9 +136,9 @@ void main()
       {   
         projColor = texture2DProj(m_ProjectiveMap2, projCoord2);
 
-        if (cosAngle2 < 0.2)
+        if (cosAngle2 < SOFTNESS)
         {
-          projColor.a *= cosAngle2 * 5.0;
+          projColor.a *= cosAngle2 * SOFTNESS_INV;
         }
 
         #ifdef FALL_OFF2
@@ -159,9 +161,9 @@ void main()
       {   
         projColor = texture2DProj(m_ProjectiveMap3, projCoord3);
 
-        if (cosAngle3 < 0.2)
+        if (cosAngle3 < SOFTNESS)
         {
-          projColor.a *= cosAngle3 * 5.0;
+          projColor.a *= cosAngle3 * SOFTNESS_INV;
         }
 
         #ifdef FALL_OFF3
@@ -184,9 +186,9 @@ void main()
       {   
         projColor = texture2DProj(m_ProjectiveMap4, projCoord4);
 
-        if (cosAngle4 < 0.2)
+        if (cosAngle4 < SOFTNESS)
         {
-          projColor.a *= cosAngle4 * 5.0;
+          projColor.a *= cosAngle4 * SOFTNESS_INV;
         }
 
         #ifdef FALL_OFF4
@@ -209,9 +211,9 @@ void main()
       {   
         projColor = texture2DProj(m_ProjectiveMap5, projCoord5);
 
-        if (cosAngle5 < 0.2)
+        if (cosAngle5 < SOFTNESS)
         {
-          projColor.a *= cosAngle5 * 5.0;
+          projColor.a *= cosAngle5 * SOFTNESS_INV;
         }
 
         #ifdef FALL_OFF5
@@ -234,9 +236,9 @@ void main()
       {   
         projColor = texture2DProj(m_ProjectiveMap6, projCoord6);
 
-        if (cosAngle6 < 0.2)
+        if (cosAngle6 < SOFTNESS)
         {
-          projColor.a *= cosAngle6 * 5.0;
+          projColor.a *= cosAngle6 * SOFTNESS_INV;
         }
 
         #ifdef FALL_OFF6
@@ -259,9 +261,9 @@ void main()
       {   
         projColor = texture2DProj(m_ProjectiveMap7, projCoord7);
 
-        if (cosAngle7 < 0.2)
+        if (cosAngle7 < SOFTNESS)
         {
-          projColor.a *= cosAngle7 * 5.0;
+          projColor.a *= cosAngle7 * SOFTNESS_INV;
         }
 
         #ifdef FALL_OFF7

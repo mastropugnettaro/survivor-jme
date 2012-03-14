@@ -103,7 +103,7 @@ public class TestProjectiveMultiTextureMapping extends SimpleApplication
     mat.setColor("Ambient", ColorRGBA.LightGray);
     mat2.setBoolean("UseMaterialColors", true);
     
-    Sphere sphere1 = new Sphere(64, 64, 0.5f);
+    Sphere sphere1 = new Sphere(32, 32, 0.5f);
     Geometry geom2 = new Geometry("Sphere1", sphere1);
     geom2.setMaterial(mat2);
     rootNode.attachChild(geom2);
@@ -156,23 +156,23 @@ public class TestProjectiveMultiTextureMapping extends SimpleApplication
     ptr1 = new MultiTextureProjectorRenderer(assetManager);
     ptr1.setTargetGeometryList(gl);
     ptr1.getTextureProjectors().add(pd1.projector);
-    ptr1.getTextureProjectors().add(pd1.projector);
-    ptr1.getTextureProjectors().add(pd1.projector);
-    ptr1.getTextureProjectors().add(pd1.projector);
-    ptr1.getTextureProjectors().add(pd1.projector);
-    ptr1.getTextureProjectors().add(pd1.projector);
-    ptr1.getTextureProjectors().add(pd1.projector);
-    ptr1.getTextureProjectors().add(pd1.projector);
+//    ptr1.getTextureProjectors().add(pd1.projector);
+//    ptr1.getTextureProjectors().add(pd1.projector);
+//    ptr1.getTextureProjectors().add(pd1.projector);
+//    ptr1.getTextureProjectors().add(pd1.projector);
+//    ptr1.getTextureProjectors().add(pd1.projector);
+//    ptr1.getTextureProjectors().add(pd1.projector);
+//    ptr1.getTextureProjectors().add(pd1.projector);
     
     ptr2 = new MultiTextureProjectorRenderer(assetManager);
     ptr2.getTextureProjectors().add(pd2.projector);
-    ptr2.getTextureProjectors().add(pd2.projector);
-    ptr2.getTextureProjectors().add(pd2.projector);
-    ptr2.getTextureProjectors().add(pd2.projector);
-    ptr2.getTextureProjectors().add(pd2.projector);
-    ptr2.getTextureProjectors().add(pd2.projector);
-    ptr2.getTextureProjectors().add(pd2.projector);
-    ptr2.getTextureProjectors().add(pd2.projector);
+//    ptr2.getTextureProjectors().add(pd2.projector);
+//    ptr2.getTextureProjectors().add(pd2.projector);
+//    ptr2.getTextureProjectors().add(pd2.projector);
+//    ptr2.getTextureProjectors().add(pd2.projector);
+//    ptr2.getTextureProjectors().add(pd2.projector);
+//    ptr2.getTextureProjectors().add(pd2.projector);
+//    ptr2.getTextureProjectors().add(pd2.projector);
     
     Logger.getLogger("").severe("NUM_PROJECTORS: " + 
             (ptr1.getTextureProjectors().size() + 

@@ -103,7 +103,7 @@ public class TestProjectiveTextureMapping extends SimpleApplication
     mat.setColor("Ambient", ColorRGBA.LightGray);
     mat2.setBoolean("UseMaterialColors", true);
     
-    Sphere sphere1 = new Sphere(256, 256, 0.5f);
+    Sphere sphere1 = new Sphere(32, 32, 0.5f);
     Geometry geom2 = new Geometry("Sphere1", sphere1);
     geom2.setMaterial(mat2);
     rootNode.attachChild(geom2);
@@ -155,13 +155,28 @@ public class TestProjectiveTextureMapping extends SimpleApplication
     
     ptr = new TextureProjectorRenderer(assetManager);
     ptr.getTextureProjectors().add(pd1.projector);
+//    ptr.getTextureProjectors().add(pd1.projector);
+//    ptr.getTextureProjectors().add(pd1.projector);
+//    ptr.getTextureProjectors().add(pd1.projector);
+//    ptr.getTextureProjectors().add(pd1.projector);
+//    ptr.getTextureProjectors().add(pd1.projector);
+//    ptr.getTextureProjectors().add(pd1.projector);
+//    ptr.getTextureProjectors().add(pd1.projector);
+
     ptr.getTextureProjectors().add(pd2.projector);
-//    ptr.getTextureProjectors().add(pd1.projector);
 //    ptr.getTextureProjectors().add(pd2.projector);
-//    ptr.getTextureProjectors().add(pd1.projector);
 //    ptr.getTextureProjectors().add(pd2.projector);
-//    ptr.getTextureProjectors().add(pd1.projector);
 //    ptr.getTextureProjectors().add(pd2.projector);
+//    ptr.getTextureProjectors().add(pd2.projector);
+//    ptr.getTextureProjectors().add(pd2.projector);
+//    ptr.getTextureProjectors().add(pd2.projector);
+//    ptr.getTextureProjectors().add(pd2.projector);
+    
+    Logger.getLogger("").severe("NUM_PROJECTORS: " + 
+            ptr.getTextureProjectors().size() + 
+      ", NUM_PASSES: " + 
+            ptr.getTextureProjectors().size());
+    
     viewPort.addProcessor(ptr);        
   }
   
