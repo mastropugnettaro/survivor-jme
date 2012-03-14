@@ -41,7 +41,6 @@ import com.jme3.renderer.queue.GeometryList;
 import com.jme3.texture.FrameBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * A SceneProcessor that renders TextureProjectors, which means it projects 
@@ -51,11 +50,13 @@ import java.util.logging.Logger;
  */
 public class MultiTextureProjectorRenderer implements SceneProcessor 
 {
+  private static final int numProjectorsPerPass = 8; // ToDo: variable
+  
   private RenderManager renderManager;
   private ViewPort viewPort;
   private Material textureMat;
   private ArrayList<TextureProjector> textureProjectors;
-  private GeometryList targetGeometryList;  
+  private GeometryList targetGeometryList;
 
   public MultiTextureProjectorRenderer(AssetManager assetManager) 
   { 
@@ -143,7 +144,7 @@ public class MultiTextureProjectorRenderer implements SceneProcessor
     renderManager.getRenderer().setFrameBuffer(out); // ToDo: check if needed
     renderManager.setForcedMaterial(textureMat);
     int numProjectors = textureProjectors.size();
-    int numPasses = (numProjectors + 7) / 8;
+    int numPasses = (numProjectors + numProjectorsPerPass - 1) / numProjectorsPerPass;
     int numProjectorsThisPass;
     int currentProjector = 0;
     
@@ -151,7 +152,7 @@ public class MultiTextureProjectorRenderer implements SceneProcessor
     {
       if (pass < (numPasses-1))
       {
-        numProjectorsThisPass = 8;
+        numProjectorsThisPass = numProjectorsPerPass;
       }
       else
       {
@@ -160,7 +161,7 @@ public class MultiTextureProjectorRenderer implements SceneProcessor
 
       textureMat.setInt("NumProjectors", numProjectorsThisPass);
         
-      for (int i = 0; i < 8; i++, currentProjector++)
+      for (int i = 0; i < numProjectorsPerPass; i++, currentProjector++)
       {      
         if (i < numProjectorsThisPass)
         {
