@@ -59,7 +59,6 @@ public class TextureProjectorRenderer implements SceneProcessor
   public TextureProjectorRenderer(AssetManager assetManager) 
   { 
     textureMat = new Material(assetManager, "Common/MatDefs/Misc/ProjectiveTextureMapping.j3md");
-    textureMat.getAdditionalRenderState().setPolyOffset(-0.001f, -0.001f); // prevent z-fighting
     textureProjectors = new ArrayList<TextureProjector>();
     renderManager = null;
     viewPort = null;
