@@ -154,7 +154,6 @@ public class TestProjectiveMultiTextureMapping extends SimpleApplication
     pd2.projector.getProjectorCamera().setFrustumPerspective(90f, 1f, 1f, 5f);
     
     ptr1 = new MultiTextureProjectorRenderer(assetManager);
-    ptr1.setTargetGeometryList(gl);
     ptr1.getTextureProjectors().add(pd1.projector);
 //    ptr1.getTextureProjectors().add(pd1.projector);
 //    ptr1.getTextureProjectors().add(pd1.projector);
@@ -165,6 +164,7 @@ public class TestProjectiveMultiTextureMapping extends SimpleApplication
 //    ptr1.getTextureProjectors().add(pd1.projector);
     
     ptr2 = new MultiTextureProjectorRenderer(assetManager);
+    ptr2.setTargetGeometryList(gl);
     ptr2.getTextureProjectors().add(pd2.projector);
 //    ptr2.getTextureProjectors().add(pd2.projector);
 //    ptr2.getTextureProjectors().add(pd2.projector);

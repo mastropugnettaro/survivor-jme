@@ -124,7 +124,8 @@ void main()
           }        
         #endif
 
-        gl_FragColor = mix(gl_FragColor, projColor, projColor.a);
+        gl_FragColor.xyz = mix(gl_FragColor.xyz, projColor.xyz, projColor.a);
+        gl_FragColor.a += projColor.a;
       }
     }
   #endif
@@ -149,7 +150,8 @@ void main()
           }        
         #endif
 
-        gl_FragColor = mix(gl_FragColor, projColor, projColor.a);
+        gl_FragColor.xyz = mix(gl_FragColor.xyz, projColor.xyz, projColor.a);
+        gl_FragColor.a += projColor.a;
       }
     }
   #endif
@@ -174,7 +176,8 @@ void main()
           }        
         #endif
 
-        gl_FragColor = mix(gl_FragColor, projColor, projColor.a);
+        gl_FragColor.xyz = mix(gl_FragColor.xyz, projColor.xyz, projColor.a);
+        gl_FragColor.a += projColor.a;
       }
     }
   #endif
@@ -199,7 +202,8 @@ void main()
           }        
         #endif
 
-        gl_FragColor = mix(gl_FragColor, projColor, projColor.a);
+        gl_FragColor.xyz = mix(gl_FragColor.xyz, projColor.xyz, projColor.a);
+        gl_FragColor.a += projColor.a;
       }
     }
   #endif
@@ -224,7 +228,8 @@ void main()
           }        
         #endif
 
-        gl_FragColor = mix(gl_FragColor, projColor, projColor.a);
+        gl_FragColor.xyz = mix(gl_FragColor.xyz, projColor.xyz, projColor.a);
+        gl_FragColor.a += projColor.a;
       }
     }
   #endif
@@ -249,7 +254,8 @@ void main()
           }        
         #endif
 
-        gl_FragColor = mix(gl_FragColor, projColor, projColor.a);
+        gl_FragColor.xyz = mix(gl_FragColor.xyz, projColor.xyz, projColor.a);
+        gl_FragColor.a += projColor.a;
       }
     }
   #endif
@@ -274,8 +280,11 @@ void main()
           }        
         #endif
 
-        gl_FragColor = mix(gl_FragColor, projColor, projColor.a);
+        gl_FragColor.xyz = mix(gl_FragColor.xyz, projColor.xyz, projColor.a);
+        gl_FragColor.a += projColor.a;
       }
     }
   #endif
+
+  gl_FragColor = clamp(gl_FragColor, 0.0, 1.0);
 }

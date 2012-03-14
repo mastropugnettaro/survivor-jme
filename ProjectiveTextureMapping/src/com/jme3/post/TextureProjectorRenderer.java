@@ -34,6 +34,7 @@ package com.jme3.post;
 import com.jme3.material.Material;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.asset.AssetManager;
+import com.jme3.material.RenderState.BlendMode;
 import com.jme3.post.SceneProcessor;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
@@ -58,7 +59,7 @@ public class TextureProjectorRenderer implements SceneProcessor
   public TextureProjectorRenderer(AssetManager assetManager) 
   { 
     textureMat = new Material(assetManager, "Common/MatDefs/Misc/ProjectiveTextureMapping.j3md");
-    textureMat.getAdditionalRenderState().setPolyOffset(-1f, -1f); // prevent z-fighting
+    textureMat.getAdditionalRenderState().setPolyOffset(-0.001f, -0.001f); // prevent z-fighting
     textureProjectors = new ArrayList<TextureProjector>();
     renderManager = null;
     viewPort = null;
