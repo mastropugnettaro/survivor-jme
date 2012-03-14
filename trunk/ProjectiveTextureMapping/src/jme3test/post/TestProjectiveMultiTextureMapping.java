@@ -64,7 +64,7 @@ import java.util.logging.Logger;
 public class TestProjectiveMultiTextureMapping extends SimpleApplication 
 {
   private ProjectorData pd1, pd2;
-  private MultiTextureProjectorRenderer ptr, ptr2;
+  private MultiTextureProjectorRenderer ptr1, ptr2;
 
   public static void main(String[] args) 
   {
@@ -156,28 +156,40 @@ public class TestProjectiveMultiTextureMapping extends SimpleApplication
     pd2.projector.getProjectorCamera().setParallelProjection(true);
     pd2.projector.getProjectorCamera().setFrustumPerspective(90f, 1f, 1f, 5f);
     
-    ptr = new MultiTextureProjectorRenderer(assetManager);
-    ptr.setTargetGeometryList(gl);
-    ptr.getTextureProjectors().add(pd1.projector);
+    ptr1 = new MultiTextureProjectorRenderer(assetManager);
+    ptr1.setTargetGeometryList(gl);
+    ptr1.getTextureProjectors().add(pd1.projector);
+    ptr1.getTextureProjectors().add(pd1.projector);
+    ptr1.getTextureProjectors().add(pd1.projector);
+    ptr1.getTextureProjectors().add(pd1.projector);
+    ptr1.getTextureProjectors().add(pd1.projector);
+    ptr1.getTextureProjectors().add(pd1.projector);
+    ptr1.getTextureProjectors().add(pd1.projector);
+    ptr1.getTextureProjectors().add(pd1.projector);
     
     ptr2 = new MultiTextureProjectorRenderer(assetManager);
     ptr2.getTextureProjectors().add(pd2.projector);
-    //ptr.getTextureProjectors().add(pd1.projector);
-    //ptr.getTextureProjectors().add(pd2.projector);
-    //ptr.getTextureProjectors().add(pd1.projector);
-    //ptr.getTextureProjectors().add(pd2.projector);
-    //ptr.getTextureProjectors().add(pd1.projector);
-    //ptr.getTextureProjectors().add(pd2.projector);
+    ptr2.getTextureProjectors().add(pd2.projector);
+    ptr2.getTextureProjectors().add(pd2.projector);
+    ptr2.getTextureProjectors().add(pd2.projector);
+    ptr2.getTextureProjectors().add(pd2.projector);
+    ptr2.getTextureProjectors().add(pd2.projector);
+    ptr2.getTextureProjectors().add(pd2.projector);
+    ptr2.getTextureProjectors().add(pd2.projector);
     
-    Logger.getLogger("").severe("NUM_PROJECTORS: " + ptr.getTextureProjectors().size() + 
-      ", NUM_PASSES: " + ((ptr.getTextureProjectors().size() + 7) / 8));
+    Logger.getLogger("").severe("NUM_PROJECTORS: " + 
+            (ptr1.getTextureProjectors().size() + 
+             ptr2.getTextureProjectors().size()) + 
+      ", NUM_PASSES: " + 
+            (((ptr1.getTextureProjectors().size() + 7) / 8) + 
+             ((ptr2.getTextureProjectors().size() + 7) / 8)));
     
     FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
     BloomFilter bf = new BloomFilter();
     fpp.addFilter(bf);
     
-    viewPort.addProcessor(fpp);
-    viewPort.addProcessor(ptr);
+    //viewPort.addProcessor(fpp);
+    viewPort.addProcessor(ptr1);
     viewPort.addProcessor(ptr2);
   }
   

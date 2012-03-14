@@ -10,6 +10,8 @@ uniform sampler2D m_ProjectiveMap;
 
 void main() 
 {
+  gl_FragColor = vec4(0.0);
+
   if (projCoord.w > 0.0)
   {
     if (cosAngle > 0.0)
@@ -31,5 +33,5 @@ void main()
 
       gl_FragColor = projColor;
     }
-  }
+  }  
 }

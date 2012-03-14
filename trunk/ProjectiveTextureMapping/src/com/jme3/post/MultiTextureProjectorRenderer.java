@@ -140,13 +140,7 @@ public class MultiTextureProjectorRenderer implements SceneProcessor
   @Override
   public void postFrame(FrameBuffer out) 
   { 
-    if (viewPort.getOutputFrameBuffer() != out)
-    {
-      Logger.getLogger("").severe("FFFFFFFFFFFFFFFFFFF");
-    }
-    
-    renderManager.getRenderer().setFrameBuffer(out);
-    //renderManager.getRenderer().setFrameBuffer(viewPort.getOutputFrameBuffer());
+    renderManager.getRenderer().setFrameBuffer(out); // ToDo: check if needed
     renderManager.setForcedMaterial(textureMat);
     int numProjectors = textureProjectors.size();
     int numPasses = (numProjectors + 7) / 8;

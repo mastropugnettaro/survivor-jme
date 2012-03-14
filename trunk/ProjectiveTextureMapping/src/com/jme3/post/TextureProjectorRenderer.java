@@ -58,6 +58,7 @@ public class TextureProjectorRenderer implements SceneProcessor
   public TextureProjectorRenderer(AssetManager assetManager) 
   { 
     textureMat = new Material(assetManager, "Common/MatDefs/Misc/ProjectiveTextureMapping.j3md");
+    textureMat.getAdditionalRenderState().setPolyOffset(-1f, -1f); // prevent z-fighting
     textureProjectors = new ArrayList<TextureProjector>();
     renderManager = null;
     viewPort = null;
@@ -116,6 +117,9 @@ public class TextureProjectorRenderer implements SceneProcessor
   @Override
   public void postFrame(FrameBuffer out) 
   { 
+    renderManager.setForcedMaterial(textureMat);
+    renderManager.getRenderer().setFrameBuffer(out); // ToDo: check if needed
+      
     for (TextureProjector textureProjector : textureProjectors)
     { 
       float fallOffDistance = textureProjector.getFallOffDistance();
@@ -144,8 +148,6 @@ public class TextureProjectorRenderer implements SceneProcessor
         textureMat.clearParam("FallOffPower");
       }
 
-      renderManager.setForcedMaterial(textureMat);
-      
       GeometryList targetGeometryList = textureProjector.getTargetGeometryList();
       if (targetGeometryList != null)
       {
@@ -154,10 +156,10 @@ public class TextureProjectorRenderer implements SceneProcessor
       else
       {
         renderManager.renderViewPortRaw(viewPort);
-      }
-      
-      renderManager.setForcedMaterial(null);
-    }    
+      }      
+    }
+    
+    renderManager.setForcedMaterial(null);
   }
 
   /**
