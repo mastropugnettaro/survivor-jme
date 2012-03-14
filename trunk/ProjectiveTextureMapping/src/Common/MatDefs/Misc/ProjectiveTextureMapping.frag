@@ -8,7 +8,7 @@ uniform sampler2D m_ProjectiveMap;
   uniform float m_FallOffPower;
 #endif
 
-const float SOFTNESS = 0.2;
+const float SOFTNESS = 0.1;
 const float SOFTNESS_INV = 1.0 / SOFTNESS;
 
 void main() 

@@ -74,6 +74,22 @@ public class TextureProjectorRenderer implements SceneProcessor
   }
 
   /**
+   * Enables or disables a workaround for z-fighting on crappy GPUs (Intel).
+   * @param value The new state..
+   */  
+  public void setZFightingWorkaround(boolean value)
+  {
+    if (value)
+    {
+      textureMat.getAdditionalRenderState().setPolyOffset(-1f, -1f);
+    }
+    else
+    {
+      textureMat.getAdditionalRenderState().setPolyOffset(0f, 0f);
+    }
+  }
+  
+  /**
    * Initializes this instance.
    * @see SceneProcessor
    */  
