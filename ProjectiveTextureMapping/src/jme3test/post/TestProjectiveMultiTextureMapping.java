@@ -53,6 +53,7 @@ import com.jme3.texture.Texture;
 import com.jme3.texture.Texture2D;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.lwjgl.opengl.GL11;
 
 /**
  * Test application for Projective Texture Mapping.
@@ -74,7 +75,7 @@ public class TestProjectiveMultiTextureMapping extends SimpleApplication
   public void simpleInitApp() 
   {
     setPauseOnLostFocus(false);
-    flyCam.setMoveSpeed(10f);
+    flyCam.setMoveSpeed(3f);
     //flyCam.setEnabled(false);
     
     Material mat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
@@ -153,7 +154,10 @@ public class TestProjectiveMultiTextureMapping extends SimpleApplication
     pd2.projector.getProjectorCamera().setParallelProjection(true);
     pd2.projector.getProjectorCamera().setFrustumPerspective(90f, 1f, 1f, 5f);
     
+    // Intel fix. Sorry for the lwjgl reference
+    boolean isCrappyGPU = GL11.glGetString(GL11.GL_VENDOR).contains("Intel");    
     ptr1 = new MultiTextureProjectorRenderer(assetManager);
+    ptr1.setZFightingWorkaround(isCrappyGPU);
     ptr1.getTextureProjectors().add(pd1.projector);
 //    ptr1.getTextureProjectors().add(pd1.projector);
 //    ptr1.getTextureProjectors().add(pd1.projector);
@@ -164,6 +168,7 @@ public class TestProjectiveMultiTextureMapping extends SimpleApplication
 //    ptr1.getTextureProjectors().add(pd1.projector);
     
     ptr2 = new MultiTextureProjectorRenderer(assetManager);
+    ptr2.setZFightingWorkaround(isCrappyGPU);
     ptr2.setTargetGeometryList(gl);
     ptr2.getTextureProjectors().add(pd2.projector);
 //    ptr2.getTextureProjectors().add(pd2.projector);

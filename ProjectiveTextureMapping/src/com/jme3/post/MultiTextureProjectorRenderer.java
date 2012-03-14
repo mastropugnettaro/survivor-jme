@@ -61,7 +61,6 @@ public class MultiTextureProjectorRenderer implements SceneProcessor
   public MultiTextureProjectorRenderer(AssetManager assetManager) 
   { 
     textureMat = new Material(assetManager, "Common/MatDefs/Misc/ProjectiveMultiTextureMapping.j3md");
-    textureMat.getAdditionalRenderState().setPolyOffset(-0.001f, -0.001f); // prevent z-fighting
     textureProjectors = new ArrayList<TextureProjector>();
     renderManager = null;
     viewPort = null;
@@ -88,12 +87,28 @@ public class MultiTextureProjectorRenderer implements SceneProcessor
   
   /**
    * Sets the geometry that sould be affected by this TextureProjectorRenderer.
-   * @param The geometry that sould be affected by this TextureProjector.
+   * @param targetGeometryList The geometry that sould be affected by this TextureProjector.
    * @see TextureProjector
    */  
   public void setTargetGeometryList(GeometryList targetGeometryList) 
   {
     this.targetGeometryList = targetGeometryList;
+  }
+  
+  /**
+   * Enables or disables a workaround for z-fighting on crappy GPUs (Intel).
+   * @param value The new state..
+   */  
+  public void setZFightingWorkaround(boolean value)
+  {
+    if (value)
+    {
+      textureMat.getAdditionalRenderState().setPolyOffset(-1f, -1f);
+    }
+    else
+    {
+      textureMat.getAdditionalRenderState().setPolyOffset(0f, 0f);
+    }
   }
   
   /**
