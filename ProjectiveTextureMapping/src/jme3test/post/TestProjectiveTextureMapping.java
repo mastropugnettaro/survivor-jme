@@ -53,7 +53,6 @@ import com.jme3.texture.Texture;
 import com.jme3.texture.Texture2D;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.lwjgl.opengl.GL11;
 
 /**
  * Test application for Projective Texture Mapping.
@@ -154,10 +153,7 @@ public class TestProjectiveTextureMapping extends SimpleApplication
     pd2.projector.getProjectorCamera().setParallelProjection(true);
     pd2.projector.getProjectorCamera().setFrustumPerspective(90f, 1f, 1f, 5f);
     
-    // Intel fix. Sorry for the lwjgl reference
-    boolean isCrappyGPU = GL11.glGetString(GL11.GL_VENDOR).contains("Intel");    
     ptr = new TextureProjectorRenderer(assetManager);
-    ptr.setZFightingWorkaround(isCrappyGPU);
     ptr.getTextureProjectors().add(pd1.projector);
 //    ptr.getTextureProjectors().add(pd1.projector);
 //    ptr.getTextureProjectors().add(pd1.projector);

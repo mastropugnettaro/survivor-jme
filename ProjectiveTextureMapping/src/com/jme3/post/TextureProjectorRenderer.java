@@ -34,7 +34,6 @@ package com.jme3.post;
 import com.jme3.material.Material;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.asset.AssetManager;
-import com.jme3.material.RenderState.BlendMode;
 import com.jme3.post.SceneProcessor;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
@@ -62,6 +61,7 @@ public class TextureProjectorRenderer implements SceneProcessor
     textureProjectors = new ArrayList<TextureProjector>();
     renderManager = null;
     viewPort = null;
+    setPolyOffset(-0.1f, -0.1f);
   }
   
   /**
@@ -73,19 +73,23 @@ public class TextureProjectorRenderer implements SceneProcessor
   }
 
   /**
-   * Enables or disables a workaround for z-fighting on crappy GPUs (Intel).
-   * @param value The new state..
-   */  
-  public void setZFightingWorkaround(boolean value)
+   * Offsets the on-screen z-order of the texture material's polygons, 
+   * to combat visual artefacts like stitching, bleeding and z-fighting 
+   * for overlapping polygons.
+   * Factor and units are summed to produce the depth offset.
+   * This offset is applied in screen space,
+   * typically with positive Z pointing into the screen.
+   * Typical values are (1.0f, 1.0f) or (-1.0f, -1.0f).
+   * The default values are (-0.1f, -0.1f).
+   *
+   * @see RenderState
+   * @see <a href="http://www.opengl.org/resources/faq/technical/polygonoffset.htm" rel="nofollow">http://www.opengl.org/resources/faq/technical/polygonoffset.htm</a>
+   * @param factor scales the maximum Z slope, with respect to X or Y of the polygon
+   * @param units scales the minimum resolvable depth buffer value
+   */
+  public final void setPolyOffset(float factor, float units)
   {
-    if (value)
-    {
-      textureMat.getAdditionalRenderState().setPolyOffset(-1f, -1f);
-    }
-    else
-    {
-      textureMat.getAdditionalRenderState().setPolyOffset(0f, 0f);
-    }
+    textureMat.getAdditionalRenderState().setPolyOffset(factor, units);
   }
   
   /**

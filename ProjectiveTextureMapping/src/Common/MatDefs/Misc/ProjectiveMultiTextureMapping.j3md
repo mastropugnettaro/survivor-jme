@@ -10,6 +10,14 @@ MaterialDef Projective Texture Mapping {
         Texture2D ProjectiveMap5
         Texture2D ProjectiveMap6
         Texture2D ProjectiveMap7
+        Int CombineMode0 : 0
+        Int CombineMode1 : 0
+        Int CombineMode2 : 0
+        Int CombineMode3 : 0
+        Int CombineMode4 : 0
+        Int CombineMode5 : 0
+        Int CombineMode6 : 0
+        Int CombineMode7 : 0
         Matrix4 ProjectorViewProjectionMatrix0
         Matrix4 ProjectorViewProjectionMatrix1
         Matrix4 ProjectorViewProjectionMatrix2
@@ -67,6 +75,14 @@ MaterialDef Projective Texture Mapping {
 
         Defines {
             NUM_PROJECTORS : NumProjectors
+            COMBINE_MODE0 : CombineMode0
+            COMBINE_MODE1 : CombineMode1
+            COMBINE_MODE2 : CombineMode2
+            COMBINE_MODE3 : CombineMode3
+            COMBINE_MODE4 : CombineMode4
+            COMBINE_MODE5 : CombineMode5
+            COMBINE_MODE6 : CombineMode6
+            COMBINE_MODE7 : CombineMode7
             IS_PARALLEL_PROJECTION0: ProjectorDirection0
             IS_PARALLEL_PROJECTION1: ProjectorDirection1
             IS_PARALLEL_PROJECTION2: ProjectorDirection2
