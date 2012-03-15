@@ -84,4 +84,10 @@ public interface TextureProjector
    * @return Power at which the projection should fall off.
    */  
   public float getFallOffPower();  
+
+  /**
+   * @param key A custom key.
+   * @return A custom parameter value.
+   */  
+  public Object getParameter(Object key);
 }

@@ -40,6 +40,7 @@ import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
 import com.jme3.post.SimpleTextureProjector;
 import com.jme3.post.MultiTextureProjectorRenderer;
+import com.jme3.post.MultiTextureProjectorRenderer.CombineMode;
 import com.jme3.renderer.Camera;
 import com.jme3.renderer.queue.GeometryList;
 import com.jme3.renderer.queue.OpaqueComparator;
@@ -147,17 +148,16 @@ public class TestProjectiveMultiTextureMapping extends SimpleApplication
         
     pd1.projector.setFallOffDistance(2.1f);
     pd1.projector.setFallOffPower(4f);    
+    pd1.projector.setParameter("CombineMode", CombineMode.BLEND_COLOR_ADD_ALPHA);
         
     GeometryList gl = new GeometryList(new OpaqueComparator());
     gl.add(geom1);
     
     pd2.projector.getProjectorCamera().setParallelProjection(true);
     pd2.projector.getProjectorCamera().setFrustumPerspective(90f, 1f, 1f, 5f);
+    pd2.projector.setParameter("CombineMode", CombineMode.BLEND_ALL);
     
-    // Intel fix. Sorry for the lwjgl reference
-    boolean isCrappyGPU = GL11.glGetString(GL11.GL_VENDOR).contains("Intel");    
     ptr1 = new MultiTextureProjectorRenderer(assetManager);
-    ptr1.setZFightingWorkaround(isCrappyGPU);
     ptr1.getTextureProjectors().add(pd1.projector);
 //    ptr1.getTextureProjectors().add(pd1.projector);
 //    ptr1.getTextureProjectors().add(pd1.projector);
@@ -168,7 +168,6 @@ public class TestProjectiveMultiTextureMapping extends SimpleApplication
 //    ptr1.getTextureProjectors().add(pd1.projector);
     
     ptr2 = new MultiTextureProjectorRenderer(assetManager);
-    ptr2.setZFightingWorkaround(isCrappyGPU);
     ptr2.setTargetGeometryList(gl);
     ptr2.getTextureProjectors().add(pd2.projector);
 //    ptr2.getTextureProjectors().add(pd2.projector);

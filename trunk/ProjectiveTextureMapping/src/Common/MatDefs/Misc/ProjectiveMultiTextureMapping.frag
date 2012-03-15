@@ -1,3 +1,6 @@
+#define BLEND_COLOR_ADD_ALPHA 0
+#define BLEND_ALL 1
+
 #if NUM_PROJECTORS > 0
   varying vec4 projCoord0;
   varying float cosAngle0;
@@ -124,8 +127,12 @@ void main()
           }        
         #endif
 
-        gl_FragColor.xyz = mix(gl_FragColor.xyz, projColor.xyz, projColor.a);
-        gl_FragColor.a += projColor.a;
+        #if COMBINE_MODE1 == BLEND_ALL
+          gl_FragColor = mix(gl_FragColor, projColor, projColor.a);
+        #else // BLEND_COLOR_ADD_ALPHA
+          gl_FragColor.xyz = mix(gl_FragColor.xyz, projColor.xyz, projColor.a);
+          gl_FragColor.a += projColor.a;
+        #endif
       }
     }
   #endif
@@ -150,8 +157,12 @@ void main()
           }        
         #endif
 
-        gl_FragColor.xyz = mix(gl_FragColor.xyz, projColor.xyz, projColor.a);
-        gl_FragColor.a += projColor.a;
+        #if COMBINE_MODE2 == BLEND_ALL
+          gl_FragColor = mix(gl_FragColor, projColor, projColor.a);
+        #else // BLEND_COLOR_ADD_ALPHA
+          gl_FragColor.xyz = mix(gl_FragColor.xyz, projColor.xyz, projColor.a);
+          gl_FragColor.a += projColor.a;
+        #endif
       }
     }
   #endif
@@ -176,8 +187,12 @@ void main()
           }        
         #endif
 
-        gl_FragColor.xyz = mix(gl_FragColor.xyz, projColor.xyz, projColor.a);
-        gl_FragColor.a += projColor.a;
+        #if COMBINE_MODE3 == BLEND_ALL
+          gl_FragColor = mix(gl_FragColor, projColor, projColor.a);
+        #else // BLEND_COLOR_ADD_ALPHA
+          gl_FragColor.xyz = mix(gl_FragColor.xyz, projColor.xyz, projColor.a);
+          gl_FragColor.a += projColor.a;
+        #endif
       }
     }
   #endif
@@ -202,8 +217,12 @@ void main()
           }        
         #endif
 
-        gl_FragColor.xyz = mix(gl_FragColor.xyz, projColor.xyz, projColor.a);
-        gl_FragColor.a += projColor.a;
+        #if COMBINE_MODE4 == BLEND_ALL
+          gl_FragColor = mix(gl_FragColor, projColor, projColor.a);
+        #else // BLEND_COLOR_ADD_ALPHA
+          gl_FragColor.xyz = mix(gl_FragColor.xyz, projColor.xyz, projColor.a);
+          gl_FragColor.a += projColor.a;
+        #endif
       }
     }
   #endif
@@ -228,8 +247,12 @@ void main()
           }        
         #endif
 
-        gl_FragColor.xyz = mix(gl_FragColor.xyz, projColor.xyz, projColor.a);
-        gl_FragColor.a += projColor.a;
+        #if COMBINE_MODE5 == BLEND_ALL
+          gl_FragColor = mix(gl_FragColor, projColor, projColor.a);
+        #else // BLEND_COLOR_ADD_ALPHA
+          gl_FragColor.xyz = mix(gl_FragColor.xyz, projColor.xyz, projColor.a);
+          gl_FragColor.a += projColor.a;
+        #endif
       }
     }
   #endif
@@ -254,8 +277,12 @@ void main()
           }        
         #endif
 
-        gl_FragColor.xyz = mix(gl_FragColor.xyz, projColor.xyz, projColor.a);
-        gl_FragColor.a += projColor.a;
+        #if COMBINE_MODE6 == BLEND_ALL
+          gl_FragColor = mix(gl_FragColor, projColor, projColor.a);
+        #else // BLEND_COLOR_ADD_ALPHA
+          gl_FragColor.xyz = mix(gl_FragColor.xyz, projColor.xyz, projColor.a);
+          gl_FragColor.a += projColor.a;
+        #endif
       }
     }
   #endif
@@ -280,8 +307,12 @@ void main()
           }        
         #endif
 
-        gl_FragColor.xyz = mix(gl_FragColor.xyz, projColor.xyz, projColor.a);
-        gl_FragColor.a += projColor.a;
+        #if COMBINE_MODE7 == BLEND_ALL
+          gl_FragColor = mix(gl_FragColor, projColor, projColor.a);
+        #else // BLEND_COLOR_ADD_ALPHA
+          gl_FragColor.xyz = mix(gl_FragColor.xyz, projColor.xyz, projColor.a);
+          gl_FragColor.a += projColor.a;
+        #endif
       }
     }
   #endif

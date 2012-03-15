@@ -37,6 +37,7 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.renderer.queue.GeometryList;
 import com.jme3.texture.Texture2D;
+import java.util.HashMap;
 
 /**
  * A simple implementation of TextureProjector using a Camera.
@@ -50,6 +51,7 @@ public class SimpleTextureProjector implements TextureProjector
   private GeometryList targetGeometryList;
   private float fallOffDistance;
   private float fallOffPower;
+  private HashMap parameters;
     
 /**
  * Crates a new instance.
@@ -65,6 +67,7 @@ public class SimpleTextureProjector implements TextureProjector
       projectiveTextureMap.getImage().getHeight());
     this.fallOffDistance = Float.MAX_VALUE;
     this.fallOffPower = 3f;
+    this.parameters = new HashMap();
   }
   
 /**
@@ -188,6 +191,24 @@ public class SimpleTextureProjector implements TextureProjector
   public float getFallOffPower()
   {
     return this.fallOffPower;
+  }
+  
+  /**
+   * @param key A custom key.
+   * @return A custom parameter value.
+   */  
+  public Object getParameter(Object key)
+  {
+    return this.parameters.get(key);
+  }
+    
+  /**
+   * @param key A custom key.
+   * @param value A custom parameter value.
+   */  
+  public void setParameter(Object key, Object value)
+  {
+    this.parameters.put(key, value);
   }
     
   /**

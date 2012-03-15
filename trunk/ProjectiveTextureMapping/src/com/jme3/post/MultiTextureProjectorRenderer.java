@@ -65,6 +65,7 @@ public class MultiTextureProjectorRenderer implements SceneProcessor
     renderManager = null;
     viewPort = null;
     targetGeometryList = null;
+    setPolyOffset(-0.1f, -0.1f);
   }
   
   /**
@@ -96,19 +97,23 @@ public class MultiTextureProjectorRenderer implements SceneProcessor
   }
   
   /**
-   * Enables or disables a workaround for z-fighting on crappy GPUs (Intel).
-   * @param value The new state..
-   */  
-  public void setZFightingWorkaround(boolean value)
+   * Offsets the on-screen z-order of the texture material's polygons, 
+   * to combat visual artefacts like stitching, bleeding and z-fighting 
+   * for overlapping polygons.
+   * Factor and units are summed to produce the depth offset.
+   * This offset is applied in screen space,
+   * typically with positive Z pointing into the screen.
+   * Typical values are (1.0f, 1.0f) or (-1.0f, -1.0f).
+   * The default values are (-0.1f, -0.1f).
+   *
+   * @see RenderState
+   * @see <a href="http://www.opengl.org/resources/faq/technical/polygonoffset.htm" rel="nofollow">http://www.opengl.org/resources/faq/technical/polygonoffset.htm</a>
+   * @param factor scales the maximum Z slope, with respect to X or Y of the polygon
+   * @param units scales the minimum resolvable depth buffer value
+   */
+  public final void setPolyOffset(float factor, float units)
   {
-    if (value)
-    {
-      textureMat.getAdditionalRenderState().setPolyOffset(-1f, -1f);
-    }
-    else
-    {
-      textureMat.getAdditionalRenderState().setPolyOffset(0f, 0f);
-    }
+    textureMat.getAdditionalRenderState().setPolyOffset(factor, units);
   }
   
   /**
@@ -182,6 +187,12 @@ public class MultiTextureProjectorRenderer implements SceneProcessor
         {
           TextureProjector textureProjector = textureProjectors.get(currentProjector);
           float fallOffDistance = textureProjector.getFallOffDistance();
+          
+          Object combineMode = textureProjector.getParameter("CombineMode");
+          if ((combineMode != null) && (combineMode instanceof CombineMode))
+          {
+            textureMat.setInt("CombineMode" + i, ((CombineMode) combineMode).ordinal());
+          }
 
           textureMat.setTexture("ProjectiveMap" + i, textureProjector.getProjectiveTexture());
           textureMat.setMatrix4("ProjectorViewProjectionMatrix" + i, textureProjector.getProjectorViewProjectionMatrix());
@@ -216,6 +227,7 @@ public class MultiTextureProjectorRenderer implements SceneProcessor
           textureMat.clearParam("ProjectorDirection" + i);
           textureMat.clearParam("FallOffDistance" + i);        
           textureMat.clearParam("FallOffPower" + i);          
+          textureMat.clearParam("CombineMode" + i);
         }
       }
 
@@ -248,5 +260,11 @@ public class MultiTextureProjectorRenderer implements SceneProcessor
   @Override
   public void reshape(ViewPort vp, int w, int h) 
   {
-  }  
+  }
+  
+  public enum CombineMode
+  {
+    BLEND_COLOR_ADD_ALPHA,
+    BLEND_ALL
+  }
 }
