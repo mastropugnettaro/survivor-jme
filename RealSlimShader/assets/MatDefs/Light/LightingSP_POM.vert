@@ -13,7 +13,7 @@ attribute vec3 inNormal;
 uniform mat4 g_WorldViewProjectionMatrix;
 uniform mat4 g_WorldViewMatrix;
 uniform mat4 g_WorldMatrix;
-// uniform mat3 g_WorldMatrixInverseTranspose; // until fixed in stable
+uniform mat3 g_WorldMatrixInverseTranspose;
 uniform mat4 g_ViewMatrix;
 uniform mat4 g_ViewMatrixInverse;
 uniform mat3 g_NormalMatrix;
@@ -107,7 +107,6 @@ void main(void)
   #ifdef VERTEX_LIGHTING
     doPerVertexLighting(osPosition);
   #else
-    mat3 g_WorldMatrixInverseTranspose = mat3(g_WorldMatrix); // until fixed in stable
     vec3 wsEyePosition = vec3(g_ViewMatrixInverse * vec4(0.0, 0.0, 0.0, 1.0));
     v_wsPosition = vec3(g_WorldMatrix * osPosition); // object space -> world space
     v_wsView = v_wsPosition - wsEyePosition;
