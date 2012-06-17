@@ -5,11 +5,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Tests SinglePassLighting.
+ * Tests the SinglePassLightingRenderer.
  * 
  * @author survivor
  */
-public class TestSinglePassLighting extends SimpleTestApplication
+public class TestSinglePassLightingRenderer extends SimpleTestApplication
 {
   private static final int SPHERE_SEGMENTS = 32;
   private static final int NUM_LIGHTS = 4;
@@ -17,7 +17,7 @@ public class TestSinglePassLighting extends SimpleTestApplication
   public static void main(String[] args)
   {
     Logger.getLogger("").setLevel(Level.SEVERE);    
-    SimpleTestApplication app = new TestSinglePassLighting();
+    SimpleTestApplication app = new TestSinglePassLightingRenderer();
     app.setSettings(new AppSettings(true));
     app.setShowSettings(false);
     app.start();
@@ -25,7 +25,8 @@ public class TestSinglePassLighting extends SimpleTestApplication
   
   @Override
   protected void initializeTestParams() {
-    sphereMaterial = new MaterialEx("Materials/Rock_SP.j3m", assetManager);
+    sphereMaterial = new MaterialEx("Materials/Rock_SPLR.j3m", assetManager);
+    sphereMaterial.setLightingRenderer(new SinglePassLightingRenderer());
     sphereSegments = SPHERE_SEGMENTS;
     numLights = NUM_LIGHTS;
   }
