@@ -19,6 +19,11 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Tests SinglePassLighting with Parallax Occlusion Mapping enabled at Sponza.
+ * 
+ * @author survivor
+ */
 public class TestSinglePassLightingAtSponza extends SimpleApplication {
 
   private static final Logger log = Logger.getLogger(TestSinglePassLightingAtSponza.class.getName());
@@ -63,8 +68,7 @@ public class TestSinglePassLightingAtSponza extends SimpleApplication {
 
     flyCam.setMoveSpeed(10);
 
-    Material mat = new MaterialSP(assetManager, "MatDefs/Light/LightingSP_POM.j3md");
-    //Material mat = new MaterialSP(assetManager, "MatDefs/Light/Lighting.j3md");
+    Material mat = new MaterialEx(assetManager, "MatDefs/Light/Lighting_SP.j3md");
     Texture diff = assetManager.loadTexture("Textures/BrickWall.jpg");
     diff.setWrap(Texture.WrapMode.Repeat);
     diff.setAnisotropicFilter(16);

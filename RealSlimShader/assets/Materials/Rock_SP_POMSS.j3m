@@ -1,4 +1,4 @@
-Material Rock : MatDefs/Light/LightingSP_POM.j3md {
+Material Rock : MatDefs/Light/Lighting_SP.j3md {
      MaterialParameters {
         Diffuse : 1.0 1.0 1.0 1.0
         Ambient : 1.0 1.0 1.0 1.0
@@ -10,7 +10,6 @@ Material Rock : MatDefs/Light/LightingSP_POM.j3md {
         DiffuseMap : Textures/BrickWall.jpg
         NormalMap : Textures/BrickWall_normal.jpg
         SteepParallax : true
-        ParallaxShadows : true
      }
     AdditionalRenderState {
     }

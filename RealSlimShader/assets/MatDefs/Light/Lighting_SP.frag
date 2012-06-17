@@ -89,7 +89,7 @@
       const bool c_bVisualizeLOD = false;
 
       //#define USE_TEXTURE2D_GRAD
-      #define USE_TEXTURE2D_LOD
+      //#define USE_TEXTURE2D_LOD
 
       // Adaptive in-shader level-of-detail system implementation. Compute the 
       // current mip level explicitly in the pixel shader and use this information 
@@ -326,8 +326,8 @@
         float fOcclusionShadow = 1.0 - max(max(max(max(max(max(shA, sh9), sh8), sh7), sh6), sh5), sh4);
 
         // The previous computation overbrightens the image, let's adjust for that:
-        fOcclusionShadow = fOcclusionShadow * 0.6 + 0.4;
-        parallaxShadowSum += fOcclusionShadow / float(NUM_LIGHTS);
+        fOcclusionShadow = fOcclusionShadow * 0.6 + 0.4 / float(NUM_LIGHTS+1) ;
+        parallaxShadowSum += fOcclusionShadow / float(NUM_LIGHTS+1);
       }
 
       void calculatePom(const in int nNumSteps, const in vec3 tsLight, out vec2 pomTexCoord, out float parallaxShadow)

@@ -13,6 +13,7 @@ import com.jme3.material.Material;
 import com.jme3.material.MaterialDef;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
+import com.jme3.renderer.RenderManager;
 import com.jme3.scene.Geometry;
 import com.jme3.shader.Shader;
 import com.jme3.shader.Uniform;
@@ -20,65 +21,66 @@ import com.jme3.shader.VarType;
 import com.jme3.texture.Texture;
 import java.util.ArrayList;
 
-public class MaterialSP extends Material
+/**
+ * MaterialEx is an extended Material class with improved single pass lighting 
+ * support. It also allows the use of custom MaterialExLightingRenderers to 
+ * completely control the material and lighting rendering.
+ * 
+ * @author survivor
+ */
+public class MaterialEx extends Material implements MaterialExLightingRenderer 
 {
   protected ArrayList<Light> lightList = new ArrayList<Light>(4);
-
-  public MaterialSP(MaterialDef def) 
-  {
+  protected MaterialExLightingRenderer lightingRenderer = this;
+  
+  public MaterialEx(MaterialDef def) {
     super(def);
   }
 
-  public MaterialSP(AssetManager assetManager, String defName) {
+  public MaterialEx(AssetManager assetManager, String defName) {
     super(assetManager, defName);
   }
 
-  public MaterialSP(Material mat) {
+  public MaterialEx(Material mat) {
     super(mat.getMaterialDef());
 
-    for (MatParam param : mat.getParams())
-    {
-      if (param instanceof MatParamTexture)
-      {
+    for (MatParam param : mat.getParams()) {
+      if (param instanceof MatParamTexture) {
         this.setTextureParam(param.getName(), param.getVarType(), (Texture) param.getValue());
-      }
-      else
-      {
+      } else {
         this.setParam(param.getName(), param.getVarType(), param.getValue());
       }
     }
   }
 
-  public MaterialSP(String matName, AssetManager assetManager)
-  {
+  public MaterialEx(String matName, AssetManager assetManager) {
     this(assetManager.loadMaterial(matName));
   }
 
   /**
    * Do not use this constructor. Serialization purposes only.
    */
-  public MaterialSP() {}
+  public MaterialEx() {
+  }
 
+  /**
+   * Improved single pass lighting support. 
+   * Obsoleted by SinglePassLightingRenderer.
+   */
   @Override
-  protected void updateLightListUniforms(Shader shader, Geometry g, int numLights)
-  {
-    if (numLights == 0)
-    { // this shader does not do lighting, ignore.
+  protected void updateLightListUniforms(Shader shader, Geometry g, int numLights) {
+    if (numLights == 0) { // this shader does not do lighting, ignore.
       return;
     }
 
     LightList worldLightList = g.getWorldLightList();
     ColorRGBA ambLightColor = new ColorRGBA(0f, 0f, 0f, 1f);
 
-    for (int i = 0; i < worldLightList.size(); i++)
-    {
+    for (int i = 0; i < worldLightList.size(); i++) {
       Light light = worldLightList.get(i);
-      if (light instanceof AmbientLight)
-      {
+      if (light instanceof AmbientLight) {
         ambLightColor.addLocal(light.getColor());
-      }
-      else
-      {
+      } else {
         lightList.add(light);
       }
     }
@@ -87,7 +89,7 @@ public class MaterialSP extends Material
     final int arraySize = Math.max(numLights, 4); // Intel GMA bug
     this.getMaterialDef().addMaterialParam(VarType.Int, "NumLights", arraySize, null);
     this.setInt("NumLights", arraySize);
-    
+
     Uniform lightColor = shader.getUniform("g_LightColor");
     Uniform lightPos = shader.getUniform("g_LightPosition");
     Uniform lightDir = shader.getUniform("g_LightDirection");
@@ -100,8 +102,7 @@ public class MaterialSP extends Material
     ambLightColor.a = 1.0f;
     ambientColor.setValue(VarType.Vector4, ambLightColor);
 
-    for (int i = 0; i < numLights; i++)
-    {
+    for (int i = 0; i < numLights; i++) {
       Light l = lightList.get(i);
       ColorRGBA color = l.getColor();
       lightColor.setVector4InArray(color.getRed(),
@@ -110,8 +111,7 @@ public class MaterialSP extends Material
         l.getType().getId(),
         i);
 
-      switch (l.getType())
-      {
+      switch (l.getType()) {
         case Directional:
           DirectionalLight dl = (DirectionalLight) l;
           Vector3f dir = dl.getDirection();
@@ -135,9 +135,51 @@ public class MaterialSP extends Material
           break;
         default:
           throw new UnsupportedOperationException("Unknown type of light: " + l.getType());
-      }      
+      }
+    }
+
+    lightList.clear();
+  }
+
+  /**
+   * Calls the current MaterialExLightingRenderer.
+   */
+  @Override
+  protected void renderMultipassLighting(Shader shader, Geometry g, RenderManager rm) 
+  {
+    lightingRenderer.renderLighting(this, shader, g, rm);
+  }
+  
+  public MaterialExLightingRenderer getLightingRenderer()
+  {
+    return this.lightingRenderer;
+  }
+  
+  public void setLightingRenderer(MaterialExLightingRenderer lr)  
+  {
+    if (lr == null)
+    {
+      lr = this;
     }
     
-    lightList.clear();
+    if (lr != this.lightingRenderer)
+    {
+      this.lightingRenderer.detach(this);
+      this.lightingRenderer = lr;
+      this.lightingRenderer.attach(this);
+    }
+  }
+
+  public void attach(Material mat) {}
+
+  public void detach(Material mat) {}
+
+  /**
+   * Default implemetation of MaterialExLightingRenderer calls 
+   * Material.renderMultipassLighting().
+   */
+  public void renderLighting(Material mat, Shader shader, Geometry g, RenderManager rm) 
+  {
+    super.renderMultipassLighting(shader, g, rm);
   }
 }
