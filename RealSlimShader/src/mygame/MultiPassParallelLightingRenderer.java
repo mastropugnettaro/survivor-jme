@@ -80,17 +80,18 @@ public class MultiPassParallelLightingRenderer implements MaterialExLightingRend
     int numLights = lightList.size();
     int numQuads = 1 + (numLights - 1) / 4;
     int numPasses = 1 + (numQuads - 1) / quadsPerPass;
-    mat.setInt("QuadsPerPass", quadsPerPass);
+    int qpp = Math.min(quadsPerPass, numQuads);
+    mat.setInt("QuadsPerPass", qpp);
 
     Uniform lightColor = shader.getUniform("g_LightColor");
     Uniform lightPos = shader.getUniform("g_LightPosition");
     Uniform lightDir = shader.getUniform("g_LightDirection");
     Uniform lightQuadW = shader.getUniform("g_LightQuadW");
 
-    lightColor.setVector4Length(quadsPerPass * 4);
-    lightPos.setVector4Length(quadsPerPass * 4);
-    lightDir.setVector4Length(quadsPerPass * 4);
-    lightQuadW.setVector4Length(quadsPerPass);
+    lightColor.setVector4Length(qpp * 4);
+    lightPos.setVector4Length(qpp * 4);
+    lightDir.setVector4Length(qpp * 4);
+    lightQuadW.setVector4Length(qpp);
 
     Uniform ambientColor = shader.getUniform("g_AmbientLightColor");
     ambLightColor.a = 1.0f;
@@ -111,12 +112,12 @@ public class MultiPassParallelLightingRenderer implements MaterialExLightingRend
         r.applyRenderState(additiveLight);
       }
       
-      for (int quad = 0; quad < quadsPerPass; quad++)
+      for (int quad = 0; quad < qpp; quad++)
       {
         for (int i = 0; i < 4; i++) 
         {
           int qi = 4 * quad + i;
-          int li = pass * quadsPerPass * 4 + qi;
+          int li = pass * qpp * 4 + qi;
           if (li < numLights)
           {
             Light l = lightList.get(li);
