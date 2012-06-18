@@ -118,6 +118,7 @@ public class MultiPassParallelLightingRenderer implements MaterialExLightingRend
         {
           int qi = 4 * quad + i;
           int li = pass * qpp * 4 + qi;
+
           if (li < numLights)
           {
             Light l = lightList.get(li);
