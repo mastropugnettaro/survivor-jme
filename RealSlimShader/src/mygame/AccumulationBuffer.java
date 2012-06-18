@@ -31,9 +31,7 @@ public class AccumulationBuffer implements SceneProcessor
   
   public AccumulationBuffer(int numSamples)
   {
-    // default is no depth buffer because depth writes are off after the fist 
-    // rendering pass in most cases
-    this(1, Format.RGBA16F, null);
+    this(1, Format.RGBA16F, Format.Depth);
   }
   
   public AccumulationBuffer(int numSamples, Format colorBufferFormat, Format depthBufferFormat)
