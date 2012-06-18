@@ -147,7 +147,7 @@ void doPerFragmentLighting()
   #ifdef NORMALMAP
     vec2 texCoord = v_TexCoord;
     #if defined(PARALLAXMAP) || defined(NORMALMAP_PARALLAX)
-      calculateParallaxTexCoord(v_View, texCoord);
+      calculateParallaxTexCoord(V, texCoord);
     #endif
     N = normalize(vec3(texture2D(m_NormalMap, texCoord)) * 2.0 - 1.0);
   #else
