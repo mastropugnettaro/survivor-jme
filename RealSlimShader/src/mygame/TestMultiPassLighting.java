@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 public class TestMultiPassLighting extends SimpleTestApplication
 {
   private static final int SPHERE_SEGMENTS = 32;
-  private static final int NUM_LIGHTS = 4;
+  private static final int NUM_LIGHTS = 8;
   
   public static void main(String[] args)
   {
