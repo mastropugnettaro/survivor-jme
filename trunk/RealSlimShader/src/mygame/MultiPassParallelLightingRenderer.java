@@ -172,7 +172,7 @@ public class MultiPassParallelLightingRenderer implements MaterialExLightingRend
       
       r.setShader(shader);
       r.renderMesh(g.getMesh(), g.getLodLevel(), 1);
-//      GL11.glAccum(GL11.GL_ACCUM, 1f / ((float)numQuads));
+//      GL11.glAccum(GL11.GL_ACCUM, 1f / ((float)numPasses));
     }
     
 //    GL11.glAccum(GL11.GL_RETURN, 1f);
