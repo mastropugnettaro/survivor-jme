@@ -14,6 +14,7 @@ import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.debug.Arrow;
+import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Sphere;
 import com.jme3.scene.shape.Sphere.TextureMode;
 import com.jme3.system.AppSettings;
@@ -55,7 +56,7 @@ public abstract class SimpleTestApplication extends SimpleApplication
   @Override
   public void simpleInitApp()
   {
-    initializeTestParams();
+    initializeTestParams();    
     this.setPauseOnLostFocus(false);
     //setDisplayStatView(false);
     flyCam.setEnabled(false);
@@ -96,11 +97,16 @@ public abstract class SimpleTestApplication extends SimpleApplication
     
     Geometry sphere = new Geometry("Sphere", sphereMesh);
     sphere.rotate(FastMath.HALF_PI, 0f, 0f);
-    sphere.setMaterial(sphereMaterial);    
+    sphere.setMaterial(sphereMaterial);
+    
+    Geometry box = new Geometry("Box", new Box(0.5f, 0.5f, 0.5f));
+    box.rotate(FastMath.QUARTER_PI, FastMath.QUARTER_PI, 0f);
+    box.setMaterial(sphereMaterial);
 
     Node node = new Node();
     node.setLocalTranslation(1f, 1f, 1f);
     node.attachChild(sphere);
+    //node.attachChild(box);
     rootNode.attachChild(node);
 
     cam.setLocation(new Vector3f(0.3f, 2f, 0.3f));
@@ -135,12 +141,12 @@ public abstract class SimpleTestApplication extends SimpleApplication
     
     SpotLight sl = new SpotLight();
     sl.setPosition(new Vector3f(0f, 2f, 0f));
-    sl.setDirection(sphere.getWorldTranslation().subtract(sl.getPosition()));
+    sl.setDirection(sphere.getWorldTranslation().subtract(sl.getPosition()).normalize());
     sl.setColor(ColorRGBA.Green);
-    sl.setSpotRange(2);
-    sl.setSpotInnerAngle(5*FastMath.DEG_TO_RAD);
-    sl.setSpotOuterAngle(10*FastMath.DEG_TO_RAD);
-    //rootNode.addLight(sl);
+    sl.setSpotRange(100.5f);
+    sl.setSpotInnerAngle(0.01f*FastMath.DEG_TO_RAD);
+    sl.setSpotOuterAngle(2f*FastMath.DEG_TO_RAD);
+    rootNode.addLight(sl);
     
     viewPort.addProcessor(new AccumulationBuffer(settings.getSamples()));
   }
