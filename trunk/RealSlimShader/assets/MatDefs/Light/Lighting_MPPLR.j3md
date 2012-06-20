@@ -47,6 +47,7 @@ MaterialDef Phong Lighting (Single Pass) {
 
         Defines {
             QUADS_PER_PASS : QuadsPerPass
+            HAS_SPOTLIGHTS : HasSpotLights
 
             VERTEX_LIGHTING : VertexLighting
             MATERIAL_COLORS : UseMaterialColors

@@ -7,7 +7,7 @@ Material Rock : Common/MatDefs/Light/Lighting.j3md {
         DiffuseMap : Textures/BrickWall.jpg
         Shininess : 100.0
         ParallaxMap : Textures/BrickWall_height.jpg
-        SteepParallax : true
+        SteepParallax : false
      }
     AdditionalRenderState {
     }
