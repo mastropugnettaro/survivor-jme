@@ -51,12 +51,14 @@ public class MultiPassParallelLightingRenderer implements MaterialExLightingRend
   }
 
   public void attach(Material mat) {
-    TechniqueDef techDef = mat.getMaterialDef().getDefaultTechniques().get(0);
-    mat.getMaterialDef().addMaterialParam(VarType.Int, "QuadsPerPass", 1, null);
+    mat.getMaterialDef().addMaterialParam(VarType.Int, "QuadsPerPass", quadsPerPass, null);
     mat.getMaterialDef().addMaterialParam(VarType.Vector4Array, "g_LightQuadW", 0, null);
-    mat.getMaterialDef().addMaterialParam(VarType.Boolean, "HasSpotLights", false, null);
-    techDef.addShaderPresetDefine("QUADS_PER_PASS", VarType.Int, 2);
-    techDef.addShaderPresetDefine("HAS_SPOTLIGHTS", VarType.Boolean, false);
+    mat.getMaterialDef().addMaterialParam(VarType.Boolean, "HasSpotLights", true, null);
+
+    // initialize with safe values (working & good looking)
+    // recompiling might take some frames
+    mat.setInt("QuadsPerPass", quadsPerPass);
+    mat.setBoolean("HasSpotLights", true);
   }
 
   public void detach(Material mat) {
@@ -76,6 +78,12 @@ public class MultiPassParallelLightingRenderer implements MaterialExLightingRend
     ColorRGBA ambLightColor = new ColorRGBA(0f, 0f, 0f, 1f);
     float[] lqw = new float[4];
     boolean hasSpotLights = false;
+    
+    Technique technique = mat.getActiveTechnique();
+    if (technique != null) 
+    {
+      technique.makeCurrent(mat.getMaterialDef().getAssetManager());
+    }
 
     for (int i = 0; i < worldLightList.size(); i++) {
       Light light = worldLightList.get(i);
