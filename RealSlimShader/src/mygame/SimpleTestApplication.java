@@ -52,8 +52,7 @@ public abstract class SimpleTestApplication extends SimpleApplication
   @Override
   public void setSettings(AppSettings settings)
   { 
-    //settings.setRenderer(AppSettings.LWJGL_OPENGL1);
-    settings.setResolution(1152, 864);
+    // settings.setResolution(1152, 864);
     settings.setTitle(getClass().getSimpleName());
     super.setSettings(settings);
   }  
@@ -172,7 +171,7 @@ public abstract class SimpleTestApplication extends SimpleApplication
         lightList.add(sl);        
         nsl--;
       }
-    }        
+    }
   }
   
   @Override
