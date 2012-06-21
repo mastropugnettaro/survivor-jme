@@ -133,6 +133,8 @@ public class MultiPassParallelLightingRenderer implements MaterialExLightingRend
         r.applyRenderState(additiveLight);
       }
       
+      hasSpotLights = false;
+      
       for (int quad = 0; quad < qpp; quad++)
       {
         for (int i = 0; i < 4; i++) 
@@ -157,7 +159,7 @@ public class MultiPassParallelLightingRenderer implements MaterialExLightingRend
                 Vector3f dir = dl.getDirection();
                 lqw[i] = -1f;
                 lightPos.setVector4InArray(dir.getX(), dir.getY(), dir.getZ(), -1, qi);
-                lightDir.setVector4InArray(0f, 0f, 0f, -1000.1f, qi);
+                lightDir.setVector4InArray(0f, 0f, 0f, 100.2f, qi);
                 break;
               case Point:
                 PointLight pl = (PointLight) l;
@@ -165,7 +167,7 @@ public class MultiPassParallelLightingRenderer implements MaterialExLightingRend
                 float invRadius = pl.getInvRadius();
                 lqw[i] = invRadius;
                 lightPos.setVector4InArray(pos.getX(), pos.getY(), pos.getZ(), invRadius, qi);
-                lightDir.setVector4InArray(0f, 0f, 0f, -1000.1f, qi);
+                lightDir.setVector4InArray(0f, 0f, 0f, 100.2f, qi);
                 break;
               case Spot:
                 SpotLight sl = (SpotLight) l;
@@ -173,10 +175,10 @@ public class MultiPassParallelLightingRenderer implements MaterialExLightingRend
                 Vector3f dir2 = sl.getDirection();
                 float invRange = sl.getInvSpotRange();
                 float spotAngleCos = sl.getPackedAngleCos();
-
                 lqw[i] = invRange;
                 lightPos.setVector4InArray(pos2.getX(), pos2.getY(), pos2.getZ(), invRange, qi);
                 lightDir.setVector4InArray(dir2.getX(), dir2.getY(), dir2.getZ(), spotAngleCos, qi);
+                //hasSpotLights = true;
                 break;
               default:
                 throw new UnsupportedOperationException("Unknown type of light: " + l.getType());
@@ -194,6 +196,7 @@ public class MultiPassParallelLightingRenderer implements MaterialExLightingRend
         lightQuadW.setVector4InArray(lqw[0], lqw[1], lqw[2], lqw[3], quad);
       }
       
+      //mat.setBoolean("HasSpotLights", hasSpotLights);
       r.setShader(shader);
       r.renderMesh(g.getMesh(), g.getLodLevel(), 1);
 //      GL11.glAccum(GL11.GL_ACCUM, 1f / ((float)numPasses));

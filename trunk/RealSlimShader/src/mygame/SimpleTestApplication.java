@@ -5,6 +5,7 @@ import com.jme3.export.binary.BinaryExporter;
 import com.jme3.export.binary.BinaryImporter;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
+import com.jme3.light.Light;
 import com.jme3.light.PointLight;
 import com.jme3.light.SpotLight;
 import com.jme3.material.Material;
@@ -36,11 +37,14 @@ public abstract class SimpleTestApplication extends SimpleApplication
 {
   protected static final Logger log = Logger.getLogger(SimpleTestApplication.class.getName());
 
+  protected Geometry sphere;
   protected MaterialEx sphereMaterial;
-  protected int sphereSegments;
-  protected int numLights;
+  protected int sphereSegments = 32;
+  protected int numDirectionalLights = 0;
+  protected int numPointLights = 0;
+  protected int numSpotLights = 0;
     
-  private ArrayList<DirectionalLight> lightList = new ArrayList<DirectionalLight>();
+  private ArrayList<Light> lightList = new ArrayList<Light>();
   private float angle;
   
   protected abstract void initializeTestParams();  
@@ -73,8 +77,8 @@ public abstract class SimpleTestApplication extends SimpleApplication
       "GL_MAX_FRAGMENT_UNIFORM_COMPONENTS: " + GL11.glGetInteger(GL20.GL_MAX_FRAGMENT_UNIFORM_COMPONENTS) + "\n" +
       "");
     
-    log.log(Level.SEVERE, "*** SPHERE_SEGMENTS: {0}, NUM_LIGHTS: {1} ***",
-      new Object[] { sphereSegments, numLights });
+    log.log(Level.SEVERE, "*** sphere segments: {0}, number of lights (dir/point/spot): ({1}/{2}/{3}) ***",
+      new Object[] { sphereSegments, numDirectionalLights, numPointLights, numSpotLights });
     
     Sphere sphereMesh = null;
     if (sphereSegments > 128)
@@ -95,7 +99,7 @@ public abstract class SimpleTestApplication extends SimpleApplication
       }
     }
     
-    Geometry sphere = new Geometry("Sphere", sphereMesh);
+    sphere = new Geometry("Sphere", sphereMesh);
     sphere.rotate(FastMath.HALF_PI, 0f, 0f);
     sphere.setMaterial(sphereMaterial);
     
@@ -114,11 +118,15 @@ public abstract class SimpleTestApplication extends SimpleApplication
     cam.setFrustumPerspective(45, (float) settings.getWidth() / settings.getHeight(), 0.1f, 100.0f);
 
     AmbientLight al;
-    DirectionalLight dl;
             
     al = new AmbientLight();
     al.setColor(new ColorRGBA(0.05f, 0.05f, 0.05f, 1f));
     rootNode.addLight(al);
+    
+    int ndl = numDirectionalLights;
+    int npl = numPointLights;
+    int nsl = numSpotLights;
+    int numLights = numDirectionalLights + numPointLights + numSpotLights;
     
     float ci = 0.9f / Math.max(numLights, 1f);
     for (int i = 0; i < numLights; i++)
@@ -126,11 +134,39 @@ public abstract class SimpleTestApplication extends SimpleApplication
       float x = 0.1f + i % 2;
       float y = FastMath.sign(1.5f - i % 4) + 1 + x;
       float z = i * 0.00001f - 0.1f;
-      dl = new DirectionalLight();
-      dl.setDirection(new Vector3f(x, -y, z).normalizeLocal());
-      dl.setColor(new ColorRGBA(ci, ci, ci, 1.0f));
-      rootNode.addLight(dl);
-      lightList.add(dl);
+      
+      if (ndl > 0)
+      {
+        DirectionalLight dl = new DirectionalLight();
+        dl.setDirection(new Vector3f(x, -y, z).normalizeLocal());
+        dl.setColor(new ColorRGBA(ci, ci, ci, 1f));
+        rootNode.addLight(dl);
+        lightList.add(dl);
+        ndl--;
+      }
+      else if (npl > 0)
+      {
+        PointLight pl = new PointLight();
+        pl.setPosition(new Vector3f(x, -y, z));
+        pl.setColor(new ColorRGBA(1f / npl, 0f, 0, 1f));
+        pl.setRadius(500f);
+        rootNode.addLight(pl);
+        lightList.add(pl);        
+        npl--;
+      }
+      else if (nsl > 0)
+      {
+        SpotLight sl = new SpotLight();
+        sl.setPosition(new Vector3f(x, 2f - y, z));
+        sl.setDirection(sphere.getWorldTranslation().subtract(sl.getPosition()).normalize());
+        sl.setColor(new ColorRGBA(0f, 1f / nsl, 0f, 1f));
+        sl.setSpotRange(100.5f);
+        sl.setSpotInnerAngle(0.01f*FastMath.DEG_TO_RAD);
+        sl.setSpotOuterAngle(2f*FastMath.DEG_TO_RAD);
+        rootNode.addLight(sl);
+        lightList.add(sl);        
+        nsl--;
+      }
     }    
     
     PointLight pl = new PointLight();
@@ -146,7 +182,7 @@ public abstract class SimpleTestApplication extends SimpleApplication
     sl.setSpotRange(100.5f);
     sl.setSpotInnerAngle(0.01f*FastMath.DEG_TO_RAD);
     sl.setSpotOuterAngle(2f*FastMath.DEG_TO_RAD);
-    rootNode.addLight(sl);
+    //rootNode.addLight(sl);
     
     viewPort.addProcessor(new AccumulationBuffer(settings.getSamples()));
   }
@@ -163,7 +199,31 @@ public abstract class SimpleTestApplication extends SimpleApplication
       float x = 0.1f + i % 2;
       float y = FastMath.sign(1.5f - i % 4) + 1 + x;
       float z = i * 0.00001f - 0.1f;
-      lightList.get(i).setDirection(new Vector3f(cosAngle + x, -y, sinAngle + z).normalizeLocal());
+      Vector3f dir = new Vector3f(cosAngle + x, -y, sinAngle + z).normalizeLocal();
+      
+      Vector3f pointPos = sphere.getWorldTranslation().clone();
+      pointPos.addLocal((-3f + x) * cosAngle, 5f - 4f * y, (5f - z) * sinAngle);
+      
+      Vector3f spotPos = sphere.getWorldTranslation().clone();
+      spotPos.addLocal((3f + x) * cosAngle, 5f - 4f * y, (5f - z) * sinAngle);
+      
+      Light light = lightList.get(i);
+      if (light instanceof DirectionalLight)
+      {
+        DirectionalLight dl = (DirectionalLight) light;
+        dl.setDirection(dir);
+      }
+      else if (light instanceof PointLight)
+      {
+        PointLight pl = (PointLight) light;
+        pl.setPosition(pointPos);
+      }
+      else if (light instanceof SpotLight)
+      {
+        SpotLight sl = (SpotLight) light;
+        sl.setPosition(spotPos);
+        sl.setDirection(sphere.getWorldTranslation().subtract(sl.getPosition()).normalize());
+      }      
     }
   }
   

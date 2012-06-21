@@ -10,10 +10,7 @@ import java.util.logging.Logger;
  * @author survivor
  */
 public class TestMultiPassParallelLightingRenderer extends SimpleTestApplication
-{
-  private static final int SPHERE_SEGMENTS = 32;
-  private static final int NUM_LIGHTS = 7;
-  
+{  
   public static void main(String[] args)
   {
     Logger.getLogger("").setLevel(Level.SEVERE);    
@@ -27,9 +24,14 @@ public class TestMultiPassParallelLightingRenderer extends SimpleTestApplication
   protected void initializeTestParams() {
     sphereMaterial = new MaterialEx("Materials/Rock_MPPLR.j3m", assetManager);
     MultiPassParallelLightingRenderer mpplr = new MultiPassParallelLightingRenderer();
-    mpplr.setQuadsPerPass(2);
+    
+    /* PARAMETERS TO PLAY WITH */
+    mpplr.setQuadsPerPass(1); // 1 is safe, > 1 yield more fps
+    sphereSegments = 32;
+    numDirectionalLights = 4;
+    numPointLights = 2;
+    numSpotLights = 2;
+    
     sphereMaterial.setLightingRenderer(mpplr);
-    sphereSegments = SPHERE_SEGMENTS;
-    numLights = NUM_LIGHTS;
   }
 }
