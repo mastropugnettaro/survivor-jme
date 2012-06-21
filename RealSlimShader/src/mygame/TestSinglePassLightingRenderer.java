@@ -27,7 +27,11 @@ public class TestSinglePassLightingRenderer extends SimpleTestApplication
   protected void initializeTestParams() {
     sphereMaterial = new MaterialEx("Materials/Rock_SPLR.j3m", assetManager);
     sphereMaterial.setLightingRenderer(new SinglePassLightingRenderer());
-    sphereSegments = SPHERE_SEGMENTS;
-    numLights = NUM_LIGHTS;
+    
+    /* PARAMETERS TO PLAY WITH */
+    sphereSegments = 32;
+    numDirectionalLights = 4;
+    // numPointLights = 2; // FixMe: crash with point lights
+    // numSpotLights = 2; // not yet supported
   }
 }

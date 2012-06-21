@@ -147,6 +147,7 @@ void addLightQuad(DEF ALQ_FP)
     vec4 intensity = vec4(1.0) - LW * lightLengths;
 
     #ifdef HAS_SPOTLIGHTS
+      // ToDo: pass SoA
       vec4 LDX = vec4(LD0.x, LD1.x, LD2.x, LD3.x);
       vec4 LDY = vec4(LD0.y, LD1.y, LD2.y, LD3.y);
       vec4 LDZ = vec4(LD0.z, LD1.z, LD2.z, LD3.z);
@@ -161,7 +162,7 @@ void addLightQuad(DEF ALQ_FP)
     #endif
 
     intensity = clamp(intensity, vec4(0.0), vec4(1.0));
-    vec4 scale = lightLengths / intensity;
+    vec4 scale = intensity / lightLengths;
   #endif
 
   #if defined(NEED_DIFFUSE) || defined(DIFFUSEMAP)
@@ -169,7 +170,7 @@ void addLightQuad(DEF ALQ_FP)
     vec4 NdotL = tsLX * N.x + tsLY * N.y + tsLZ * N.z;
 
     // normalize NdotL and scale by intensity
-    diffuseQuad = NdotL / scale;
+    diffuseQuad = max(vec4(0.0), NdotL * scale) * intensity;
   #endif
 
   #if defined(NEED_SPECULAR) || defined(SPECULARMAP)
@@ -179,7 +180,7 @@ void addLightQuad(DEF ALQ_FP)
     vec4 RdotL = tsLX * R.x + tsLY * R.y + tsLZ * R.z;
 
     // normalize RdotL and scale by intensity
-    RdotL = RdotL / scale;
+    RdotL = max(vec4(0.0), RdotL * scale);
 
     // specular
     #ifdef LOW_QUALITY_SPECULAR

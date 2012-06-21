@@ -26,7 +26,11 @@ public class TestSinglePassLighting extends SimpleTestApplication
   @Override
   protected void initializeTestParams() {
     sphereMaterial = new MaterialEx("Materials/Rock_SP.j3m", assetManager);
-    sphereSegments = SPHERE_SEGMENTS;
-    numLights = NUM_LIGHTS;
+    
+    /* PARAMETERS TO PLAY WITH */
+    sphereSegments = 32;
+    numDirectionalLights = 4;
+    // numPointLights = 2; // FixMe: crash with point lights
+    // numSpotLights = 2; // not yet supported
   }
 }

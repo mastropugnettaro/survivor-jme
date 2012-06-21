@@ -11,9 +11,6 @@ import java.util.logging.Logger;
  */
 public class TestMultiPassLighting extends SimpleTestApplication
 {
-  private static final int SPHERE_SEGMENTS = 32;
-  private static final int NUM_LIGHTS = 7;
-  
   public static void main(String[] args)
   {
     Logger.getLogger("").setLevel(Level.SEVERE);    
@@ -26,7 +23,11 @@ public class TestMultiPassLighting extends SimpleTestApplication
   @Override
   protected void initializeTestParams() {
     sphereMaterial = new MaterialEx("Materials/Rock_MP.j3m", assetManager);
-    sphereSegments = SPHERE_SEGMENTS;
-    numLights = NUM_LIGHTS;
+    
+    /* PARAMETERS TO PLAY WITH */
+    sphereSegments = 32;
+    numDirectionalLights = 4;
+    numPointLights = 2;
+    numSpotLights = 2;
   }
 }
