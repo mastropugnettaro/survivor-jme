@@ -50,6 +50,7 @@
 #else // per fragment lighting
 
   uniform vec4 g_LightPosition[NUM_LIGHTS];
+  uniform vec4 g_LightDirection[NUM_LIGHTS];
   uniform vec4 g_LightColor[NUM_LIGHTS];
   uniform vec4 g_AmbientLightColor;
 
@@ -410,7 +411,8 @@
     // ToDo: light map, alpha map
   }
 
-  void calculateLightVector(const in vec4 lightPosition, const in vec4 lightColor, 
+  void calculateLightVector(
+    const in vec4 lightPosition, const in vec4 lightDirection, const in vec4 lightColor, 
     out vec3 lightVector, out float attenuation)
   {
     // positional or directional light?
@@ -425,6 +427,16 @@
       float dist = length(lightVector);
       lightVector /= vec3(dist);
       attenuation = clamp(1.0 - lightPosition.w * dist, 0.0, 1.0);
+      if (lightColor.w == 2.0)
+      {
+        vec3 spotDir = normalize(lightDirection.xyz);
+        float curAngleCos = dot(-lightVector, spotDir);             
+        float innerAngleCos = floor(lightDirection.w) * 0.001;
+        float outerAngleCos = fract(lightDirection.w);
+        float innerMinusOuter = innerAngleCos - outerAngleCos;
+        float spotFallOff = clamp((curAngleCos - outerAngleCos) / innerMinusOuter, 0.0, 1.0);
+        attenuation *= spotFallOff;
+      }
     }  
   }
 
@@ -505,10 +517,11 @@
     for (int i = 0; i < NUM_LIGHTS; i++)
     {
       vec4 lightPosition = g_LightPosition[i];
+      vec4 lightDirection = g_LightDirection[i];
       vec4 lightColor = g_LightColor[i];
       vec3 lightVector;
 
-      calculateLightVector(lightPosition, lightColor, lightVector, attenuation);
+      calculateLightVector(lightPosition, lightDirection, lightColor, lightVector, attenuation);
 
       #ifdef NORMALMAP        
         lightVector = lightVector * wsTangentMatrix; // world space -> tangent space

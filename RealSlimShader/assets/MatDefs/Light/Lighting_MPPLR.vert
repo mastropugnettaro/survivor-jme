@@ -18,18 +18,7 @@ uniform mat3 g_WorldMatrixInverseTranspose;
 uniform mat4 g_ViewMatrixInverse;
 
 uniform vec4 g_LightPosition[QUADS_PER_PASS*4];
-#ifdef HAS_SPOTLIGHTS
-uniform vec4 g_LightDirection[QUADS_PER_PASS*4];
-#endif
 uniform vec4 g_LightColor[QUADS_PER_PASS*4];
-uniform vec4 g_AmbientLightColor;
-
-#ifdef MATERIAL_COLORS
-  uniform vec4 m_Ambient;
-  uniform vec4 m_Diffuse;
-  uniform vec4 m_Specular;
-#endif
-uniform float m_Shininess;
 
 varying vec3 v_View;
 

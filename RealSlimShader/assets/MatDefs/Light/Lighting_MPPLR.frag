@@ -27,9 +27,11 @@ uniform float m_Shininess;
   uniform sampler2D m_DiffuseMap;
 #endif
 
-uniform vec4 g_LightPosition[QUADS_PER_PASS*4];
 #ifdef HAS_SPOTLIGHTS
-  uniform vec4 g_LightDirection[QUADS_PER_PASS*4];
+  uniform vec4 g_SpotQuadX[QUADS_PER_PASS];
+  uniform vec4 g_SpotQuadY[QUADS_PER_PASS];
+  uniform vec4 g_SpotQuadZ[QUADS_PER_PASS];
+  uniform vec4 g_SpotQuadW[QUADS_PER_PASS];
 #endif
 uniform vec4 g_LightColor[QUADS_PER_PASS*4];
 uniform vec4 g_AmbientLightColor;
@@ -73,8 +75,8 @@ uniform vec4 g_LightQuadW[QUADS_PER_PASS];
 #endif
 
 #ifdef HAS_SPOTLIGHTS
-  #define ALQ_FP_LD , const in vec4 LD0, const in vec4 LD1, const in vec4 LD2, const in vec4 LD3
-  #define ALQ_AP_LD , g_LightDirection[4*QI+0], g_LightDirection[4*QI+1], g_LightDirection[4*QI+2], g_LightDirection[4*QI+3]
+  #define ALQ_FP_LD , const in vec4 LDX, const in vec4 LDY, const in vec4 LDZ, const in vec4 LDW
+  #define ALQ_AP_LD , g_SpotQuadX[QI], g_SpotQuadY[QI], g_SpotQuadZ[QI], g_SpotQuadW[QI]
 #else
   #define ALQ_FP_LD
   #define ALQ_AP_LD
@@ -147,13 +149,7 @@ void addLightQuad(DEF ALQ_FP)
     vec4 intensity = vec4(1.0) - LW * lightLengths;
 
     #ifdef HAS_SPOTLIGHTS
-      // ToDo: pass SoA
-      vec4 LDX = vec4(LD0.x, LD1.x, LD2.x, LD3.x);
-      vec4 LDY = vec4(LD0.y, LD1.y, LD2.y, LD3.y);
-      vec4 LDZ = vec4(LD0.z, LD1.z, LD2.z, LD3.z);
-      vec4 LDW = vec4(LD0.w, LD1.w, LD2.w, LD3.w);
-
-      vec4 curAngleCos = -(wsLX * LDX + wsLY * LDY + wsLZ * LDZ) / wsLengths;
+      vec4 curAngleCos = (wsLX * LDX + wsLY * LDY + wsLZ * LDZ) / wsLengths;
       vec4 innerAngleCos = floor(LDW) * vec4(0.001);
       vec4 outerAngleCos = fract(LDW);
       vec4 innerMinusOuter = innerAngleCos - outerAngleCos;
@@ -204,7 +200,7 @@ void addLightQuad(DEF ALQ_FP)
   specularSum += specularQuad[3] * LC3;
 }
 
-void doPerFragmentLighting()
+void main (void)
 {
   vec3 V; // view vector
   vec3 N; // normal vector
@@ -297,9 +293,4 @@ void doPerFragmentLighting()
     #endif
     gl_FragColor += specularSum;
   #endif
-}
-
-void main (void)
-{
-  doPerFragmentLighting();
 }

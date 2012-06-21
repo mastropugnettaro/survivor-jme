@@ -28,9 +28,9 @@ public class TestMultiPassParallelLightingRenderer extends SimpleTestApplication
     /* PARAMETERS TO PLAY WITH */
     mpplr.setQuadsPerPass(1); // 1 is safe, > 1 yield more fps
     sphereSegments = 32;
-    numDirectionalLights = 4;
+    numDirectionalLights = 2;
     numPointLights = 2;
-    numSpotLights = 2;
+    numSpotLights = 4;
     
     sphereMaterial.setLightingRenderer(mpplr);
   }

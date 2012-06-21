@@ -116,12 +116,14 @@ public class MaterialEx extends Material implements MaterialExLightingRenderer
           DirectionalLight dl = (DirectionalLight) l;
           Vector3f dir = dl.getDirection();
           lightPos.setVector4InArray(dir.getX(), dir.getY(), dir.getZ(), -1, i);
+          lightDir.setVector4InArray(0f, 0f, 0f, 0f, i);
           break;
         case Point:
           PointLight pl = (PointLight) l;
           Vector3f pos = pl.getPosition();
           float invRadius = pl.getInvRadius();
           lightPos.setVector4InArray(pos.getX(), pos.getY(), pos.getZ(), invRadius, i);
+          lightDir.setVector4InArray(0f, 0f, 0f, 0f, i);
           break;
         case Spot:
           SpotLight sl = (SpotLight) l;
