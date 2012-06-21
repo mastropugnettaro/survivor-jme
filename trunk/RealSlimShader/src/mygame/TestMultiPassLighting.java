@@ -26,8 +26,8 @@ public class TestMultiPassLighting extends SimpleTestApplication
     
     /* PARAMETERS TO PLAY WITH */
     sphereSegments = 32;
-    numDirectionalLights = 4;
+    numDirectionalLights = 2;
     numPointLights = 2;
-    numSpotLights = 2;
+    numSpotLights = 4;
   }
 }

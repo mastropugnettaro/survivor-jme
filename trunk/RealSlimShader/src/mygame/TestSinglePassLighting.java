@@ -11,9 +11,6 @@ import java.util.logging.Logger;
  */
 public class TestSinglePassLighting extends SimpleTestApplication
 {
-  private static final int SPHERE_SEGMENTS = 32;
-  private static final int NUM_LIGHTS = 4;
-  
   public static void main(String[] args)
   {
     Logger.getLogger("").setLevel(Level.SEVERE);    
@@ -29,8 +26,8 @@ public class TestSinglePassLighting extends SimpleTestApplication
     
     /* PARAMETERS TO PLAY WITH */
     sphereSegments = 32;
-    numDirectionalLights = 4;
-    // numPointLights = 2; // FixMe: crash with point lights
-    // numSpotLights = 2; // not yet supported
+    numDirectionalLights = 2;
+    numPointLights = 2;
+    numSpotLights = 4;
   }
 }

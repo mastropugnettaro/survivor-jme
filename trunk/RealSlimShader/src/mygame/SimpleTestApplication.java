@@ -53,6 +53,7 @@ public abstract class SimpleTestApplication extends SimpleApplication
   public void setSettings(AppSettings settings)
   { 
     //settings.setRenderer(AppSettings.LWJGL_OPENGL1);
+    settings.setResolution(1152, 864);
     settings.setTitle(getClass().getSimpleName());
     super.setSettings(settings);
   }  
@@ -60,12 +61,14 @@ public abstract class SimpleTestApplication extends SimpleApplication
   @Override
   public void simpleInitApp()
   {
-    initializeTestParams();    
     this.setPauseOnLostFocus(false);
     //setDisplayStatView(false);
     flyCam.setEnabled(false);
     flyCam.setMoveSpeed(3);
     viewPort.setBackgroundColor(ColorRGBA.DarkGray);
+    viewPort.addProcessor(new AccumulationBuffer(settings.getSamples()));
+
+    initializeTestParams(); // <- can override settings here
 
     log.log(Level.SEVERE, "\n" +
       "GL_MAX_LIGHTS: " + GL11.glGetInteger(GL11.GL_MAX_LIGHTS) + "\n" +
@@ -128,7 +131,9 @@ public abstract class SimpleTestApplication extends SimpleApplication
     int nsl = numSpotLights;
     int numLights = numDirectionalLights + numPointLights + numSpotLights;
     
-    float ci = 0.9f / Math.max(numLights, 1f);
+    float cdl = 0.9f / Math.max(ndl, 1f);
+    float cpl = 2f / Math.max(npl, 1f);
+    float csl = 3f / Math.max(nsl, 1f);
     for (int i = 0; i < numLights; i++)
     { 
       float x = 0.1f + i % 2;
@@ -139,7 +144,7 @@ public abstract class SimpleTestApplication extends SimpleApplication
       {
         DirectionalLight dl = new DirectionalLight();
         dl.setDirection(new Vector3f(x, -y, z).normalizeLocal());
-        dl.setColor(new ColorRGBA(ci, ci, ci, 1f));
+        dl.setColor(new ColorRGBA(cdl, cdl, cdl, 1f));
         rootNode.addLight(dl);
         lightList.add(dl);
         ndl--;
@@ -148,8 +153,8 @@ public abstract class SimpleTestApplication extends SimpleApplication
       {
         PointLight pl = new PointLight();
         pl.setPosition(new Vector3f(x, -y, z));
-        pl.setColor(new ColorRGBA(1f / npl, 0f, 0, 1f));
-        pl.setRadius(500f);
+        pl.setColor(new ColorRGBA(cpl, 0f, 0, 1f));
+        pl.setRadius(15f);
         rootNode.addLight(pl);
         lightList.add(pl);        
         npl--;
@@ -159,32 +164,15 @@ public abstract class SimpleTestApplication extends SimpleApplication
         SpotLight sl = new SpotLight();
         sl.setPosition(new Vector3f(x, 2f - y, z));
         sl.setDirection(sphere.getWorldTranslation().subtract(sl.getPosition()).normalize());
-        sl.setColor(new ColorRGBA(0f, 1f / nsl, 0f, 1f));
-        sl.setSpotRange(100.5f);
+        sl.setColor(new ColorRGBA(0f, csl, 0f, 1f));
+        sl.setSpotRange(50f);
         sl.setSpotInnerAngle(0.01f*FastMath.DEG_TO_RAD);
         sl.setSpotOuterAngle(2f*FastMath.DEG_TO_RAD);
         rootNode.addLight(sl);
         lightList.add(sl);        
         nsl--;
       }
-    }    
-    
-    PointLight pl = new PointLight();
-    pl.setPosition(new Vector3f(0f, 2f, 0f));
-    pl.setColor(ColorRGBA.Green);
-    pl.setRadius(1.5f);
-    //rootNode.addLight(pl);
-    
-    SpotLight sl = new SpotLight();
-    sl.setPosition(new Vector3f(0f, 2f, 0f));
-    sl.setDirection(sphere.getWorldTranslation().subtract(sl.getPosition()).normalize());
-    sl.setColor(ColorRGBA.Green);
-    sl.setSpotRange(100.5f);
-    sl.setSpotInnerAngle(0.01f*FastMath.DEG_TO_RAD);
-    sl.setSpotOuterAngle(2f*FastMath.DEG_TO_RAD);
-    //rootNode.addLight(sl);
-    
-    viewPort.addProcessor(new AccumulationBuffer(settings.getSamples()));
+    }        
   }
   
   @Override
@@ -196,8 +184,9 @@ public abstract class SimpleTestApplication extends SimpleApplication
     
     for (int i = 0; i < lightList.size(); i++)
     {
+      float s = FastMath.sign(1.5f - i % 4);
       float x = 0.1f + i % 2;
-      float y = FastMath.sign(1.5f - i % 4) + 1 + x;
+      float y = s + 1 + x;
       float z = i * 0.00001f - 0.1f;
       Vector3f dir = new Vector3f(cosAngle + x, -y, sinAngle + z).normalizeLocal();
       
@@ -205,7 +194,7 @@ public abstract class SimpleTestApplication extends SimpleApplication
       pointPos.addLocal((-3f + x) * cosAngle, 5f - 4f * y, (5f - z) * sinAngle);
       
       Vector3f spotPos = sphere.getWorldTranslation().clone();
-      spotPos.addLocal((3f + x) * cosAngle, 5f - 4f * y, (5f - z) * sinAngle);
+      spotPos.addLocal(s * (3f + x) * cosAngle, 6f * x, (5f - z) * sinAngle);
       
       Light light = lightList.get(i);
       if (light instanceof DirectionalLight)
@@ -222,7 +211,7 @@ public abstract class SimpleTestApplication extends SimpleApplication
       {
         SpotLight sl = (SpotLight) light;
         sl.setPosition(spotPos);
-        sl.setDirection(sphere.getWorldTranslation().subtract(sl.getPosition()).normalize());
+        sl.setDirection(sphere.getWorldTranslation().subtract(spotPos).normalize());
       }      
     }
   }

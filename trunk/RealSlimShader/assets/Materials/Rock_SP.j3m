@@ -1,4 +1,4 @@
-Material Rock : MatDefs/Light/dev/LightingSP.j3md {
+Material Rock : MatDefs/Light/Lighting_SP.j3md {
      MaterialParameters {
         Diffuse : 1.0 1.0 1.0 1.0
         Ambient : 1.0 1.0 1.0 1.0

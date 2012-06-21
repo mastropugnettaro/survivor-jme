@@ -31,6 +31,13 @@ import java.util.ArrayList;
  */
 public class MultiPassParallelLightingRenderer implements MaterialExLightingRenderer 
 {
+  private ColorRGBA ambLightColor = new ColorRGBA();
+  private float[] lqw = new float[4];
+  private float[] sqx = new float[4];
+  private float[] sqy = new float[4];
+  private float[] sqz = new float[4];
+  private float[] sqw = new float[4];  
+  
   protected static final RenderState additiveLight = new RenderState()
   {{
     setBlendMode(BlendMode.Additive);
@@ -53,6 +60,10 @@ public class MultiPassParallelLightingRenderer implements MaterialExLightingRend
   public void attach(Material mat) {
     mat.getMaterialDef().addMaterialParam(VarType.Int, "QuadsPerPass", quadsPerPass, null);
     mat.getMaterialDef().addMaterialParam(VarType.Vector4Array, "g_LightQuadW", 0, null);
+    mat.getMaterialDef().addMaterialParam(VarType.Vector4Array, "g_SpotQuadX", 0, null);
+    mat.getMaterialDef().addMaterialParam(VarType.Vector4Array, "g_SpotQuadY", 0, null);
+    mat.getMaterialDef().addMaterialParam(VarType.Vector4Array, "g_SpotQuadZ", 0, null);
+    mat.getMaterialDef().addMaterialParam(VarType.Vector4Array, "g_SpotQuadW", 0, null);
     mat.getMaterialDef().addMaterialParam(VarType.Boolean, "HasSpotLights", true, null);
 
     // initialize with safe values (working & good looking)
@@ -67,17 +78,24 @@ public class MultiPassParallelLightingRenderer implements MaterialExLightingRend
     mat.getMaterialDef().getMaterialParams().remove(matParam);
     matParam = mat.getMaterialDef().getMaterialParam("g_LightQuadW");
     mat.getMaterialDef().getMaterialParams().remove(matParam);
+    matParam = mat.getMaterialDef().getMaterialParam("g_SpotQuadX");
+    mat.getMaterialDef().getMaterialParams().remove(matParam);    
+    matParam = mat.getMaterialDef().getMaterialParam("g_SpotQuadY");
+    mat.getMaterialDef().getMaterialParams().remove(matParam);    
+    matParam = mat.getMaterialDef().getMaterialParam("g_SpotQuadZ");
+    mat.getMaterialDef().getMaterialParams().remove(matParam);    
+    matParam = mat.getMaterialDef().getMaterialParam("g_SpotQuadW");
+    mat.getMaterialDef().getMaterialParams().remove(matParam);    
     matParam = mat.getMaterialDef().getMaterialParam("HasSpotLights");
-    mat.getMaterialDef().getMaterialParams().remove(matParam);
+    mat.getMaterialDef().getMaterialParams().remove(matParam);    
   }
 
   public void renderLighting(Material mat, Shader shader, Geometry g, RenderManager rm) 
   {
     Renderer r = rm.getRenderer();
     LightList worldLightList = g.getWorldLightList();
-    ColorRGBA ambLightColor = new ColorRGBA(0f, 0f, 0f, 1f);
-    float[] lqw = new float[4];
     boolean hasSpotLights = false;
+    ambLightColor.set(0f, 0f, 0f, 1f);
     
     Technique technique = mat.getActiveTechnique();
     if (technique != null) 
@@ -108,11 +126,19 @@ public class MultiPassParallelLightingRenderer implements MaterialExLightingRend
     Uniform lightPos = shader.getUniform("g_LightPosition");
     Uniform lightDir = shader.getUniform("g_LightDirection");
     Uniform lightQuadW = shader.getUniform("g_LightQuadW");
+    Uniform spotQuadX = shader.getUniform("g_SpotQuadX");
+    Uniform spotQuadY = shader.getUniform("g_SpotQuadY");
+    Uniform spotQuadZ = shader.getUniform("g_SpotQuadZ");
+    Uniform spotQuadW = shader.getUniform("g_SpotQuadW");
 
     lightColor.setVector4Length(qpp * 4);
     lightPos.setVector4Length(qpp * 4);
     lightDir.setVector4Length(qpp * 4);
     lightQuadW.setVector4Length(qpp);
+    spotQuadX.setVector4Length(qpp);
+    spotQuadY.setVector4Length(qpp);
+    spotQuadZ.setVector4Length(qpp);
+    spotQuadW.setVector4Length(qpp);
 
     Uniform ambientColor = shader.getUniform("g_AmbientLightColor");
     ambLightColor.a = 1.0f;
@@ -157,28 +183,37 @@ public class MultiPassParallelLightingRenderer implements MaterialExLightingRend
               case Directional:
                 DirectionalLight dl = (DirectionalLight) l;
                 Vector3f dir = dl.getDirection();
-                lqw[i] = -1f;
                 lightPos.setVector4InArray(dir.getX(), dir.getY(), dir.getZ(), -1, qi);
-                lightDir.setVector4InArray(0f, 0f, 0f, 100.2f, qi);
+                lqw[i] = -1f;
+                sqx[i] = 0f;
+                sqy[i] = 0f;
+                sqz[i] = 0f;
+                sqw[i] = 100.2f;
                 break;
               case Point:
                 PointLight pl = (PointLight) l;
                 Vector3f pos = pl.getPosition();
                 float invRadius = pl.getInvRadius();
-                lqw[i] = invRadius;
                 lightPos.setVector4InArray(pos.getX(), pos.getY(), pos.getZ(), invRadius, qi);
-                lightDir.setVector4InArray(0f, 0f, 0f, 100.2f, qi);
+                lqw[i] = invRadius;
+                sqx[i] = 0f;
+                sqy[i] = 0f;
+                sqz[i] = 0f;
+                sqw[i] = 100.2f;
                 break;
               case Spot:
+                // hasSpotLights = true;
                 SpotLight sl = (SpotLight) l;
                 Vector3f pos2 = sl.getPosition();
-                Vector3f dir2 = sl.getDirection();
+                Vector3f dir2 = sl.getDirection().negate();
                 float invRange = sl.getInvSpotRange();
                 float spotAngleCos = sl.getPackedAngleCos();
-                lqw[i] = invRange;
                 lightPos.setVector4InArray(pos2.getX(), pos2.getY(), pos2.getZ(), invRange, qi);
-                lightDir.setVector4InArray(dir2.getX(), dir2.getY(), dir2.getZ(), spotAngleCos, qi);
-                //hasSpotLights = true;
+                lqw[i] = invRange;
+                sqx[i] = dir2.getX();
+                sqy[i] = dir2.getY();
+                sqz[i] = dir2.getZ();
+                sqw[i] = spotAngleCos;
                 break;
               default:
                 throw new UnsupportedOperationException("Unknown type of light: " + l.getType());
@@ -188,15 +223,23 @@ public class MultiPassParallelLightingRenderer implements MaterialExLightingRend
           {
             lightColor.setVector4InArray(0, 0, 0, 0, qi);
             lightPos.setVector4InArray(0, 1, 0, 0, qi);
-            lightDir.setVector4InArray(0, 0, 0, 0, qi);
+            // lightDir.setVector4InArray(0, 0, 0, 100.2f, qi);
             lqw[i] = -1f;
+            sqx[i] = 0f;
+            sqy[i] = 0f;
+            sqz[i] = 0f;
+            sqw[i] = 100.2f;
           }
         }
         
         lightQuadW.setVector4InArray(lqw[0], lqw[1], lqw[2], lqw[3], quad);
+        spotQuadX.setVector4InArray(sqx[0], sqx[1], sqx[2], sqx[3], quad);
+        spotQuadY.setVector4InArray(sqy[0], sqy[1], sqy[2], sqy[3], quad);
+        spotQuadZ.setVector4InArray(sqz[0], sqz[1], sqz[2], sqz[3], quad);
+        spotQuadW.setVector4InArray(sqw[0], sqw[1], sqw[2], sqw[3], quad);
       }
       
-      //mat.setBoolean("HasSpotLights", hasSpotLights);
+      // mat.setBoolean("HasSpotLights", hasSpotLights);
       r.setShader(shader);
       r.renderMesh(g.getMesh(), g.getLodLevel(), 1);
 //      GL11.glAccum(GL11.GL_ACCUM, 1f / ((float)numPasses));

@@ -27,7 +27,8 @@ public class SinglePassLightingRenderer implements MaterialExLightingRenderer
   protected ArrayList<Light> lightList = new ArrayList<Light>(4);
 
   public void attach(Material mat) {
-    mat.getMaterialDef().addMaterialParam(VarType.Int, "NumLights", 0, null);
+    mat.getMaterialDef().addMaterialParam(VarType.Int, "NumLights", 1, null);
+    mat.setInt("NumLights", 1);
   }
 
   public void detach(Material mat) {
@@ -79,12 +80,14 @@ public class SinglePassLightingRenderer implements MaterialExLightingRenderer
           DirectionalLight dl = (DirectionalLight) l;
           Vector3f dir = dl.getDirection();
           lightPos.setVector4InArray(dir.getX(), dir.getY(), dir.getZ(), -1, i);
+          lightDir.setVector4InArray(0f, 0f, 0f, 0f, i);
           break;
         case Point:
           PointLight pl = (PointLight) l;
           Vector3f pos = pl.getPosition();
           float invRadius = pl.getInvRadius();
           lightPos.setVector4InArray(pos.getX(), pos.getY(), pos.getZ(), invRadius, i);
+          lightDir.setVector4InArray(0f, 0f, 0f, 0f, i);
           break;
         case Spot:
           SpotLight sl = (SpotLight) l;
@@ -92,7 +95,6 @@ public class SinglePassLightingRenderer implements MaterialExLightingRenderer
           Vector3f dir2 = sl.getDirection();
           float invRange = sl.getInvSpotRange();
           float spotAngleCos = sl.getPackedAngleCos();
-
           lightPos.setVector4InArray(pos2.getX(), pos2.getY(), pos2.getZ(), invRange, i);
           lightDir.setVector4InArray(dir2.getX(), dir2.getY(), dir2.getZ(), spotAngleCos, i);
           break;
