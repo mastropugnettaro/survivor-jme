@@ -43,6 +43,7 @@ public abstract class SimpleTestApplication extends SimpleApplication
   protected int numDirectionalLights = 0;
   protected int numPointLights = 0;
   protected int numSpotLights = 0;
+  protected boolean useAccumulationBuffer = false;
     
   private ArrayList<Light> lightList = new ArrayList<Light>();
   private float angle;
@@ -52,7 +53,6 @@ public abstract class SimpleTestApplication extends SimpleApplication
   @Override
   public void setSettings(AppSettings settings)
   { 
-    // settings.setResolution(1152, 864);
     settings.setTitle(getClass().getSimpleName());
     super.setSettings(settings);
   }  
@@ -65,9 +65,13 @@ public abstract class SimpleTestApplication extends SimpleApplication
     flyCam.setEnabled(false);
     flyCam.setMoveSpeed(3);
     viewPort.setBackgroundColor(ColorRGBA.DarkGray);
-    viewPort.addProcessor(new AccumulationBuffer(settings.getSamples()));
 
     initializeTestParams(); // <- can override settings here
+    
+    if (useAccumulationBuffer)
+    {
+      viewPort.addProcessor(new AccumulationBuffer(settings.getSamples()));
+    }
 
     log.log(Level.SEVERE, "\n" +
       "GL_MAX_LIGHTS: " + GL11.glGetInteger(GL11.GL_MAX_LIGHTS) + "\n" +
