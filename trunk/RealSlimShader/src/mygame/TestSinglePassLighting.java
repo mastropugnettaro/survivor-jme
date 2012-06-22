@@ -15,7 +15,13 @@ public class TestSinglePassLighting extends SimpleTestApplication
   {
     Logger.getLogger("").setLevel(Level.SEVERE);    
     SimpleTestApplication app = new TestSinglePassLighting();
-    app.setSettings(new AppSettings(true));
+    AppSettings settings = new AppSettings(true);
+    
+    // uncomment for more fragment shader load
+    // settings.setResolution(1152, 864); 
+    // settings.setSamples(8);
+  
+    app.setSettings(settings);
     app.setShowSettings(false);
     app.start();
   }
@@ -25,13 +31,9 @@ public class TestSinglePassLighting extends SimpleTestApplication
     sphereMaterial = new MaterialEx("Materials/Rock_SP.j3m", assetManager);
     
     /* PARAMETERS TO PLAY WITH */
-    sphereSegments = 32;
+    sphereSegments = 32; // increase for more vertex shader load
     numDirectionalLights = 2;
     numPointLights = 2;
     numSpotLights = 4;
-
-    // uncomment for more fragment shader load
-    // settings.setResolution(1152, 864); 
-    // settings.setSamples(8);    
   }
 }
