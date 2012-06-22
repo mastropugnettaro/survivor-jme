@@ -29,5 +29,9 @@ public class TestSinglePassLighting extends SimpleTestApplication
     numDirectionalLights = 2;
     numPointLights = 2;
     numSpotLights = 4;
+
+    // uncomment for more fragment shader load
+    // settings.setResolution(1152, 864); 
+    // settings.setSamples(8);    
   }
 }
