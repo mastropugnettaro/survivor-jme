@@ -15,7 +15,13 @@ public class TestMultiPassLighting extends SimpleTestApplication
   {
     Logger.getLogger("").setLevel(Level.SEVERE);    
     SimpleTestApplication app = new TestMultiPassLighting();
-    app.setSettings(new AppSettings(true));
+    AppSettings settings = new AppSettings(true);
+    
+    // uncomment for more fragment shader load
+    // settings.setResolution(1152, 864); 
+    // settings.setSamples(8);
+  
+    app.setSettings(settings);
     app.setShowSettings(false);
     app.start();
   }
@@ -26,7 +32,7 @@ public class TestMultiPassLighting extends SimpleTestApplication
     
     /* PARAMETERS TO PLAY WITH */
     useAccumulationBuffer = false; // enable for better quality with many lights
-    sphereSegments = 32;
+    sphereSegments = 32; // increase for more vertex shader load
     numDirectionalLights = 2;
     numPointLights = 2;
     numSpotLights = 4;
