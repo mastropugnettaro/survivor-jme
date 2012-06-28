@@ -1,9 +1,6 @@
 package mygame;
 
-import com.jme3.material.MatParam;
-import com.jme3.shader.VarType;
 import com.jme3.system.AppSettings;
-import com.jme3.texture.Texture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
