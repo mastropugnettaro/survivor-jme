@@ -34,22 +34,6 @@ public class TestMultiPassParallelLightingRenderer extends SimpleTestApplication
     sphereMaterial = new MaterialEx("Materials/Rock_MPPLR.j3m", assetManager);
     MultiPassParallelLightingRenderer mpplr = new MultiPassParallelLightingRenderer();
 
-    MatParam mp = sphereMaterial.getParam("SteepParallax");
-    Boolean steep = null;
-    if ((mp != null) && (mp.getVarType() == VarType.Boolean)) 
-      steep = (Boolean) mp.getValue();
-    
-    if ((steep != null) && steep.booleanValue())
-    {
-      // for Quadtree Displacement Mapping
-      Texture hmap = sphereMaterial.getTextureParam("ParallaxMap").getTextureValue();
-      MipMapGeneratorEx.generateMipMaps(hmap.getImage(), MipMapGeneratorEx.maxScaler);
-      hmap.setAnisotropicFilter(0);
-      hmap.setMagFilter(Texture.MagFilter.Nearest);
-      hmap.setMinFilter(Texture.MinFilter.NearestNearestMipMap);
-      //hmap.setMinFilter(Texture.MinFilter.BilinearNearestMipMap);
-    }
-
     /* PARAMETERS TO PLAY WITH */
     mpplr.setQuadsPerPass(1); // 1 is safe, > 1 yields more fps
     flyCam.setEnabled(false); // true for better debugging
