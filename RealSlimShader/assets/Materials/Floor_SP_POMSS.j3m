@@ -3,13 +3,13 @@ Material MyMaterial : MatDefs/Light/Lighting_SP.j3md {
         Specular : 1.0 1.0 1.0 1.0
         Diffuse : 1.0 1.0 1.0 1.0
         Ambient : 1.0 1.0 1.0 1.0
-        ParallaxShadows : true
         SteepParallax : true
         Shininess : 100.0
         ParallaxMap : Textures/four_height.png
         DiffuseMap : Textures/wood.jpg
         NormalMap : Textures/four_normal.png
         ParallaxHeight : 1.2
+        UseMaterialColors : true
      }
     AdditionalRenderState {
     }

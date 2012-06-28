@@ -44,6 +44,7 @@ public abstract class SimpleTestApplication extends SimpleApplication
   protected int numPointLights = 0;
   protected int numSpotLights = 0;
   protected boolean useAccumulationBuffer = false;
+  protected boolean rotatingLights = true;
     
   private ArrayList<Light> lightList = new ArrayList<Light>();
   private float angle;
@@ -181,41 +182,44 @@ public abstract class SimpleTestApplication extends SimpleApplication
   @Override
   public void simpleUpdate(float tpf)
   {
-    angle += tpf;
-    float cosAngle = FastMath.cos(angle);
-    float sinAngle = FastMath.sin(angle);
-    
-    for (int i = 0; i < lightList.size(); i++)
+    if (rotatingLights)
     {
-      float s = FastMath.sign(1.5f - i % 4);
-      float x = 0.1f + i % 2;
-      float y = s + 1 + x;
-      float z = i * 0.00001f - 0.1f;
-      Vector3f dir = new Vector3f(cosAngle + x, -y, sinAngle + z).normalizeLocal();
-      
-      Vector3f pointPos = sphere.getWorldTranslation().clone();
-      pointPos.addLocal((-3f + x) * cosAngle, 5f - 4f * y, (5f - z) * sinAngle);
-      
-      Vector3f spotPos = sphere.getWorldTranslation().clone();
-      spotPos.addLocal(s * (3f + x) * cosAngle, 6f * x, (5f - z) * sinAngle);
-      
-      Light light = lightList.get(i);
-      if (light instanceof DirectionalLight)
+      angle += tpf;
+      float cosAngle = FastMath.cos(angle);
+      float sinAngle = FastMath.sin(angle);
+
+      for (int i = 0; i < lightList.size(); i++)
       {
-        DirectionalLight dl = (DirectionalLight) light;
-        dl.setDirection(dir);
+        float s = FastMath.sign(1.5f - i % 4);
+        float x = 0.1f + i % 2;
+        float y = s + 1 + x;
+        float z = i * 0.00001f - 0.1f;
+        Vector3f dir = new Vector3f(cosAngle + x, -y, sinAngle + z).normalizeLocal();
+
+        Vector3f pointPos = sphere.getWorldTranslation().clone();
+        pointPos.addLocal((-3f + x) * cosAngle, 5f - 4f * y, (5f - z) * sinAngle);
+
+        Vector3f spotPos = sphere.getWorldTranslation().clone();
+        spotPos.addLocal(s * (3f + x) * cosAngle, 6f * x, (5f - z) * sinAngle);
+
+        Light light = lightList.get(i);
+        if (light instanceof DirectionalLight)
+        {
+          DirectionalLight dl = (DirectionalLight) light;
+          dl.setDirection(dir);
+        }
+        else if (light instanceof PointLight)
+        {
+          PointLight pl = (PointLight) light;
+          pl.setPosition(pointPos);
+        }
+        else if (light instanceof SpotLight)
+        {
+          SpotLight sl = (SpotLight) light;
+          sl.setPosition(spotPos);
+          sl.setDirection(sphere.getWorldTranslation().subtract(spotPos).normalize());
+        }      
       }
-      else if (light instanceof PointLight)
-      {
-        PointLight pl = (PointLight) light;
-        pl.setPosition(pointPos);
-      }
-      else if (light instanceof SpotLight)
-      {
-        SpotLight sl = (SpotLight) light;
-        sl.setPosition(spotPos);
-        sl.setDirection(sphere.getWorldTranslation().subtract(spotPos).normalize());
-      }      
     }
   }
   

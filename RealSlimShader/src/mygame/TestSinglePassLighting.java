@@ -31,6 +31,9 @@ public class TestSinglePassLighting extends SimpleTestApplication
     sphereMaterial = new MaterialEx("Materials/Rock_SP.j3m", assetManager);
     
     /* PARAMETERS TO PLAY WITH */
+    flyCam.setEnabled(false); // true for better debugging
+    rotatingLights = true; // false for better debugging
+    useAccumulationBuffer = false; // enable for better quality with many lights
     sphereSegments = 32; // increase for more vertex shader load
     numDirectionalLights = 2;
     numPointLights = 2;

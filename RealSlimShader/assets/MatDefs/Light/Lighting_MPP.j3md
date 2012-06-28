@@ -1,10 +1,6 @@
-MaterialDef SinglePassLighting {
+MaterialDef MultiPassParallelLighting {
 
     MaterialParameters {
-        // Compute vertex lighting in the shader
-        // For better performance
-        Boolean VertexLighting
-
         // Use the provided ambient, diffuse, and specular colors
         Boolean UseMaterialColors
 
@@ -35,42 +31,28 @@ MaterialDef SinglePassLighting {
         //Sets the relief height for parallax mapping
         Float ParallaxHeight : 0.05
 
-        // Size of textures (s = t = 2^n assumed)
-        Int HeightMapSize : 256
-
-        // Set to true to activate Parallax Occlusion Mapping 
+        // Set to true to activate Quadtree Displacement Mapping 
         // Parameter name is for Lighting.j3md compatibility
         Boolean SteepParallax
-
-        // Enable parallax shadows
-        Boolean ParallaxShadows
-
-        // Softness of the parallax shadows
-        Float ParallaxShadowSoftening : 0.58
     }
 
     Technique {
-        LightMode SinglePass
+        LightMode MultiPass
 
-        VertexShader GLSL120:   MatDefs/Light/Lighting_SP.vert
-        FragmentShader GLSL120: MatDefs/Light/Lighting_SP.frag
+        VertexShader GLSL100:   Common/MatDefs/Light/Lighting.vert
+        FragmentShader GLSL100: Common/MatDefs/Light/Lighting.frag
 
         WorldParameters {
             WorldViewProjectionMatrix
+            NormalMatrix
             WorldViewMatrix
-            WorldMatrix
-            WorldMatrixInverseTranspose
             ViewMatrix
             CameraPosition
-            NormalMatrix
+            WorldMatrix
         }
 
         Defines {
-            NUM_LIGHTS : NumLights
-
-            VERTEX_LIGHTING : VertexLighting
             MATERIAL_COLORS : UseMaterialColors
-
             AMBIENT: Ambient
             DIFFUSE : Diffuse
             SPECULAR : Specular
@@ -80,32 +62,24 @@ MaterialDef SinglePassLighting {
             PARALLAXMAP : ParallaxMap
             PARALLAX_HEIGHT : ParallaxHeight
             STEEP_PARALLAX : SteepParallax
-            PARALLAX_SHADOWS : ParallaxShadows
         }
     }
 
-    Technique SinglePassLighting {
+    Technique MultiPassParallelLighting {
         LightMode MultiPass
 
-        VertexShader GLSL120:   MatDefs/Light/Lighting_SP.vert
-        FragmentShader GLSL120: MatDefs/Light/Lighting_SP.frag
+        VertexShader GLSL100:   MatDefs/Light/Lighting_MPP.vert
+        FragmentShader GLSL100: MatDefs/Light/Lighting_MPP.frag
 
         WorldParameters {
             WorldViewProjectionMatrix
-            WorldViewMatrix
             WorldMatrix
             WorldMatrixInverseTranspose
-            ViewMatrix
             CameraPosition
-            NormalMatrix
         }
 
         Defines {
-            NUM_LIGHTS : NumLights
-
-            VERTEX_LIGHTING : VertexLighting
             MATERIAL_COLORS : UseMaterialColors
-
             AMBIENT: Ambient
             DIFFUSE : Diffuse
             SPECULAR : Specular
@@ -115,7 +89,10 @@ MaterialDef SinglePassLighting {
             PARALLAXMAP : ParallaxMap
             PARALLAX_HEIGHT : ParallaxHeight
             STEEP_PARALLAX : SteepParallax
-            PARALLAX_SHADOWS : ParallaxShadows
+
+            QUADS_PER_PASS : QuadsPerPass
+            HAS_SPOTLIGHTS : HasSpotLights
+            MAX_HEIGHT_LOD : MaxHeightLod
         }
     }
 

@@ -26,16 +26,20 @@ public class SinglePassLightingRenderer implements MaterialExLightingRenderer
 {
   protected ArrayList<Light> lightList = new ArrayList<Light>(4);
 
-  public void attach(Material mat) {
+  public void attach(Material mat, RenderManager rm) 
+  {
+    mat.selectTechnique("SinglePassLighting", rm);
     mat.getMaterialDef().addMaterialParam(VarType.Int, "NumLights", 1, null);
     mat.setInt("NumLights", 1);
   }
 
-  public void detach(Material mat) {
+  public void detach(Material mat, RenderManager rm) 
+  {
     MatParam numLights = mat.getMaterialDef().getMaterialParam("NumLights");
     mat.getMaterialDef().getMaterialParams().remove(numLights);
+    mat.selectTechnique("Default", rm);
   }
-
+  
   public void renderLighting(Material mat, Shader shader, Geometry g, RenderManager rm) 
   {
     LightList worldLightList = g.getWorldLightList();
@@ -51,7 +55,8 @@ public class SinglePassLightingRenderer implements MaterialExLightingRenderer
     }
 
     int numLights = lightList.size();
-    final int arraySize = Math.max(numLights, 4); // Intel GMA bug
+    //final int arraySize = Math.max(numLights, 4); // Intel GMA bug
+    final int arraySize = numLights;
     mat.setInt("NumLights", arraySize);
 
     Uniform lightColor = shader.getUniform("g_LightColor");
