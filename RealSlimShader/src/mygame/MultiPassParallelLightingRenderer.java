@@ -67,7 +67,23 @@ public class MultiPassParallelLightingRenderer implements MaterialExLightingRend
     // recompiling might take some frames
     mat.setInt("QuadsPerPass", quadsPerPass);
     mat.setBoolean("HasSpotLights", true);
-    mat.setInt("MaxHeightLod", 8);    
+    mat.setInt("MaxHeightLod", 8);
+    
+    MatParam mp = mat.getParam("SteepParallax");
+    if ((mp != null) && (mp.getVarType() == VarType.Boolean)) 
+    {
+      Boolean steep = (Boolean) mp.getValue();
+      if ((steep != null) && steep.booleanValue())
+      {
+        // for Quadtree Displacement Mapping
+        Texture hmap = mat.getTextureParam("ParallaxMap").getTextureValue();
+        MipMapGeneratorEx.generateMipMaps(hmap.getImage(), MipMapGeneratorEx.maxScaler);
+        hmap.setAnisotropicFilter(0);
+        hmap.setMagFilter(Texture.MagFilter.Nearest);
+        hmap.setMinFilter(Texture.MinFilter.NearestNearestMipMap);
+        //hmap.setMinFilter(Texture.MinFilter.BilinearNearestMipMap);
+      }    
+    }
   }
 
   public void detach(Material mat, RenderManager rm) 
