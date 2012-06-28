@@ -11,18 +11,18 @@ import com.jme3.shader.Shader;
  * 
  * @author survivor
  */
-public interface MaterialExLightingRenderer {
-
+public interface MaterialExLightingRenderer 
+{
 /**
  * Attaching to a material means adding parameters that this renderer needs.
  */
-  void attach(Material mat);
+  void attach(Material mat, RenderManager rm);
 
 /**
  * Remove previously added parameters here.
  */
-  void detach(Material mat);
-
+  void detach(Material mat, RenderManager rm);
+  
 /**
  * Implement your own material lighting renderer here.
  */

@@ -86,7 +86,8 @@ public class MaterialEx extends Material implements MaterialExLightingRenderer
     }
 
     numLights = lightList.size();
-    final int arraySize = Math.max(numLights, 4); // Intel GMA bug
+    //final int arraySize = Math.max(numLights, 4); // Intel GMA bug
+    final int arraySize = numLights;
     this.getMaterialDef().addMaterialParam(VarType.Int, "NumLights", arraySize, null);
     this.setInt("NumLights", arraySize);
 
@@ -157,7 +158,7 @@ public class MaterialEx extends Material implements MaterialExLightingRenderer
     return this.lightingRenderer;
   }
   
-  public void setLightingRenderer(MaterialExLightingRenderer lr)  
+  public void setLightingRenderer(MaterialExLightingRenderer lr, RenderManager rm)  
   {
     if (lr == null)
     {
@@ -166,16 +167,16 @@ public class MaterialEx extends Material implements MaterialExLightingRenderer
     
     if (lr != this.lightingRenderer)
     {
-      this.lightingRenderer.detach(this);
+      this.lightingRenderer.detach(this, rm);
       this.lightingRenderer = lr;
-      this.lightingRenderer.attach(this);
+      this.lightingRenderer.attach(this, rm);
     }
   }
 
-  public void attach(Material mat) {}
+  public void attach(Material mat, RenderManager rm) {}
 
-  public void detach(Material mat) {}
-
+  public void detach(Material mat, RenderManager rm) {}
+  
   /**
    * Default implemetation of MaterialExLightingRenderer calls 
    * Material.renderMultipassLighting().

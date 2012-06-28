@@ -11,14 +11,15 @@ attribute vec3 inNormal;
 #endif
 
 uniform mat4 g_WorldViewProjectionMatrix;
-uniform mat4 g_WorldViewMatrix;
 uniform mat4 g_WorldMatrix;
 uniform mat3 g_WorldMatrixInverseTranspose;
 uniform mat4 g_ViewMatrix;
-uniform mat4 g_ViewMatrixInverse;
+uniform vec3 g_CameraPosition;
 uniform mat3 g_NormalMatrix;
 
 #ifdef VERTEX_LIGHTING
+
+  uniform mat4 g_WorldViewMatrix;
 
   uniform vec4 g_LightPosition[NUM_LIGHTS];
   uniform vec4 g_LightColor[NUM_LIGHTS];
@@ -107,9 +108,8 @@ void main(void)
   #ifdef VERTEX_LIGHTING
     doPerVertexLighting(osPosition);
   #else
-    vec3 wsEyePosition = vec3(g_ViewMatrixInverse * vec4(0.0, 0.0, 0.0, 1.0));
     v_wsPosition = vec3(g_WorldMatrix * osPosition); // object space -> world space
-    v_wsView = v_wsPosition - wsEyePosition;
+    v_wsView = g_CameraPosition - v_wsPosition;
     v_wsNormal = normalize(g_WorldMatrixInverseTranspose * inNormal);  // object space -> world space
 
     #if defined(NORMALMAP)

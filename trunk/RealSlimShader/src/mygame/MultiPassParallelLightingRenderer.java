@@ -9,8 +9,6 @@ import com.jme3.light.SpotLight;
 import com.jme3.material.MatParam;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
-import com.jme3.material.Technique;
-import com.jme3.material.TechniqueDef;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
@@ -19,6 +17,7 @@ import com.jme3.scene.Geometry;
 import com.jme3.shader.Shader;
 import com.jme3.shader.Uniform;
 import com.jme3.shader.VarType;
+import com.jme3.texture.Texture;
 import java.util.ArrayList;
 //import org.lwjgl.opengl.GL11;
 
@@ -29,7 +28,7 @@ import java.util.ArrayList;
  * 
  * @author survivor
  */
-public class MultiPassParallelLightingRenderer implements MaterialExLightingRenderer 
+public class MultiPassParallelLightingRenderer implements MaterialExLightingRenderer
 {
   private ColorRGBA ambLightColor = new ColorRGBA();
   private float[] lqw = new float[4];
@@ -57,39 +56,32 @@ public class MultiPassParallelLightingRenderer implements MaterialExLightingRend
     this.quadsPerPass = Math.min(8, Math.max(1, quadsPerPass));
   }
 
-  public void attach(Material mat) {
+  public void attach(Material mat, RenderManager rm) 
+  {
+    mat.selectTechnique("MultiPassParallelLighting", rm);
     mat.getMaterialDef().addMaterialParam(VarType.Int, "QuadsPerPass", quadsPerPass, null);
-    mat.getMaterialDef().addMaterialParam(VarType.Vector4Array, "g_LightQuadW", 0, null);
-    mat.getMaterialDef().addMaterialParam(VarType.Vector4Array, "g_SpotQuadX", 0, null);
-    mat.getMaterialDef().addMaterialParam(VarType.Vector4Array, "g_SpotQuadY", 0, null);
-    mat.getMaterialDef().addMaterialParam(VarType.Vector4Array, "g_SpotQuadZ", 0, null);
-    mat.getMaterialDef().addMaterialParam(VarType.Vector4Array, "g_SpotQuadW", 0, null);
     mat.getMaterialDef().addMaterialParam(VarType.Boolean, "HasSpotLights", true, null);
+    mat.getMaterialDef().addMaterialParam(VarType.Int, "MaxHeightLod", 8, null);
 
     // initialize with safe values (working & good looking)
     // recompiling might take some frames
     mat.setInt("QuadsPerPass", quadsPerPass);
     mat.setBoolean("HasSpotLights", true);
+    mat.setInt("MaxHeightLod", 8);    
   }
 
-  public void detach(Material mat) {
+  public void detach(Material mat, RenderManager rm) 
+  {
     MatParam matParam;
     matParam = mat.getMaterialDef().getMaterialParam("QuadsPerPass");
     mat.getMaterialDef().getMaterialParams().remove(matParam);
-    matParam = mat.getMaterialDef().getMaterialParam("g_LightQuadW");
-    mat.getMaterialDef().getMaterialParams().remove(matParam);
-    matParam = mat.getMaterialDef().getMaterialParam("g_SpotQuadX");
-    mat.getMaterialDef().getMaterialParams().remove(matParam);    
-    matParam = mat.getMaterialDef().getMaterialParam("g_SpotQuadY");
-    mat.getMaterialDef().getMaterialParams().remove(matParam);    
-    matParam = mat.getMaterialDef().getMaterialParam("g_SpotQuadZ");
-    mat.getMaterialDef().getMaterialParams().remove(matParam);    
-    matParam = mat.getMaterialDef().getMaterialParam("g_SpotQuadW");
-    mat.getMaterialDef().getMaterialParams().remove(matParam);    
     matParam = mat.getMaterialDef().getMaterialParam("HasSpotLights");
     mat.getMaterialDef().getMaterialParams().remove(matParam);    
+    matParam = mat.getMaterialDef().getMaterialParam("MaxHeightLod");
+    mat.getMaterialDef().getMaterialParams().remove(matParam);    
+    mat.selectTechnique("Default", rm);
   }
-
+  
   public void renderLighting(Material mat, Shader shader, Geometry g, RenderManager rm) 
   {
     Renderer r = rm.getRenderer();
@@ -97,12 +89,6 @@ public class MultiPassParallelLightingRenderer implements MaterialExLightingRend
     boolean hasSpotLights = false;
     ambLightColor.set(0f, 0f, 0f, 1f);
     
-    Technique technique = mat.getActiveTechnique();
-    if (technique != null) 
-    {
-      technique.makeCurrent(mat.getMaterialDef().getAssetManager());
-    }
-
     for (int i = 0; i < worldLightList.size(); i++) {
       Light light = worldLightList.get(i);
       if (light instanceof AmbientLight) {
@@ -121,6 +107,10 @@ public class MultiPassParallelLightingRenderer implements MaterialExLightingRend
     int qpp = Math.min(quadsPerPass, numQuads);
     mat.setInt("QuadsPerPass", qpp);
     mat.setBoolean("HasSpotLights", hasSpotLights);
+    
+    Texture hmap = mat.getTextureParam("ParallaxMap").getTextureValue();
+    int maxHeightLod = (int) Math.ceil(Math.log(hmap.getImage().getWidth()) / Math.log(2));
+    mat.setInt("MaxHeightLod", maxHeightLod);
 
     Uniform lightColor = shader.getUniform("g_LightColor");
     Uniform lightPos = shader.getUniform("g_LightPosition");
