@@ -33,13 +33,13 @@ public class TestMultiPassParallelLightingRenderer extends SimpleTestApplication
 
     /* PARAMETERS TO PLAY WITH */
     mpplr.setQuadsPerPass(1); // 1 is safe, > 1 yields more fps
-    flyCam.setEnabled(false); // true for better debugging
+    flyCam.setEnabled(true); // true for better debugging
     rotatingLights = true; // false for better debugging
     useAccumulationBuffer = false; // enable for better quality with many lights
     sphereSegments = 32; // increase for more vertex shader load
-    numDirectionalLights = 2;
-    numPointLights = 2;
-    numSpotLights = 4;
+    numDirectionalLights = 4;
+    numPointLights = 0;
+    numSpotLights = 0;
     
     sphereMaterial.setLightingRenderer(mpplr, renderManager);
   }

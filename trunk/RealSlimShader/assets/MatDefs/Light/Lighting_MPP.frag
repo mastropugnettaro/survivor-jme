@@ -122,7 +122,7 @@ const vec2 specular_ab = vec2(6.645, -5.645);
     {
       float lod = float(MAX_HEIGHT_LOD);
       float count = 1.0;
-      float depth = 0.0;    
+      float depth = 0.0;
       float prevDepth = 0.0;
       vec3 ray = vec3(parallaxTexCoord, 0.0);
       vec3 prevRay = ray;
@@ -402,6 +402,122 @@ const vec2 specular_ab = vec2(6.645, -5.645);
       }
     }
 
+    #define MAX_DUMMY 30
+    int dummyCounter = 0;
+    bool lastX = false;
+    bool lastY = false;
+
+    // todo: m_ParallaxHeight * 0.3 in vs berechnen v_tsParallaxOffset bla
+
+    void calculateQdmTexCoord2(const in vec3 E, inout vec2 parallaxTexCoord)
+    {
+      float lod = float(MAX_HEIGHT_LOD);
+      float count = 1.0;
+      float depth = 0.0;
+      vec3 P = vec3(parallaxTexCoord, 0.0);
+      vec2 S = sign(E.xy);
+      vec2 T = step(0.0, E.xy);
+
+      while (lod >= 0.0)
+      {
+        depth = (-1.0 + getHeightSample(P.xy, lod)) * m_ParallaxHeight * 0.3;
+
+        if (P.z > depth)
+        {
+          vec2 A = T / count;
+          vec3 B = vec3(floor(P.xy * count) / count + A, depth);
+          vec3 F = (B - P) / E;
+
+          if (F.y < F.x)
+          {
+            if (F.z < F.y)
+            {
+              P = P + E * F.z;
+              lod -= 1.0;
+              count *= 2.0;
+            }
+            else
+            {
+              if (dummyCounter++ > MAX_DUMMY)
+              {
+                debug = true;
+                break;
+              }
+
+              P = P + E * F.y;
+              P.y = B.y + 0.0001 * S.y;
+
+/*
+              if (lastY)
+              {
+                lastY = false;
+                lod -= 1.0;
+                count *= 2.0;
+              }
+              else
+              {
+                lastY = true;
+              }
+
+              float dep = (-1.0 + getHeightSample(P.xy, lod)) * m_ParallaxHeight * 0.3;
+              if (P.z <= dep)
+              {
+                lod -= 1.0;
+                count *= 2.0;
+              }
+*/
+            }
+          }
+          else
+          {
+            if (F.z < F.x)
+            {
+              P = P + E * F.z;
+              lod -= 1.0;
+              count *= 2.0;
+            }
+            else
+            {
+              if (dummyCounter++ > MAX_DUMMY)
+              {
+                debug = true;
+                break;
+              }
+
+              P = P + E * F.x;
+              P.x = B.x + 0.0001 * S.x;
+/*
+              if (lastX)
+              {
+                lastX = false;
+                lod -= 1.0;
+                count *= 2.0;
+              }
+              else
+              {
+                lastX = true;
+              }
+
+              float dep = (-1.0 + getHeightSample(P.xy, lod)) * m_ParallaxHeight * 0.3;
+              if (P.z <= dep)
+              {
+                lod -= 1.0;
+                count *= 2.0;
+              }
+*/
+            }
+          }
+        }
+        else
+        {
+          lod -= 1.0;
+          count *= 2.0;
+        }
+      }
+
+      parallaxTexCoord = P.xy;
+    }
+
   #else
 
     float getHeightSample(const in vec2 texCoord)
@@ -519,7 +635,8 @@ void main (void)
     #if defined(PARALLAXMAP) || defined(NORMALMAP_PARALLAX)
       #ifdef STEEP_PARALLAX
         vec2 texCoord2 = texCoord;
-        calculateQdmTexCoord(V, texCoord);
+        //calculateQdmTexCoord(V, texCoord);
+        calculateQdmTexCoord2(-V, texCoord);
       #else
         calculateParallaxTexCoord(V, texCoord);
       #endif
@@ -606,6 +723,8 @@ void main (void)
     gl_FragColor += specularSum;
   #endif
 
+  //if (dummyCounter > 30) gl_FragColor.r = 1.0;
+  if (debug == true) gl_FragColor.r = 1.0;
   //if (debug == true) gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
   //if (getHeightSample(vec2(0.1), 0.0) != getHeightSample(vec2(1.1), 0.0)) discard;
   //gl_FragColor = vec4((texCoord - texCoord2) * vec2(10.0), 0.0, 1.0);
