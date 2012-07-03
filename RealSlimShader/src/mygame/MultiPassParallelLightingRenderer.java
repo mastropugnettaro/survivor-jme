@@ -78,9 +78,10 @@ public class MultiPassParallelLightingRenderer implements MaterialExLightingRend
         // for Quadtree Displacement Mapping
         Texture hmap = mat.getTextureParam("ParallaxMap").getTextureValue();
         MipMapGeneratorEx.generateMipMaps(hmap.getImage(), MipMapGeneratorEx.maxScaler);
-        hmap.setAnisotropicFilter(0);
+        //hmap.setAnisotropicFilter(0);
         hmap.setMagFilter(Texture.MagFilter.Nearest);
         hmap.setMinFilter(Texture.MinFilter.NearestNearestMipMap);
+        //hmap.setMagFilter(Texture.MagFilter.Bilinear);
         //hmap.setMinFilter(Texture.MinFilter.BilinearNearestMipMap);
       }    
     }

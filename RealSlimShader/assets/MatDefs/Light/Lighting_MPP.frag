@@ -116,311 +116,25 @@ const vec2 specular_ab = vec2(6.645, -5.645);
       #endif
     }
 
-    bool debug = false;
-
-    void calculateQdmTexCoord_nX_nY(const in vec3 E, inout vec2 parallaxTexCoord)
-    {
-      float lod = float(MAX_HEIGHT_LOD);
-      float count = 1.0;
-      float depth = 0.0;
-      float prevDepth = 0.0;
-      vec3 ray = vec3(parallaxTexCoord, 0.0);
-      vec3 prevRay = ray;
-
-      while (lod >= 0.0)
-      {
-        prevDepth = depth;
-        depth = (-1.0 + getHeightSample(ray.xy, lod)) * m_ParallaxHeight;
-
-        if (prevDepth < depth) debug = true;
-
-        if (ray.z > depth)
-        {
-          //float fraction = 1.0 / count; // 0.0 / count for negative direction ... later
-          vec3 currentBound = vec3(floor(ray.xy * count) / count, depth);
-          vec3 rayDistanceFactor;
-
-          //currentBound.x = currentBound.x;
-          //currentBound.y = currentBound.y;
-
-          if (ray.x == currentBound.x) debug = true;
-          if (ray.y == currentBound.y) debug = true;
-
-          rayDistanceFactor = (currentBound - ray) / E;
-
-          prevRay = ray;
-          if (rayDistanceFactor.y < rayDistanceFactor.x)
-          {
-            if (rayDistanceFactor.z < rayDistanceFactor.y)
-            {
-              ray = ray + E * rayDistanceFactor.z;
-            }
-            else
-            {
-              ray = ray + E * rayDistanceFactor.y;
-            }
-          }
-          else
-          {
-            if (rayDistanceFactor.z < rayDistanceFactor.x)
-            {
-              ray = ray + E * rayDistanceFactor.z;
-            }
-            else
-            {
-              ray = ray + E * rayDistanceFactor.x;
-            }
-          }
-        }
-
-        lod -= 1.0;
-        count *= 2.0;
-      }
-
-      //parallaxTexCoord = (prevRay.xy + ray.xy) / vec2(2.0);
-      parallaxTexCoord = ray.xy;
-    }
-
-    void calculateQdmTexCoord_pX_nY(const in vec3 E, inout vec2 parallaxTexCoord)
-    {
-      float lod = float(MAX_HEIGHT_LOD);
-      float count = 1.0;
-      float depth = 0.0;    
-      float prevDepth = 0.0;
-      vec3 ray = vec3(parallaxTexCoord, 0.0);
-      vec3 prevRay = ray;
-
-      while (lod >= 0.0)
-      {
-        prevDepth = depth;
-        depth = (-1.0 + getHeightSample(ray.xy, lod)) * m_ParallaxHeight;
-
-        if (prevDepth < depth) debug = true;
-
-        if (ray.z > depth)
-        {
-          float fraction = 1.0 / count; // 0.0 / count for negative direction ... later
-          vec3 currentBound = vec3(floor(ray.xy * count) / count, depth);
-          vec3 rayDistanceFactor;
-
-          currentBound.x = currentBound.x + fraction;
-          //currentBound.y = currentBound.y;
-
-          if (ray.x == currentBound.x) debug = true;
-          if (ray.y == currentBound.y) debug = true;
-
-          rayDistanceFactor = (currentBound - ray) / E;
-
-          prevRay = ray;
-          if (rayDistanceFactor.y < rayDistanceFactor.x)
-          {
-            if (rayDistanceFactor.z < rayDistanceFactor.y)
-            {
-              ray = ray + E * rayDistanceFactor.z;
-            }
-            else
-            {
-              ray = ray + E * rayDistanceFactor.y;
-            }
-          }
-          else
-          {
-            if (rayDistanceFactor.z < rayDistanceFactor.x)
-            {
-              ray = ray + E * rayDistanceFactor.z;
-            }
-            else
-            {
-              ray = ray + E * rayDistanceFactor.x;
-            }
-          }
-        }
-
-        lod -= 1.0;
-        count *= 2.0;
-      }
-
-      //parallaxTexCoord = (prevRay.xy + ray.xy) / vec2(2.0);
-      parallaxTexCoord = ray.xy;
-    }
-
-    void calculateQdmTexCoord_nX_pY(const in vec3 E, inout vec2 parallaxTexCoord)
-    {
-      float lod = float(MAX_HEIGHT_LOD);
-      float count = 1.0;
-      float depth = 0.0;    
-      float prevDepth = 0.0;
-      vec3 ray = vec3(parallaxTexCoord, 0.0);
-      vec3 prevRay = ray;
-
-      while (lod >= 0.0)
-      {
-        prevDepth = depth;
-        depth = (-1.0 + getHeightSample(ray.xy, lod)) * m_ParallaxHeight;
-
-        if (prevDepth < depth) debug = true;
-
-        if (ray.z > depth)
-        {
-          float fraction = 1.0 / count; // 0.0 / count for negative direction ... later
-          vec3 currentBound = vec3(floor(ray.xy * count) / count, depth);
-          vec3 rayDistanceFactor;
-
-          //currentBound.x = currentBound.x;
-          currentBound.y = currentBound.y + fraction;
-
-          if (ray.x == currentBound.x) debug = true;
-          if (ray.y == currentBound.y) debug = true;
-
-          rayDistanceFactor = (currentBound - ray) / E;
-
-          prevRay = ray;
-          if (rayDistanceFactor.y < rayDistanceFactor.x)
-          {
-            if (rayDistanceFactor.z < rayDistanceFactor.y)
-            {
-              ray = ray + E * rayDistanceFactor.z;
-            }
-            else
-            {
-              ray = ray + E * rayDistanceFactor.y;
-            }
-          }
-          else
-          {
-            if (rayDistanceFactor.z < rayDistanceFactor.x)
-            {
-              ray = ray + E * rayDistanceFactor.z;
-            }
-            else
-            {
-              ray = ray + E * rayDistanceFactor.x;
-            }
-          }
-        }
-
-        lod -= 1.0;
-        count *= 2.0;
-      }
-
-      //parallaxTexCoord = (prevRay.xy + ray.xy) / vec2(2.0);
-      parallaxTexCoord = ray.xy;
-    }
-
-    void calculateQdmTexCoord_pX_pY(const in vec3 E, inout vec2 parallaxTexCoord)
-    {
-      float lod = float(MAX_HEIGHT_LOD);
-      float count = 1.0;
-      float depth = 0.0;
-      float prevDepth = 0.0;
-      vec3 ray = vec3(parallaxTexCoord, 0.0);
-      vec3 prevRay = ray;
-
-      while (lod >= 0.0)
-      {
-        prevDepth = depth;
-        depth = (-1.0 + getHeightSample(ray.xy, lod)) * m_ParallaxHeight;
-
-        //if (prevDepth < depth) debug = true;
-
-        if (ray.z > depth)
-        {
-          float fraction = 1.0 / count; // 0.0 / count for negative direction ... later
-          vec3 currentBound = vec3(floor(ray.xy * count) / count, depth);
-          vec3 rayDistanceFactor;
-
-          currentBound.x = currentBound.x + fraction;
-          currentBound.y = currentBound.y + fraction;
-
-          if (ray.x == currentBound.x) debug = true;
-          if (ray.y == currentBound.y) debug = true;
-
-          rayDistanceFactor = (currentBound - ray) / E;
-
-          prevRay = ray;
-          if (rayDistanceFactor.y < rayDistanceFactor.x)
-          {
-            if (rayDistanceFactor.z < rayDistanceFactor.y)
-            {
-              ray = ray + E * rayDistanceFactor.z;
-            }
-            else
-            {
-              ray = ray + E * rayDistanceFactor.y;
-            }
-          }
-          else
-          {
-            if (rayDistanceFactor.z < rayDistanceFactor.x)
-            {
-              ray = ray + E * rayDistanceFactor.z;
-            }
-            else
-            {
-              ray = ray + E * rayDistanceFactor.x;
-            }
-          }
-        }
-
-        lod -= 1.0;
-        count *= 2.0;
-      }
-
-      //parallaxTexCoord = (prevRay.xy + ray.xy) / vec2(2.0);
-      parallaxTexCoord = ray.xy;
-    }
-
-    void calculateQdmTexCoord(const in vec3 V, inout vec2 parallaxTexCoord)
-    {
-      vec3 E = -V;
-      //vec3 E = vec3(v_tsParallaxOffset, -length(v_tsParallaxOffset));
-
-      //if (E.x == 0.0) return;
-      //if (E.y == 0.0) return;
-
-      if (E.x < 0.0)
-      {
-        if (E.y < 0.0)
-        {
-          calculateQdmTexCoord_nX_nY(E, parallaxTexCoord);
-        }
-        else
-        {
-          calculateQdmTexCoord_nX_pY(E, parallaxTexCoord);
-        }
-      }
-      else
-      {
-        if (E.y < 0.0)
-        {
-          calculateQdmTexCoord_pX_nY(E, parallaxTexCoord);
-        }
-        else
-        {
-          calculateQdmTexCoord_pX_pY(E, parallaxTexCoord);
-        }
-      }
-    }
-
-    #define MAX_DUMMY 30
-    int dummyCounter = 0;
-    bool lastX = false;
-    bool lastY = false;
-
     // todo: m_ParallaxHeight * 0.3 in vs berechnen v_tsParallaxOffset bla
 
-    void calculateQdmTexCoord2(const in vec3 E, inout vec2 parallaxTexCoord)
+    #define QDM_OFFSET 0.0001
+
+    void calculateQdmTexCoord(const in vec3 E, inout vec2 parallaxTexCoord)
     {
+      if (E.z > -0.1) return;
+
       float lod = float(MAX_HEIGHT_LOD);
       float count = 1.0;
       float depth = 0.0;
+      float scale = m_ParallaxHeight * 0.3;
       vec3 P = vec3(parallaxTexCoord, 0.0);
-      vec2 S = sign(E.xy);
+      //vec2 S = sign(E.xy);
       vec2 T = step(0.0, E.xy);
 
       while (lod >= 0.0)
       {
-        depth = (-1.0 + getHeightSample(P.xy, lod)) * m_ParallaxHeight * 0.3;
+        depth = (-1.0 + getHeightSample(P.xy, lod)) * scale;
 
         if (P.z > depth)
         {
@@ -438,34 +152,9 @@ const vec2 specular_ab = vec2(6.645, -5.645);
             }
             else
             {
-              if (dummyCounter++ > MAX_DUMMY)
-              {
-                debug = true;
-                break;
-              }
-
-              P = P + E * F.y;
-              P.y = B.y + 0.0001 * S.y;
-
-/*
-              if (lastY)
-              {
-                lastY = false;
-                lod -= 1.0;
-                count *= 2.0;
-              }
-              else
-              {
-                lastY = true;
-              }
-
-              float dep = (-1.0 + getHeightSample(P.xy, lod)) * m_ParallaxHeight * 0.3;
-              if (P.z <= dep)
-              {
-                lod -= 1.0;
-                count *= 2.0;
-              }
-*/
+              P = P + E * (F.y + QDM_OFFSET);
+              //P = P + E * F.y;
+              //P.y = B.y + QDM_OFFSET * S.y;
             }
           }
           else
@@ -478,33 +167,9 @@ const vec2 specular_ab = vec2(6.645, -5.645);
             }
             else
             {
-              if (dummyCounter++ > MAX_DUMMY)
-              {
-                debug = true;
-                break;
-              }
-
-              P = P + E * F.x;
-              P.x = B.x + 0.0001 * S.x;
-/*
-              if (lastX)
-              {
-                lastX = false;
-                lod -= 1.0;
-                count *= 2.0;
-              }
-              else
-              {
-                lastX = true;
-              }
-
-              float dep = (-1.0 + getHeightSample(P.xy, lod)) * m_ParallaxHeight * 0.3;
-              if (P.z <= dep)
-              {
-                lod -= 1.0;
-                count *= 2.0;
-              }
-*/
+              P = P + E * (F.x + QDM_OFFSET);
+              //P = P + E * F.x;
+              //P.x = B.x + QDM_OFFSET * S.x;
             }
           }
         }
@@ -634,9 +299,7 @@ void main (void)
     vec2 texCoord = v_TexCoord;
     #if defined(PARALLAXMAP) || defined(NORMALMAP_PARALLAX)
       #ifdef STEEP_PARALLAX
-        vec2 texCoord2 = texCoord;
-        //calculateQdmTexCoord(V, texCoord);
-        calculateQdmTexCoord2(-V, texCoord);
+        calculateQdmTexCoord(-V, texCoord);
       #else
         calculateParallaxTexCoord(V, texCoord);
       #endif
@@ -722,13 +385,4 @@ void main (void)
     #endif
     gl_FragColor += specularSum;
   #endif
-
-  //if (dummyCounter > 30) gl_FragColor.r = 1.0;
-  if (debug == true) gl_FragColor.r = 1.0;
-  //if (debug == true) gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
-  //if (getHeightSample(vec2(0.1), 0.0) != getHeightSample(vec2(1.1), 0.0)) discard;
-  //gl_FragColor = vec4((texCoord - texCoord2) * vec2(10.0), 0.0, 1.0);
-  //gl_FragColor = vec4((texCoord2 - texCoord) * vec2(10.0), 0.0, 1.0);
-  //gl_FragColor = vec4(abs(texCoord - texCoord2) * vec2(10.0), 0.0, 1.0);
-  //gl_FragColor = vec4(getHeightSample(v_TexCoord, 0.0));
 }
