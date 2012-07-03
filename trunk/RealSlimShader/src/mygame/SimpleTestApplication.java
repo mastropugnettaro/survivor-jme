@@ -63,7 +63,8 @@ public abstract class SimpleTestApplication extends SimpleApplication
   {
     this.setPauseOnLostFocus(false);
     //setDisplayStatView(false);
-    flyCam.setEnabled(false);
+    //flyCam.setEnabled(false);
+    flyCam.setDragToRotate(true);
     flyCam.setMoveSpeed(3);
     viewPort.setBackgroundColor(ColorRGBA.DarkGray);
 

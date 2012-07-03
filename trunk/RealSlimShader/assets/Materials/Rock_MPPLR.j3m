@@ -9,7 +9,6 @@ Material Rock : MatDefs/Light/Lighting_MPP.j3md {
         ParallaxMap : Textures/BrickWall_height.jpg
         SteepParallax : true
         UseMaterialColors : true
-        ParallaxHeight : 0.5
      }
     AdditionalRenderState {
     }
