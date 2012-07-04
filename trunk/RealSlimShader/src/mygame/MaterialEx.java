@@ -86,8 +86,7 @@ public class MaterialEx extends Material implements MaterialExLightingRenderer
     }
 
     numLights = lightList.size();
-    //final int arraySize = Math.max(numLights, 4); // Intel GMA bug
-    final int arraySize = numLights;
+    final int arraySize = Math.max(numLights, 4); // Intel GMA bug
     this.getMaterialDef().addMaterialParam(VarType.Int, "NumLights", arraySize, null);
     this.setInt("NumLights", arraySize);
 

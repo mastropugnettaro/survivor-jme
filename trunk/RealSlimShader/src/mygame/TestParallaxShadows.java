@@ -36,7 +36,7 @@ public class TestParallaxShadows extends SimpleApplication
 {
   private static final Logger log = Logger.getLogger(TestParallaxShadows.class.getName());
   private static final int SPHERE_SEGMENTS = 32;
-  private static final int NUM_LIGHTS = 4;
+  private static final int NUM_LIGHTS = 1;
   
   private ArrayList<DirectionalLight> lightList = new ArrayList<DirectionalLight>();
   private float angle;
@@ -65,7 +65,8 @@ public class TestParallaxShadows extends SimpleApplication
   {
     this.setPauseOnLostFocus(false);
     //setDisplayStatView(false);
-    flyCam.setEnabled(false);
+    //flyCam.setEnabled(false);
+    flyCam.setDragToRotate(true);
     flyCam.setMoveSpeed(3);
     viewPort.setBackgroundColor(ColorRGBA.DarkGray);
 
@@ -106,12 +107,15 @@ public class TestParallaxShadows extends SimpleApplication
     Material sphereMat = new MaterialEx("Materials/Rock_SP_POMSS.j3m", assetManager);    
     sphere.setMaterial(sphereMat);
     
-
+    
     Box box = new Box(2f, 0.1f, 2f);
     TangentBinormalGenerator.generate(box);
     Geometry floor = new Geometry("Floor", box);
     floor.setLocalTranslation(0f, -1f, 0f);
-    Material floorMat = new MaterialEx("Materials/Floor_SP_POMSS.j3m", assetManager);
+    MaterialEx floorMat = new MaterialEx("Materials/Floor_SP_POMSS.j3m", assetManager);
+    MultiPassParallelLightingRenderer mpplr = new MultiPassParallelLightingRenderer();
+    mpplr.setQuadsPerPass(1); // 1 is safe, > 1 yields more fps
+    floorMat.setLightingRenderer(mpplr, renderManager);
     floor.setMaterial(floorMat);
 
     Node node = new Node();
@@ -122,6 +126,7 @@ public class TestParallaxShadows extends SimpleApplication
 
     cam.setLocation(new Vector3f(-1.1f, 3f, -1f));
     cam.lookAt(floor.getWorldTranslation().clone(), Vector3f.UNIT_Y.clone());
+    cam.setFrustumPerspective(45, (float) settings.getWidth() / settings.getHeight(), 0.1f, 100.0f);
 
     AmbientLight al;
     DirectionalLight dl;
@@ -130,7 +135,7 @@ public class TestParallaxShadows extends SimpleApplication
     al.setColor(new ColorRGBA(0.05f, 0.05f, 0.05f, 1f));
     rootNode.addLight(al);
     
-    float ci = 0.9f / Math.max(NUM_LIGHTS, 1f);
+    float ci = 1.0f / Math.max(NUM_LIGHTS, 1f);
     for (int i = 0; i < NUM_LIGHTS; i++)
     { 
       float x = 0.1f + i % 2;
