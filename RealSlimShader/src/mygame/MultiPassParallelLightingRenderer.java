@@ -17,6 +17,7 @@ import com.jme3.scene.Geometry;
 import com.jme3.shader.Shader;
 import com.jme3.shader.Uniform;
 import com.jme3.shader.VarType;
+import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
 import java.util.ArrayList;
 //import org.lwjgl.opengl.GL11;
@@ -45,6 +46,8 @@ public class MultiPassParallelLightingRenderer implements MaterialExLightingRend
   
   protected ArrayList<Light> lightList = new ArrayList<Light>(4);
   protected int quadsPerPass = 1;
+  protected int parallaxMapSize = 256;
+  protected int parallaxMapLod = 8;
   
   public int getQuadsPerPass()
   {
@@ -61,13 +64,13 @@ public class MultiPassParallelLightingRenderer implements MaterialExLightingRend
     mat.selectTechnique("MultiPassParallelLighting", rm);
     mat.getMaterialDef().addMaterialParam(VarType.Int, "QuadsPerPass", quadsPerPass, null);
     mat.getMaterialDef().addMaterialParam(VarType.Boolean, "HasSpotLights", true, null);
-    mat.getMaterialDef().addMaterialParam(VarType.Int, "MaxHeightLod", 8, null);
+    mat.getMaterialDef().addMaterialParam(VarType.Int, "ParallaxMapSize", parallaxMapSize, null);
+    mat.getMaterialDef().addMaterialParam(VarType.Int, "ParallaxMapLod", parallaxMapLod, null);
 
     // initialize with safe values (working & good looking)
     // recompiling might take some frames
     mat.setInt("QuadsPerPass", quadsPerPass);
     mat.setBoolean("HasSpotLights", true);
-    mat.setInt("MaxHeightLod", 8);
     
     MatParam mp = mat.getParam("SteepParallax");
     if ((mp != null) && (mp.getVarType() == VarType.Boolean)) 
@@ -76,15 +79,25 @@ public class MultiPassParallelLightingRenderer implements MaterialExLightingRend
       if ((steep != null) && steep.booleanValue())
       {
         // for Quadtree Displacement Mapping
-        Texture hmap = mat.getTextureParam("ParallaxMap").getTextureValue();
-        MipMapGeneratorEx.generateMipMaps(hmap.getImage(), MipMapGeneratorEx.maxScaler);
-        //hmap.setAnisotropicFilter(0);
-        hmap.setMagFilter(Texture.MagFilter.Nearest);
-        hmap.setMinFilter(Texture.MinFilter.NearestNearestMipMap);
-        //hmap.setMagFilter(Texture.MagFilter.Bilinear);
-        //hmap.setMinFilter(Texture.MinFilter.BilinearNearestMipMap);
+        Texture parallaxMap = mat.getTextureParam("ParallaxMap").getTextureValue();
+        MipMapGeneratorEx.generateMipMaps(parallaxMap.getImage(), MipMapGeneratorEx.maxScaler);
+        //parallaxMap.setAnisotropicFilter(0);
+        parallaxMap.setMagFilter(Texture.MagFilter.Nearest);
+        parallaxMap.setMinFilter(Texture.MinFilter.NearestNearestMipMap);
+        //parallaxMap.setMagFilter(Texture.MagFilter.Bilinear);
+        //parallaxMap.setMinFilter(Texture.MinFilter.BilinearNearestMipMap);
+        
+        Image parallaxMapImage = parallaxMap.getImage();
+        if (parallaxMapImage != null)
+        {
+          parallaxMapSize = parallaxMap.getImage().getWidth();
+          parallaxMapLod = (int) (Math.log(parallaxMapSize) / Math.log(2.0));
+        }
+        
+        mat.setInt("ParallaxMapSize", parallaxMapSize);
+        mat.setInt("ParallaxMapLod", parallaxMapLod);
       }    
-    }
+    }    
   }
 
   public void detach(Material mat, RenderManager rm) 
@@ -94,7 +107,9 @@ public class MultiPassParallelLightingRenderer implements MaterialExLightingRend
     mat.getMaterialDef().getMaterialParams().remove(matParam);
     matParam = mat.getMaterialDef().getMaterialParam("HasSpotLights");
     mat.getMaterialDef().getMaterialParams().remove(matParam);    
-    matParam = mat.getMaterialDef().getMaterialParam("MaxHeightLod");
+    matParam = mat.getMaterialDef().getMaterialParam("ParallaxMapSize");
+    mat.getMaterialDef().getMaterialParams().remove(matParam);    
+    matParam = mat.getMaterialDef().getMaterialParam("ParallaxMapLod");
     mat.getMaterialDef().getMaterialParams().remove(matParam);    
     mat.selectTechnique("Default", rm);
   }
@@ -123,11 +138,9 @@ public class MultiPassParallelLightingRenderer implements MaterialExLightingRend
     int numPasses = 1 + (numQuads - 1) / quadsPerPass;
     int qpp = Math.min(quadsPerPass, numQuads);
     mat.setInt("QuadsPerPass", qpp);
-    mat.setBoolean("HasSpotLights", hasSpotLights);
-    
-    Texture hmap = mat.getTextureParam("ParallaxMap").getTextureValue();
-    int maxHeightLod = (int) Math.ceil(Math.log(hmap.getImage().getWidth()) / Math.log(2));
-    mat.setInt("MaxHeightLod", maxHeightLod);
+    mat.setBoolean("HasSpotLights", hasSpotLights);    
+    mat.setInt("ParallaxMapSize", parallaxMapSize);
+    mat.setInt("ParallaxMapLod", parallaxMapLod);
 
     Uniform lightColor = shader.getUniform("g_LightColor");
     Uniform lightPos = shader.getUniform("g_LightPosition");

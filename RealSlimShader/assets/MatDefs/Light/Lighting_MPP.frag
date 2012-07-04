@@ -5,8 +5,12 @@
   #define QUADS_PER_PASS 1
 #endif
 
-#ifndef MAX_HEIGHT_LOD
-  #define MAX_HEIGHT_LOD 8
+#ifndef PARALLAXMAP_SIZE
+  #define PARALLAXMAP_SIZE 256
+#endif
+
+#ifndef PARALLAXMAP_LOD
+  #define PARALLAXMAP_LOD 8
 #endif
 
 #define DEF // just to fix syntax highlighting a bit
@@ -116,30 +120,44 @@ const vec2 specular_ab = vec2(6.645, -5.645);
       #endif
     }
 
-    // todo: m_ParallaxHeight * 0.3 in vs berechnen v_tsParallaxOffset bla
-
     #define QDM_OFFSET 0.0001
+    const float minLod = 0.0; // todo: calculate minimal LoD (ddx, ddy)
+    float scale = m_ParallaxHeight * 0.3; // todo: calculate m_ParallaxHeight * 0.3 in vs like v_tsParallaxOffset
+
+    vec3 getInterpolatedPosition(
+      const in vec3 E, const in vec3 P, const in float size, const in float lod)
+    {
+      float halfSampleSize = 0.5 / size;
+      vec3 halfSampleOffset = E * (halfSampleSize * (abs(E.x) + abs(E.y) + abs(E.y)) / 3.0);
+      vec3 Pa = P - halfSampleOffset;
+      vec3 Pb = P + halfSampleOffset;
+      float da = (-1.0 + getHeightSample(Pa.xy, lod)) * scale;
+      float db = (-1.0 + getHeightSample(Pb.xy, lod)) * scale; // depth;
+      float a = abs(Pa.z - da);
+      float b = abs(Pb.z - db);
+      float mf = a / (a + b);
+      return mix(Pa, Pb, mf);
+    }
 
     void calculateQdmTexCoord(const in vec3 E, inout vec2 parallaxTexCoord)
     {
       if (E.z > -0.1) return;
 
-      float lod = float(MAX_HEIGHT_LOD);
-      float count = 1.0;
+      float lod = float(PARALLAXMAP_LOD);
+      float size = 1.0;
       float depth = 0.0;
-      float scale = m_ParallaxHeight * 0.3;
       vec3 P = vec3(parallaxTexCoord, 0.0);
       //vec2 S = sign(E.xy);
       vec2 T = step(0.0, E.xy);
 
-      while (lod >= 0.0)
+      while (lod >= minLod) // todo: dynamic LoD
       {
         depth = (-1.0 + getHeightSample(P.xy, lod)) * scale;
 
         if (P.z > depth)
         {
-          vec2 A = T / count;
-          vec3 B = vec3(floor(P.xy * count) / count + A, depth);
+          vec2 A = T / size;
+          vec3 B = vec3(floor(P.xy * size) / size + A, depth);
           vec3 F = (B - P) / E;
 
           if (F.y < F.x)
@@ -148,7 +166,7 @@ const vec2 specular_ab = vec2(6.645, -5.645);
             {
               P = P + E * F.z;
               lod -= 1.0;
-              count *= 2.0;
+              size *= 2.0;
             }
             else
             {
@@ -163,7 +181,7 @@ const vec2 specular_ab = vec2(6.645, -5.645);
             {
               P = P + E * F.z;
               lod -= 1.0;
-              count *= 2.0;
+              size *= 2.0;
             }
             else
             {
@@ -176,10 +194,11 @@ const vec2 specular_ab = vec2(6.645, -5.645);
         else
         {
           lod -= 1.0;
-          count *= 2.0;
+          size *= 2.0;
         }
       }
 
+      //P = getInterpolatedPosition(E, P, size / 2.0, minLod);
       parallaxTexCoord = P.xy;
     }
 

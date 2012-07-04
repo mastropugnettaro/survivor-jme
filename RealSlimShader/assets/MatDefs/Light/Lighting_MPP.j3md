@@ -92,7 +92,8 @@ MaterialDef MultiPassParallelLighting {
 
             QUADS_PER_PASS : QuadsPerPass
             HAS_SPOTLIGHTS : HasSpotLights
-            MAX_HEIGHT_LOD : MaxHeightLod
+            PARALLAXMAP_SIZE : ParallaxMapSize
+            PARALLAXMAP_LOD : ParallaxMapLod
         }
     }
 

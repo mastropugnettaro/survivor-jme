@@ -1,4 +1,4 @@
-Material MyMaterial : MatDefs/Light/Lighting_SP.j3md {
+Material MyMaterial : MatDefs/Light/Lighting_MPP.j3md {
      MaterialParameters {
         Specular : 1.0 1.0 1.0 1.0
         Diffuse : 1.0 1.0 1.0 1.0
