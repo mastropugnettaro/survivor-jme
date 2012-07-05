@@ -202,7 +202,7 @@ const vec2 specular_ab = vec2(6.645, -5.645);
           // if there's no intersection, continue (from root?)
           float halfSampleSize = 1.0 / size;
 
-          // todo: if (E.z < 0.9) otherwise too big factor ...
+          // todo: if (E.z > -0.9) otherwise too big factor ...
 
           //vec3 halfSampleOffset = halfSampleSize * E;
           vec3 halfSampleOffset = (halfSampleSize * sqrt(dot(E, E))) * E;
