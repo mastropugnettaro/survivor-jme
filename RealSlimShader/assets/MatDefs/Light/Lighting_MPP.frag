@@ -201,7 +201,10 @@ const vec2 specular_ab = vec2(6.645, -5.645);
           // calculate interpolated position
           // if there's no intersection, continue (from root?)
           float halfSampleSize = 1.0 / size;
-          //vec3 halfSampleOffset = E * halfSampleSize;
+
+          // todo: if (E.z < 0.9) otherwise too big factor ...
+
+          //vec3 halfSampleOffset = halfSampleSize * E;
           vec3 halfSampleOffset = (halfSampleSize * sqrt(dot(E, E))) * E;
           vec3 Pb = P + halfSampleOffset;
           float db = (-1.0 + getHeightSample(Pb.xy, minLod)) * scale; // depth;
@@ -215,7 +218,7 @@ const vec2 specular_ab = vec2(6.645, -5.645);
             //lod = float(PARALLAXMAP_LOD);
             //size = 1.0;
 
-            debug = true;
+            //debug = true;
             //break;
 
             // Set P to next cell
@@ -232,6 +235,7 @@ const vec2 specular_ab = vec2(6.645, -5.645);
           {
             vec3 Pa = P - halfSampleOffset;
             float da = (-1.0 + getHeightSample(Pa.xy, minLod)) * scale;
+            if (da == db) debug = true;
             float a = abs(Pa.z - da);
             float b = abs(Pb.z - db);
             float mf = a / (a + b);
