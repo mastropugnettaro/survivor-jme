@@ -123,7 +123,7 @@ public abstract class SimpleTestApplication extends SimpleApplication
 
     cam.setLocation(new Vector3f(0.3f, 2f, 0.3f));
     cam.lookAt(node.getWorldTranslation().clone(), Vector3f.UNIT_Y.clone());
-    cam.setFrustumPerspective(45, (float) settings.getWidth() / settings.getHeight(), 0.1f, 100.0f);
+    cam.setFrustumPerspective(45, (float) settings.getWidth() / settings.getHeight(), 0.01f, 100.0f);
 
     AmbientLight al;
             

@@ -124,6 +124,9 @@ const vec2 specular_ab = vec2(6.645, -5.645);
     const float minLod = 0.0; // todo: calculate minimal LoD (ddx, ddy)
     float scale = m_ParallaxHeight * 0.3; // todo: calculate m_ParallaxHeight * 0.3 in vs like v_tsParallaxOffset
 
+    bool debug = false;
+    vec3 diff = vec3(0.0);
+
     vec3 getInterpolatedPosition(
       const in vec3 E, const in vec3 P, const in float size, const in float lod)
     {
@@ -147,20 +150,22 @@ const vec2 specular_ab = vec2(6.645, -5.645);
       float size = 1.0;
       float depth = 0.0;
       vec3 P = vec3(parallaxTexCoord, 0.0);
-      //vec2 S = sign(E.xy);
       vec2 T = step(0.0, E.xy);
 
       while (lod >= minLod) // todo: dynamic LoD
       {
         depth = (-1.0 + getHeightSample(P.xy, lod)) * scale;
+        vec2 A;
+        vec3 B;
+        vec3 F;
 
         if (P.z > depth)
         {
-          vec2 A = T / size;
-          vec3 B = vec3(floor(P.xy * size) / size + A, depth);
-          vec3 F = (B - P) / E;
+          A = T / size;
+          B = vec3(floor(P.xy * size) / size + A, depth);
+          F = (B - P) / E;
 
-          if (F.y < F.x)
+          if (F.z < F.x)
           {
             if (F.z < F.y)
             {
@@ -171,23 +176,17 @@ const vec2 specular_ab = vec2(6.645, -5.645);
             else
             {
               P = P + E * (F.y + QDM_OFFSET);
-              //P = P + E * F.y;
-              //P.y = B.y + QDM_OFFSET * S.y;
             }
           }
           else
           {
-            if (F.z < F.x)
+            if (F.y < F.x)
             {
-              P = P + E * F.z;
-              lod -= 1.0;
-              size *= 2.0;
+              P = P + E * (F.y + QDM_OFFSET);
             }
             else
             {
               P = P + E * (F.x + QDM_OFFSET);
-              //P = P + E * F.x;
-              //P.x = B.x + QDM_OFFSET * S.x;
             }
           }
         }
@@ -196,9 +195,51 @@ const vec2 specular_ab = vec2(6.645, -5.645);
           lod -= 1.0;
           size *= 2.0;
         }
+
+        if (lod < 0.0)
+        {
+          // calculate interpolated position
+          // if there's no intersection, continue (from root?)
+          float halfSampleSize = 1.0 / size;
+          //vec3 halfSampleOffset = E * halfSampleSize;
+          vec3 halfSampleOffset = (halfSampleSize * sqrt(dot(E, E))) * E;
+          vec3 Pb = P + halfSampleOffset;
+          float db = (-1.0 + getHeightSample(Pb.xy, minLod)) * scale; // depth;
+          //float db = depth;
+          if (Pb.z > db)
+          {
+            // no intersection, continue tracing
+
+            lod = minLod;
+            size /= 2.0;            
+            //lod = float(PARALLAXMAP_LOD);
+            //size = 1.0;
+
+            debug = true;
+            //break;
+
+            // Set P to next cell
+            if (F.y < F.x)
+            {
+              P = P + E * (F.y + QDM_OFFSET);
+            }
+            else
+            {
+              P = P + E * (F.x + QDM_OFFSET);
+            }
+          }
+          else
+          {
+            vec3 Pa = P - halfSampleOffset;
+            float da = (-1.0 + getHeightSample(Pa.xy, minLod)) * scale;
+            float a = abs(Pa.z - da);
+            float b = abs(Pb.z - db);
+            float mf = a / (a + b);
+            P = mix(Pa, Pb, mf);
+          }
+        }
       }
 
-      //P = getInterpolatedPosition(E, P, size / 2.0, minLod);
       parallaxTexCoord = P.xy;
     }
 
@@ -404,4 +445,6 @@ void main (void)
     #endif
     gl_FragColor += specularSum;
   #endif
+
+  if (debug) gl_FragColor.r = 1.0;
 }
