@@ -126,7 +126,7 @@ public class TestParallaxShadows extends SimpleApplication
 
     cam.setLocation(new Vector3f(-1.1f, 3f, -1f));
     cam.lookAt(floor.getWorldTranslation().clone(), Vector3f.UNIT_Y.clone());
-    cam.setFrustumPerspective(45, (float) settings.getWidth() / settings.getHeight(), 0.1f, 100.0f);
+    cam.setFrustumPerspective(45, (float) settings.getWidth() / settings.getHeight(), 0.01f, 100.0f);
 
     AmbientLight al;
     DirectionalLight dl;
