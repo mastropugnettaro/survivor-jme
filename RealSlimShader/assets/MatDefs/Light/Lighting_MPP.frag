@@ -198,22 +198,22 @@ const vec2 specular_ab = vec2(6.645, -5.645);
         if (lod == 0.0)
         //if (false)
         {
-          // linear search...
-          size *= 1.0;
-          A = T / size;
-          B = vec3(floor(P.xy * size) / size + A, depth);
+          float sz = size * 1.0;
+          A = T / sz;
+          vec2 tc = floor(P.xy * sz) / sz;
+          B = vec3(tc + A, depth);
           F = (B - P) / E;
           float Fmin = min(F.x, F.y);
-          int numSteps = 20;
+          int numSteps = 8;
           float stepSize = (Fmin + QDM_OFFSET) / float(numSteps);
 
+          // linear search...
           for (int i = 0; i < numSteps; i++)
           {
             depth = (-1.0 + getHeightSample(P.xy, 0.0)) * scale;
             if (P.z < depth)
             {
               tracing = false;
-              //debug = true;
             }
             else
             {
@@ -221,62 +221,15 @@ const vec2 specular_ab = vec2(6.645, -5.645);
             }
           }
 
-          lod = float(PARALLAXMAP_LOD);
-          size = 1.0;
+          //lod = float(PARALLAXMAP_LOD);
+          //size = 1.0;
+          lod += 1.0;
+          size /= 2.0;
+          //if (tracing) debug = true;
         }
         else
         {
           tracing = false;
-        }
-
-        if (false)
-        //if (lod == 0.0)
-        {
-          // calculate interpolated position
-          // if there's no intersection, continue (from root?)
-          float halfSampleSize = 0.5 / size;
-
-          // todo: if (E.z > -0.9) otherwise too big factor ...
-          //if (E.z < -0.999) break;
-
-          //vec2 halfSampleVector = vec2(halfSampleSize) / E.xy;
-          //float halfSampleFactor = max(halfSampleVector.x, halfSampleVector.y);
-          //vec3 halfSampleOffset = halfSampleFactor * E;
-          vec3 halfSampleOffset = halfSampleSize * E;
-
-          vec3 Pb = P + halfSampleOffset;
-          float db = (-1.0 + getHeightSample(Pb.xy, 0.0)) * scale;
-
-          if (Pb.z > db)
-          {
-            // no intersection, continue tracing
-
-            // Set P to next cell
-            A = T / size;
-            B = vec3(floor(P.xy * size) / size + A, depth);
-            F = (B - P) / E;
-            P = P + E * (min(F.x, F.y) + QDM_OFFSET);
-
-            //lod = minLod;
-            //size /= 2.0;            
-            lod = float(PARALLAXMAP_LOD);
-            size = 1.0;
-
-            //debug = true;
-            //break;
-
-          }
-          else
-          {
-            vec3 Pa = P - halfSampleOffset;
-            float da = (-1.0 + getHeightSample(Pa.xy, 0.0)) * scale;
-            //if (da == db) debug = true;
-            float a = abs(Pa.z - da);
-            float b = abs(Pb.z - db);
-            float mf = a / (a + b);
-            P = mix(Pa, Pb, mf);
-            break;
-          }
         }
       }
 
@@ -477,5 +430,5 @@ void main (void)
     gl_FragColor += specularSum;
   #endif
 
-  if (debug) gl_FragColor.r = 1.0;
+  if (debug) gl_FragColor.r *= 2.0;
 }

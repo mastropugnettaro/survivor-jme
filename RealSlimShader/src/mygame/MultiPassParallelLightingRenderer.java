@@ -82,9 +82,9 @@ public class MultiPassParallelLightingRenderer implements MaterialExLightingRend
         Texture parallaxMap = mat.getTextureParam("ParallaxMap").getTextureValue();
         MipMapGeneratorEx.generateMipMaps(parallaxMap.getImage(), MipMapGeneratorEx.maxScaler);
         //parallaxMap.setAnisotropicFilter(0);
-        parallaxMap.setMagFilter(Texture.MagFilter.Nearest);
+        //parallaxMap.setMagFilter(Texture.MagFilter.Nearest);
         parallaxMap.setMinFilter(Texture.MinFilter.NearestNearestMipMap);
-        //parallaxMap.setMagFilter(Texture.MagFilter.Bilinear);
+        parallaxMap.setMagFilter(Texture.MagFilter.Bilinear);
         //parallaxMap.setMinFilter(Texture.MinFilter.BilinearNearestMipMap);
         
         Image parallaxMapImage = parallaxMap.getImage();

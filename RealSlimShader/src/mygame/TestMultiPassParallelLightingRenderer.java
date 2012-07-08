@@ -18,8 +18,8 @@ public class TestMultiPassParallelLightingRenderer extends SimpleTestApplication
     AppSettings settings = new AppSettings(true);
     
     // uncomment for more fragment shader load
-    // settings.setResolution(1152, 864); 
-    // settings.setSamples(16);
+    settings.setResolution(1152, 864); 
+    settings.setSamples(16);
   
     app.setSettings(settings);
     app.setShowSettings(false);
@@ -37,7 +37,7 @@ public class TestMultiPassParallelLightingRenderer extends SimpleTestApplication
     rotatingLights = true; // false for better debugging
     useAccumulationBuffer = false; // enable for better quality with many lights
     sphereSegments = 32; // increase for more vertex shader load
-    numDirectionalLights = 4;
+    numDirectionalLights = 1;
     numPointLights = 0;
     numSpotLights = 0;
     
