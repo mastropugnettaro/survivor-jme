@@ -1,12 +1,12 @@
 Material Rock : MatDefs/Light/Lighting_MPP.j3md {
      MaterialParameters {
-        DiffuseMap : Textures/BrickWall.jpg
-        NormalMap : Textures/BrickWall_normal.jpg
+        DiffuseMap : Repeat Textures/BrickWall.jpg
+        NormalMap : Repeat Textures/BrickWall_normal.jpg
         Ambient : 1.0 1.0 1.0 1.0
         Diffuse : 1.0 1.0 1.0 1.0
         Specular : 1.0 1.0 1.0 1.0
         Shininess : 100.0
-        ParallaxMap : Textures/BrickWall_height.jpg
+        ParallaxMap : Repeat Textures/BrickWall_height_debug3.jpg
         SteepParallax : true
         UseMaterialColors : true
         ParallaxHeight : 0.2
