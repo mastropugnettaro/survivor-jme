@@ -109,6 +109,15 @@ const vec2 specular_ab = vec2(6.645, -5.645);
 #if defined(PARALLAXMAP) || defined(NORMALMAP_PARALLAX)
   uniform float m_ParallaxHeight;
 
+  float getHeightSample(const in vec2 texCoord)
+  {
+    #if defined(PARALLAXMAP)
+      return texture2D(m_ParallaxMap, texCoord).r;
+    #elif defined(NORMALMAP_PARALLAX)
+      return texture2D(m_NormalMap, texCoord).a;
+    #endif
+  }
+
   #ifdef STEEP_PARALLAX
 
     float getHeightSample(const in vec2 texCoord, const in float lod)
@@ -151,23 +160,24 @@ const vec2 specular_ab = vec2(6.645, -5.645);
       float depth = 0.0;
       vec3 P = vec3(parallaxTexCoord, 0.0);
       vec2 T = step(0.0, E.xy);
-
-      while (lod >= minLod) // todo: dynamic LoD
+      vec2 A;
+      vec3 B;
+      vec3 F;
+      bool tracing = true;
+    
+      while (tracing)
       {
-        depth = (-1.0 + getHeightSample(P.xy, lod)) * scale;
-        vec2 A;
-        vec3 B;
-        vec3 F;
-
-        if (P.z > depth)
+        while (lod > minLod) // todo: dynamic LoD
         {
-          A = T / size;
-          B = vec3(floor(P.xy * size) / size + A, depth);
-          F = (B - P) / E;
+          depth = (-1.0 + getHeightSample(P.xy, lod)) * scale;
 
-          if (F.z < F.x)
+          if (P.z > depth)
           {
-            if (F.z < F.y)
+            A = T / size;
+            B = vec3(floor(P.xy * size) / size + A, depth);
+            F = (B - P) / E;
+
+            if ((F.z < F.x) && (F.z < F.y))
             {
               P = P + E * F.z;
               lod -= 1.0;
@@ -175,71 +185,97 @@ const vec2 specular_ab = vec2(6.645, -5.645);
             }
             else
             {
-              P = P + E * (F.y + QDM_OFFSET);
+              P = P + E * (min(F.x, F.y) + QDM_OFFSET);
             }
           }
           else
           {
-            if (F.y < F.x)
+            lod -= 1.0;
+            size *= 2.0;
+          }
+        }
+
+        if (lod == 0.0)
+        //if (false)
+        {
+          // linear search...
+          size *= 1.0;
+          A = T / size;
+          B = vec3(floor(P.xy * size) / size + A, depth);
+          F = (B - P) / E;
+          float Fmin = min(F.x, F.y);
+          int numSteps = 20;
+          float stepSize = (Fmin + QDM_OFFSET) / float(numSteps);
+
+          for (int i = 0; i < numSteps; i++)
+          {
+            depth = (-1.0 + getHeightSample(P.xy, 0.0)) * scale;
+            if (P.z < depth)
             {
-              P = P + E * (F.y + QDM_OFFSET);
+              tracing = false;
+              //debug = true;
             }
             else
             {
-              P = P + E * (F.x + QDM_OFFSET);
+              P = P + E * stepSize;
             }
           }
+
+          lod = float(PARALLAXMAP_LOD);
+          size = 1.0;
         }
         else
         {
-          lod -= 1.0;
-          size *= 2.0;
+          tracing = false;
         }
 
-        if (lod < 0.0)
+        if (false)
+        //if (lod == 0.0)
         {
           // calculate interpolated position
           // if there's no intersection, continue (from root?)
-          float halfSampleSize = 1.0 / size;
+          float halfSampleSize = 0.5 / size;
 
           // todo: if (E.z > -0.9) otherwise too big factor ...
+          //if (E.z < -0.999) break;
 
-          //vec3 halfSampleOffset = halfSampleSize * E;
-          vec3 halfSampleOffset = (halfSampleSize * sqrt(dot(E, E))) * E;
+          //vec2 halfSampleVector = vec2(halfSampleSize) / E.xy;
+          //float halfSampleFactor = max(halfSampleVector.x, halfSampleVector.y);
+          //vec3 halfSampleOffset = halfSampleFactor * E;
+          vec3 halfSampleOffset = halfSampleSize * E;
+
           vec3 Pb = P + halfSampleOffset;
-          float db = (-1.0 + getHeightSample(Pb.xy, minLod)) * scale; // depth;
-          //float db = depth;
+          float db = (-1.0 + getHeightSample(Pb.xy, 0.0)) * scale;
+
           if (Pb.z > db)
           {
             // no intersection, continue tracing
 
-            lod = minLod;
-            size /= 2.0;            
-            //lod = float(PARALLAXMAP_LOD);
-            //size = 1.0;
+            // Set P to next cell
+            A = T / size;
+            B = vec3(floor(P.xy * size) / size + A, depth);
+            F = (B - P) / E;
+            P = P + E * (min(F.x, F.y) + QDM_OFFSET);
+
+            //lod = minLod;
+            //size /= 2.0;            
+            lod = float(PARALLAXMAP_LOD);
+            size = 1.0;
 
             //debug = true;
             //break;
 
-            // Set P to next cell
-            if (F.y < F.x)
-            {
-              P = P + E * (F.y + QDM_OFFSET);
-            }
-            else
-            {
-              P = P + E * (F.x + QDM_OFFSET);
-            }
           }
           else
           {
             vec3 Pa = P - halfSampleOffset;
-            float da = (-1.0 + getHeightSample(Pa.xy, minLod)) * scale;
-            if (da == db) debug = true;
+            float da = (-1.0 + getHeightSample(Pa.xy, 0.0)) * scale;
+            //if (da == db) debug = true;
             float a = abs(Pa.z - da);
             float b = abs(Pb.z - db);
             float mf = a / (a + b);
             P = mix(Pa, Pb, mf);
+            break;
           }
         }
       }
@@ -248,15 +284,6 @@ const vec2 specular_ab = vec2(6.645, -5.645);
     }
 
   #else
-
-    float getHeightSample(const in vec2 texCoord)
-    {
-      #if defined(PARALLAXMAP)
-        return texture2D(m_ParallaxMap, texCoord).r;
-      #elif defined(NORMALMAP_PARALLAX)
-        return texture2D(m_NormalMap, texCoord).a;
-      #endif
-    }
 
     void calculateParallaxTexCoord(const in vec3 V, inout vec2 parallaxTexCoord)
     {
