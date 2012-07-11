@@ -153,16 +153,13 @@ const vec2 specular_ab = vec2(6.645, -5.645);
 
     void calculateQdmTexCoord(const in vec3 E, inout vec2 parallaxTexCoord)
     {
-      if (E.z > -0.1) return;
+      if (E.z > -0.01) return;
 
       float lod = float(PARALLAXMAP_LOD);
       float size = 1.0;
       float depth = 0.0;
       vec3 P = vec3(parallaxTexCoord, 0.0);
       vec2 T = step(0.0, E.xy);
-      vec2 A;
-      vec3 B;
-      vec3 F;
       bool tracing = true;
     
       while (tracing)
@@ -173,9 +170,9 @@ const vec2 specular_ab = vec2(6.645, -5.645);
 
           if (P.z > depth)
           {
-            A = T / size;
-            B = vec3(floor(P.xy * size) / size + A, depth);
-            F = (B - P) / E;
+            vec2 A = T / size;
+            vec3 B = vec3(floor(P.xy * size) / size + A, depth);
+            vec3 F = (B - P) / E;
 
             if ((F.z < F.x) && (F.z < F.y))
             {
@@ -198,11 +195,9 @@ const vec2 specular_ab = vec2(6.645, -5.645);
         if (lod == 0.0)
         //if (false)
         {
-          float sz = size * 1.0;
-          A = T / sz;
-          vec2 tc = floor(P.xy * sz) / sz;
-          B = vec3(tc + A, depth);
-          F = (B - P) / E;
+          vec2 A = T / (size / 2.0);
+          vec2 B = vec2(floor(P.xy * size) / size + A);
+          vec2 F = (B - P.xy) / E.xy;
           float Fmin = min(F.x, F.y);
           int numSteps = 8;
           float stepSize = (Fmin + QDM_OFFSET) / float(numSteps);
@@ -214,6 +209,7 @@ const vec2 specular_ab = vec2(6.645, -5.645);
             if (P.z < depth)
             {
               tracing = false;
+              break;
             }
             else
             {
@@ -221,11 +217,37 @@ const vec2 specular_ab = vec2(6.645, -5.645);
             }
           }
 
-          //lod = float(PARALLAXMAP_LOD);
-          //size = 1.0;
-          lod += 1.0;
-          size /= 2.0;
-          //if (tracing) debug = true;
+          //if (false)
+          if (!tracing)
+          {
+            float sgn = -1.0;
+
+            // binary search...
+            for (int i = 0; i < numSteps; i++)
+            {
+              stepSize *= 0.5;            
+              P = P + E * stepSize * sgn;
+
+              if (P.z < depth)
+              {
+                sgn = -1.0;
+              }
+              else
+              {
+                sgn = 1.0;
+              }
+
+              depth = (-1.0 + getHeightSample(P.xy, 0.0)) * scale;
+            }
+          }
+          else
+          {
+            lod = float(PARALLAXMAP_LOD);
+            size = 1.0;
+            //lod += 1.0;
+            //size /= 2.0;
+            //if (tracing) debug = true;
+          }
         }
         else
         {
@@ -234,6 +256,7 @@ const vec2 specular_ab = vec2(6.645, -5.645);
       }
 
       parallaxTexCoord = P.xy;
+      diff = vec3(P.xy, depth);
     }
 
   #else
@@ -431,4 +454,5 @@ void main (void)
   #endif
 
   if (debug) gl_FragColor.r *= 2.0;
+  //gl_FragColor.rgb = vec3(1.0 + diff.z * 10.0);
 }

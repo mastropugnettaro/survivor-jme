@@ -160,6 +160,7 @@ public class TestParallaxShadows extends SimpleApplication
   @Override
   public void simpleUpdate(float tpf)
   {
+    if (true) return;
     angle += tpf;
     float cosAngle = FastMath.cos(angle);
     float sinAngle = FastMath.sin(angle);
