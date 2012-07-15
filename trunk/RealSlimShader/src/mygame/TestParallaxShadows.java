@@ -9,7 +9,9 @@ import com.jme3.light.PointLight;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
+import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
+import com.jme3.math.Vector4f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.debug.Arrow;
@@ -124,9 +126,11 @@ public class TestParallaxShadows extends SimpleApplication
     node.attachChild(floor);
     rootNode.attachChild(node);
 
-    cam.setLocation(new Vector3f(-1.1f, 3f, -1f));
-    cam.lookAt(floor.getWorldTranslation().clone(), Vector3f.UNIT_Y.clone());
-    cam.setFrustumPerspective(45, (float) settings.getWidth() / settings.getHeight(), 0.01f, 100.0f);
+    cam.setLocation(new Vector3f(1.6401862f, 0.11509303f, 0.38625157f));
+    cam.setRotation(new Quaternion(0.15086937f, 0.84618825f, -0.32100904f, 0.39768964f));
+    //cam.setLocation(new Vector3f(-1.1f, 3f, -1f));
+    //cam.lookAt(floor.getWorldTranslation().clone(), Vector3f.UNIT_Y.clone());
+    cam.setFrustumPerspective(45, (float) settings.getWidth() / settings.getHeight(), 0.001f, 100.0f);
 
     AmbientLight al;
     DirectionalLight dl;
