@@ -7,6 +7,7 @@ import com.jme3.light.LightList;
 import com.jme3.light.PointLight;
 import com.jme3.light.SpotLight;
 import com.jme3.material.MatParam;
+import com.jme3.material.MatParamTexture;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
@@ -79,23 +80,27 @@ public class MultiPassParallelLightingRenderer implements MaterialExLightingRend
       if ((steep != null) && steep.booleanValue())
       {
         // for Quadtree Displacement Mapping
-        Texture parallaxMap = mat.getTextureParam("ParallaxMap").getTextureValue();
-        MipMapGeneratorEx.generateMipMaps(parallaxMap.getImage(), MipMapGeneratorEx.maxScaler);
-        //parallaxMap.setAnisotropicFilter(0);
-        //parallaxMap.setMagFilter(Texture.MagFilter.Nearest);
-        parallaxMap.setMinFilter(Texture.MinFilter.NearestNearestMipMap);
-        parallaxMap.setMagFilter(Texture.MagFilter.Bilinear);
-        //parallaxMap.setMinFilter(Texture.MinFilter.BilinearNearestMipMap);
-        
-        Image parallaxMapImage = parallaxMap.getImage();
-        if (parallaxMapImage != null)
+        MatParamTexture parallaxMapParam = mat.getTextureParam("ParallaxMap");
+        if (parallaxMapParam != null)
         {
-          parallaxMapSize = parallaxMap.getImage().getWidth();
-          parallaxMapLod = (int) (Math.log(parallaxMapSize) / Math.log(2.0));
-        }
-        
-        mat.setInt("ParallaxMapSize", parallaxMapSize);
-        mat.setInt("ParallaxMapLod", parallaxMapLod);
+          Texture parallaxMap = parallaxMapParam.getTextureValue();
+          MipMapGeneratorEx.generateMipMaps(parallaxMap.getImage(), MipMapGeneratorEx.maxScaler);
+          //parallaxMap.setAnisotropicFilter(0);
+          //parallaxMap.setMagFilter(Texture.MagFilter.Nearest);
+          parallaxMap.setMinFilter(Texture.MinFilter.NearestNearestMipMap);
+          parallaxMap.setMagFilter(Texture.MagFilter.Bilinear);
+          //parallaxMap.setMinFilter(Texture.MinFilter.BilinearNearestMipMap);
+
+          Image parallaxMapImage = parallaxMap.getImage();
+          if (parallaxMapImage != null)
+          {
+            parallaxMapSize = parallaxMap.getImage().getWidth();
+            parallaxMapLod = (int) (Math.log(parallaxMapSize) / Math.log(2.0));
+          }
+          
+          mat.setInt("ParallaxMapSize", parallaxMapSize);
+          mat.setInt("ParallaxMapLod", parallaxMapLod);
+        }        
       }    
     }    
   }

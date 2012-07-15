@@ -135,6 +135,7 @@ const vec2 specular_ab = vec2(6.645, -5.645);
 
     bool debug = false;
     vec3 diff = vec3(0.0);
+    int path = 0;
 
     vec3 getInterpolatedPosition(
       const in vec3 E, const in vec3 P, const in float size, const in float lod)
@@ -144,7 +145,7 @@ const vec2 specular_ab = vec2(6.645, -5.645);
       vec3 Pa = P - halfSampleOffset;
       vec3 Pb = P + halfSampleOffset;
       float da = (-1.0 + getHeightSample(Pa.xy, lod)) * scale;
-      float db = (-1.0 + getHeightSample(Pb.xy, lod)) * scale; // depth;
+      float db = (-1.0 + getHeightSample(Pb.xy, lod)) * scale;
       float a = abs(Pa.z - da);
       float b = abs(Pb.z - db);
       float mf = a / (a + b);
@@ -157,10 +158,12 @@ const vec2 specular_ab = vec2(6.645, -5.645);
 
       float lod = float(PARALLAXMAP_LOD);
       float size = 1.0;
+      //float lod = 0.0;
+      //float size = 256.0;
       float depth = 0.0;
       vec3 P = vec3(parallaxTexCoord, 0.0);
       vec2 T = step(0.0, E.xy);
-      bool tracing = true;
+      bool tracing = true;      
     
       while (tracing)
       {
@@ -179,14 +182,17 @@ const vec2 specular_ab = vec2(6.645, -5.645);
               P = P + E * F.z;
               lod -= 1.0;
               size *= 2.0;
+              path = 1; // green
             }
             else
             {
               P = P + E * (min(F.x, F.y) + QDM_OFFSET);
+              path = 2; // blue
             }
           }
           else
           {
+            if (path == 1) path = 3; // red
             lod -= 1.0;
             size *= 2.0;
           }
@@ -195,11 +201,12 @@ const vec2 specular_ab = vec2(6.645, -5.645);
         if (lod == 0.0)
         //if (false)
         {
-          vec2 A = T / (size / 2.0);
+          size = 256.0;
+          vec2 A = T / size;
           vec2 B = vec2(floor(P.xy * size) / size + A);
           vec2 F = (B - P.xy) / E.xy;
           float Fmin = min(F.x, F.y);
-          int numSteps = 8;
+          int numSteps = 16;
           float stepSize = (Fmin + QDM_OFFSET) / float(numSteps);
 
           // linear search...
@@ -208,8 +215,16 @@ const vec2 specular_ab = vec2(6.645, -5.645);
             depth = (-1.0 + getHeightSample(P.xy, 0.0)) * scale;
             if (P.z < depth)
             {
+              if (i == 0)
+              {
+                debug = true;
+              }
+              else
+              {
+              }
+
               tracing = false;
-              break;
+              i = numSteps;
             }
             else
             {
@@ -226,7 +241,7 @@ const vec2 specular_ab = vec2(6.645, -5.645);
             for (int i = 0; i < numSteps; i++)
             {
               stepSize *= 0.5;            
-              P = P + E * stepSize * sgn;
+              P = P + E * (stepSize * sgn);
 
               if (P.z < depth)
               {
@@ -242,11 +257,11 @@ const vec2 specular_ab = vec2(6.645, -5.645);
           }
           else
           {
-            lod = float(PARALLAXMAP_LOD);
-            size = 1.0;
+            //lod = float(PARALLAXMAP_LOD);
+            //size = 1.0;
             //lod += 1.0;
             //size /= 2.0;
-            //if (tracing) debug = true;
+            //debug = true;
           }
         }
         else
@@ -256,7 +271,7 @@ const vec2 specular_ab = vec2(6.645, -5.645);
       }
 
       parallaxTexCoord = P.xy;
-      diff = vec3(P.xy, depth);
+      diff = P;
     }
 
   #else
@@ -318,7 +333,11 @@ void addLightQuad(DEF ALQ_FP)
 
   #if defined(NEED_DIFFUSE) || defined(DIFFUSEMAP)
     // compute NdotL in parallel
-    vec4 NdotL = tsLX * N.x + tsLY * N.y + tsLZ * N.z;
+    #ifdef NORMALMAP
+      vec4 NdotL = tsLX * N.x + tsLY * N.y + tsLZ * N.z;
+    #else
+      vec4 NdotL = wsLX * N.x + wsLY * N.y + wsLZ * N.z;
+   #endif
 
     // normalize NdotL and scale by intensity
     diffuseQuad = max(vec4(0.0), NdotL * scale) * intensity;
@@ -328,7 +347,11 @@ void addLightQuad(DEF ALQ_FP)
     // dot(reflect(-L, N), V) == dot(reflect(-V, N), L)
     // compute RdotL in parallel
     vec3 R = reflect(-V, N);
-    vec4 RdotL = tsLX * R.x + tsLY * R.y + tsLZ * R.z;
+    #ifdef NORMALMAP
+      vec4 RdotL = tsLX * R.x + tsLY * R.y + tsLZ * R.z;
+    #else
+      vec4 RdotL = wsLX * R.x + wsLY * R.y + wsLZ * R.z;
+   #endif
 
     // normalize RdotL and scale by intensity
     RdotL = max(vec4(0.0), RdotL * scale);
@@ -453,6 +476,11 @@ void main (void)
     gl_FragColor += specularSum;
   #endif
 
-  if (debug) gl_FragColor.r *= 2.0;
+  //if (path == 1) gl_FragColor.g = 1.0;
+  //if (path == 2) gl_FragColor.b = 1.0;
+  //if (path == 3) gl_FragColor.r = 1.0;
+  //gl_FragColor.rgb = vec3(-diff.z * 10.0);
+
+  if (debug) gl_FragColor.r = 1.0;
   //gl_FragColor.rgb = vec3(1.0 + diff.z * 10.0);
 }
