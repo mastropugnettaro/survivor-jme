@@ -217,7 +217,8 @@ const vec2 specular_ab = vec2(6.645, -5.645);
             {
               if (i == 0)
               {
-                debug = true;
+                float depth2 = (-1.0 + getHeightSample(P.xy, 1.0)) * scale;
+                if (depth2 < depth) debug = true;
               }
               else
               {
