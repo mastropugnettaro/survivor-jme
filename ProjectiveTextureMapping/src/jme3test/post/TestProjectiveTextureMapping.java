@@ -210,7 +210,7 @@ public class TestProjectiveTextureMapping extends SimpleApplication
     frustumMdl.setCullHint(Spatial.CullHint.Never);
     frustumMdl.setShadowMode(ShadowMode.Off);
     frustumMdl.setMaterial(new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md"));
-    frustumMdl.getMaterial().setColor("m_Color", ColorRGBA.White);    
+    frustumMdl.getMaterial().setColor("Color", ColorRGBA.White);    
     rootNode.attachChild(frustumMdl);    
   }
 
