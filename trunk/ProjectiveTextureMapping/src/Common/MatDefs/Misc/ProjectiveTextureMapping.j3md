@@ -27,7 +27,4 @@ MaterialDef Projective Texture Mapping {
             FALL_OFF : FallOffDistance
         }
     }
-
-   Technique FixedFunc {
-   }
 }
