@@ -168,7 +168,7 @@ MaterialDef MultiPassParallelLighting {
         }
     }
 
-    Technique FixedFunc {
+    Technique {
         LightMode FixedPipeline
     }
 
