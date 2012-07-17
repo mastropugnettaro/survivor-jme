@@ -190,7 +190,7 @@ MaterialDef SinglePassLighting {
         }
     }
 
-    Technique FixedFunc {
+    Technique {
         LightMode FixedPipeline
     }
 
