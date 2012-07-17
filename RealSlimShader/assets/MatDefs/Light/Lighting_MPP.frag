@@ -206,7 +206,7 @@ const vec2 specular_ab = vec2(6.645, -5.645);
           vec2 B = vec2(floor(P.xy * size) / size + A);
           vec2 F = (B - P.xy) / E.xy;
           float Fmin = min(F.x, F.y);
-          int numSteps = 16;
+          int numSteps = 8;
           float stepSize = (Fmin + QDM_OFFSET) / float(numSteps);
 
           // linear search...
@@ -385,9 +385,9 @@ void main (void)
   vec3 N; // normal vector
 
   V = normalize(v_View);
+  vec2 texCoord = v_TexCoord;
 
   #ifdef NORMALMAP
-    vec2 texCoord = v_TexCoord;
     #if defined(PARALLAXMAP) || defined(NORMALMAP_PARALLAX)
       #ifdef STEEP_PARALLAX
         calculateQdmTexCoord(-V, texCoord);
@@ -472,7 +472,7 @@ void main (void)
       specularSum *= m_Specular;
     #endif
     #ifdef SPECULARMAP
-      specularSum *= texture2D(m_SpecularMap, v_TexCoord);
+      specularSum *= texture2D(m_SpecularMap, texCoord);
     #endif
     gl_FragColor += specularSum;
   #endif
@@ -482,6 +482,6 @@ void main (void)
   //if (path == 3) gl_FragColor.r = 1.0;
   //gl_FragColor.rgb = vec3(-diff.z * 10.0);
 
-  if (debug) gl_FragColor.r = 1.0;
+  //if (debug) gl_FragColor.r = 1.0;
   //gl_FragColor.rgb = vec3(1.0 + diff.z * 10.0);
 }
