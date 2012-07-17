@@ -163,30 +163,50 @@ const vec2 specular_ab = vec2(6.645, -5.645);
       float depth = 0.0;
       vec3 P = vec3(parallaxTexCoord, 0.0);
       vec2 T = step(0.0, E.xy);
-      bool tracing = true;      
+      bool tracing = true;
+      int counter = 0;
     
       while (tracing)
       {
         while (lod > minLod) // todo: dynamic LoD
         {
-          depth = (-1.0 + getHeightSample(P.xy, lod)) * scale;
+          if (counter++ > 100)
+          {
+            tracing = false;
+            break;
+          }
+
+          vec2 tc = floor(P.xy * size) / size;
+          depth = (-1.0 + getHeightSample(tc, lod)) * scale;
 
           if (P.z > depth)
           {
             vec2 A = T / size;
-            vec3 B = vec3(floor(P.xy * size) / size + A, depth);
+            vec3 B = vec3(tc + A, depth);
             vec3 F = (B - P) / E;
 
             if ((F.z < F.x) && (F.z < F.y))
             {
               P = P + E * F.z;
+              P.z = depth;
               lod -= 1.0;
               size *= 2.0;
               path = 1; // green
             }
             else
             {
-              P = P + E * (min(F.x, F.y) + QDM_OFFSET);
+              //P = P + E * (min(F.x, F.y) + QDM_OFFSET);
+              if (F.x < F.y)
+              {
+                P = P + E * F.x;
+                P.x = B.x;
+              }
+              else
+              {
+                P = P + E * F.y;
+                P.y = B.y;
+              }
+
               path = 2; // blue
             }
           }
@@ -198,8 +218,8 @@ const vec2 specular_ab = vec2(6.645, -5.645);
           }
         }
 
-        if (lod == 0.0)
-        //if (false)
+        //if (lod == 0.0)
+        if (false)
         {
           size = 256.0;
           vec2 A = T / size;
