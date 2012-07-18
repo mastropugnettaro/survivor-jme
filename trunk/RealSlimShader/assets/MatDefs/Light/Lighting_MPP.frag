@@ -130,12 +130,10 @@ const vec2 specular_ab = vec2(6.645, -5.645);
     }
 
     #define QDM_OFFSET 0.0001
+    #define BILINEAR_SMOOTH_FACTOR 2.0
     const float minLod = 0.0; // todo: calculate minimal LoD (ddx, ddy)
-    float scale = m_ParallaxHeight * 0.3; // todo: calculate m_ParallaxHeight * 0.3 in vs like v_tsParallaxOffset
-
-    bool debug = false;
-    vec3 diff = vec3(0.0);
-    int path = 0;
+    float scale = m_ParallaxHeight * 0.3; // steep compatibility
+    float qdmOffset = 0.5 / float(PARALLAXMAP_SIZE) * scale;
 
     vec3 getInterpolatedPosition(
       const in vec3 E, const in vec3 P, const in float size, const in float lod)
@@ -158,10 +156,9 @@ const vec2 specular_ab = vec2(6.645, -5.645);
 
       float lod = float(PARALLAXMAP_LOD);
       float size = 1.0;
-      //float lod = 0.0;
-      //float size = 256.0;
       float depth = 0.0;
-      vec3 P = vec3(parallaxTexCoord, 0.0);
+      vec3 P0 = vec3(parallaxTexCoord, 0.0);
+      vec3 P = P0;
       vec3 En = normalize(E);
       En.xy *= scale;
       En /= abs(En.z);
@@ -171,7 +168,7 @@ const vec2 specular_ab = vec2(6.645, -5.645);
     
       while (tracing)
       {
-        while (lod > minLod) // todo: dynamic LoD
+        while (lod >= minLod) // todo: dynamic LoD
         {
           if (counter++ > 100)
           {
@@ -194,109 +191,73 @@ const vec2 specular_ab = vec2(6.645, -5.645);
               P.z = depth;
               lod -= 1.0;
               size *= 2.0;
-              path = 1; // green
             }
             else
             {
-              P = P + En * (min(F.x, F.y) + QDM_OFFSET);
-/*
-              if (F.x < F.y)
-              {
-                P = P + En * F.x;
-                P.x = B.x;
-              }
-              else
-              {
-                P = P + En * F.y;
-                P.y = B.y;
-              }
-*/
-              path = 2; // blue
+              P = P + En * (min(F.x, F.y) + qdmOffset);
             }
           }
           else
           {
-            if (path == 1) path = 3; // red
             lod -= 1.0;
             size *= 2.0;
           }
         }
 
-        //if (lod == 0.0)
+        float rayLength = length(P.xy - P0.xy) + qdmOffset;
+        float halfSampleSize = 1.0 / 256.0 / 2.0; // 0.25 / size;
+
+        float da = P.z * (rayLength - BILINEAR_SMOOTH_FACTOR * halfSampleSize) / rayLength;
+	      float db = P.z * (rayLength + BILINEAR_SMOOTH_FACTOR * halfSampleSize) / rayLength;
+
+        vec3 Pa = P0 + En * da;
+        vec3 Pb = P0 + En * db;
+
+        da = -1.0 + getHeightSample(Pa.xy, minLod);
+        db = -1.0 + getHeightSample(Pb.xy, minLod);
+
+        da = abs(Pa.z - da);
+        db = abs(Pb.z - db);
+ 
+        P = mix(Pa, Pb, da / (da + db));
+        tracing = false;
+
+/*
+        float halfSampleSize = 0.25 / size;
+        float halfSampleOffset = (length(P.xy - P0.xy) + qdmOffset) * halfSampleSize;
+
+        vec3 Pb = P + halfSampleOffset;
+        float db = -1.0 + getHeightSample(Pb.xy, minLod);
+
+        //if (Pb.z > db)
         if (false)
         {
-          size = 256.0;
+          // no intersection, continue tracing
+          lod = minLod;
+          size /= 2.0;            
+
           vec2 A = T / size;
           vec2 B = vec2(floor(P.xy * size) / size + A);
           vec2 F = (B - P.xy) / En.xy;
           float Fmin = min(F.x, F.y);
-          int numSteps = 8;
-          float stepSize = (Fmin + QDM_OFFSET) / float(numSteps);
 
-          // linear search...
-          for (int i = 0; i < numSteps; i++)
-          {
-            depth = -1.0 + getHeightSample(P.xy, 0.0);
-            if (P.z < depth)
-            {
-              if (i == 0)
-              {
-                float depth2 = -1.0 + getHeightSample(P.xy, 1.0);
-                if (depth2 < depth) debug = true;
-              }
-              else
-              {
-              }
-
-              tracing = false;
-              i = numSteps;
-            }
-            else
-            {
-              P = P + En * stepSize;
-            }
-          }
-
-          //if (false)
-          if (!tracing)
-          {
-            float sgn = -1.0;
-
-            // binary search...
-            for (int i = 0; i < numSteps; i++)
-            {
-              stepSize *= 0.5;            
-              P = P + En * (stepSize * sgn);
-
-              if (P.z < depth)
-              {
-                sgn = -1.0;
-              }
-              else
-              {
-                sgn = 1.0;
-              }
-
-              depth = -1.0 + getHeightSample(P.xy, 0.0);
-            }
-          }
-          else
-          {
-            //lod = float(PARALLAXMAP_LOD);
-            //size = 1.0;
-            //lod += 1.0;
-            //size /= 2.0;
-            //debug = true;
-          }
+          // Set P to next cell
+          P = P + En * (Fmin + qdmOffset);
         }
         else
         {
+          vec3 Pa = P - halfSampleOffset;
+          float da = -1.0 + getHeightSample(Pa.xy, minLod);
+          float a = abs(Pa.z - da);
+          float b = abs(Pb.z - db);
+          float mf = a / (a + b);
+          P = mix(Pa, Pb, mf);
           tracing = false;
         }
+*/
       }
 
       parallaxTexCoord = P.xy;
-      diff = P;
     }
 
   #else
@@ -500,12 +461,4 @@ void main (void)
     #endif
     gl_FragColor += specularSum;
   #endif
-
-  //if (path == 1) gl_FragColor.g = 1.0;
-  //if (path == 2) gl_FragColor.b = 1.0;
-  //if (path == 3) gl_FragColor.r = 1.0;
-  //gl_FragColor.rgb = vec3(-diff.z * 10.0);
-
-  //if (debug) gl_FragColor.r = 1.0;
-  //gl_FragColor.rgb = vec3(1.0 + diff.z * 10.0);
 }
