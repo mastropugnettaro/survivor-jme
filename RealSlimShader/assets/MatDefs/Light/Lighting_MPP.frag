@@ -162,7 +162,10 @@ const vec2 specular_ab = vec2(6.645, -5.645);
       //float size = 256.0;
       float depth = 0.0;
       vec3 P = vec3(parallaxTexCoord, 0.0);
-      vec2 T = step(0.0, E.xy);
+      vec3 En = normalize(E);
+      En.xy *= scale;
+      En /= abs(En.z);
+      vec2 T = step(0.0, En.xy);
       bool tracing = true;
       int counter = 0;
     
@@ -177,17 +180,17 @@ const vec2 specular_ab = vec2(6.645, -5.645);
           }
 
           vec2 tc = floor(P.xy * size) / size;
-          depth = (-1.0 + getHeightSample(tc, lod)) * scale;
+          depth = -1.0 + getHeightSample(tc, lod);
 
           if (P.z > depth)
           {
             vec2 A = T / size;
             vec3 B = vec3(tc + A, depth);
-            vec3 F = (B - P) / E;
+            vec3 F = (B - P) / En;
 
             if ((F.z < F.x) && (F.z < F.y))
             {
-              P = P + E * F.z;
+              P = P + En * F.z;
               P.z = depth;
               lod -= 1.0;
               size *= 2.0;
@@ -195,18 +198,19 @@ const vec2 specular_ab = vec2(6.645, -5.645);
             }
             else
             {
-              //P = P + E * (min(F.x, F.y) + QDM_OFFSET);
+              P = P + En * (min(F.x, F.y) + QDM_OFFSET);
+/*
               if (F.x < F.y)
               {
-                P = P + E * F.x;
+                P = P + En * F.x;
                 P.x = B.x;
               }
               else
               {
-                P = P + E * F.y;
+                P = P + En * F.y;
                 P.y = B.y;
               }
-
+*/
               path = 2; // blue
             }
           }
@@ -224,7 +228,7 @@ const vec2 specular_ab = vec2(6.645, -5.645);
           size = 256.0;
           vec2 A = T / size;
           vec2 B = vec2(floor(P.xy * size) / size + A);
-          vec2 F = (B - P.xy) / E.xy;
+          vec2 F = (B - P.xy) / En.xy;
           float Fmin = min(F.x, F.y);
           int numSteps = 8;
           float stepSize = (Fmin + QDM_OFFSET) / float(numSteps);
@@ -232,12 +236,12 @@ const vec2 specular_ab = vec2(6.645, -5.645);
           // linear search...
           for (int i = 0; i < numSteps; i++)
           {
-            depth = (-1.0 + getHeightSample(P.xy, 0.0)) * scale;
+            depth = -1.0 + getHeightSample(P.xy, 0.0);
             if (P.z < depth)
             {
               if (i == 0)
               {
-                float depth2 = (-1.0 + getHeightSample(P.xy, 1.0)) * scale;
+                float depth2 = -1.0 + getHeightSample(P.xy, 1.0);
                 if (depth2 < depth) debug = true;
               }
               else
@@ -249,7 +253,7 @@ const vec2 specular_ab = vec2(6.645, -5.645);
             }
             else
             {
-              P = P + E * stepSize;
+              P = P + En * stepSize;
             }
           }
 
@@ -262,7 +266,7 @@ const vec2 specular_ab = vec2(6.645, -5.645);
             for (int i = 0; i < numSteps; i++)
             {
               stepSize *= 0.5;            
-              P = P + E * (stepSize * sgn);
+              P = P + En * (stepSize * sgn);
 
               if (P.z < depth)
               {
@@ -273,7 +277,7 @@ const vec2 specular_ab = vec2(6.645, -5.645);
                 sgn = 1.0;
               }
 
-              depth = (-1.0 + getHeightSample(P.xy, 0.0)) * scale;
+              depth = -1.0 + getHeightSample(P.xy, 0.0);
             }
           }
           else
