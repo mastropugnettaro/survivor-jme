@@ -96,15 +96,16 @@ const vec2 specular_ab = vec2(6.645, -5.645);
 #endif
 
 #if defined(PARALLAXMAP) || defined(NORMALMAP_PARALLAX)
-  uniform float m_ParallaxHeight;
+
   uniform vec2 g_FrustumNearFar;
+  uniform float m_ParallaxHeight;
 
   float getHeightSample(const in vec2 texCoord)
   {
     #if defined(PARALLAXMAP)
-      return texture2D(m_ParallaxMap, texCoord).r;
+      return texture2D(m_ParallaxMap, texCoord).r - 0.1;
     #elif defined(NORMALMAP_PARALLAX)
-      return texture2D(m_NormalMap, texCoord).a;
+      return texture2D(m_NormalMap, texCoord).a - 0.1;
     #endif
   }
 
@@ -254,9 +255,7 @@ const vec2 specular_ab = vec2(6.645, -5.645);
       }
 
       vec2 vParallaxOffset = v_tsParallaxOffset * (1.0 - fParallaxAmount);
-      //gl_FragDepth = getFragDepth((gl_FragCoord.z + (1.0 - fCurrHeight)) / gl_FragCoord.w);
-      //gl_FragDepth = gl_FragCoord.z / gl_FragCoord.w;
-      //gl_FragDepth = gl_FragCoord.z;
+      gl_FragDepth = getFragDepth((gl_FragCoord.z + (1.0 - fParallaxAmount) * (1.0 + c_ParallaxScale) / v_View.z) / gl_FragCoord.w);
 
       // The computed texture offset for the displaced point on the pseudo-extruded surface:
       vec2 texSampleBase = pomTexCoord - vParallaxOffset;

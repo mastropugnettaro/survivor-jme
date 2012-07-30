@@ -63,6 +63,7 @@ MaterialDef SinglePassLighting {
             ViewMatrix
             CameraPosition
             NormalMatrix
+            FrustumNearFar
         }
 
         Defines {
@@ -98,6 +99,7 @@ MaterialDef SinglePassLighting {
             ViewMatrix
             CameraPosition
             NormalMatrix
+            FrustumNearFar
         }
 
         Defines {
