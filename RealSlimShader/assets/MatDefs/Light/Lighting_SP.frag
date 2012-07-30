@@ -73,6 +73,8 @@
     #endif
 
     #if defined(PARALLAXMAP) || defined(NORMALMAP_PARALLAX)
+
+      uniform vec2 g_FrustumNearFar;
       uniform float m_ParallaxHeight;
 
       float getHeightSample(const in vec2 texCoord)
@@ -84,7 +86,17 @@
         #endif
       }
 
+      float getFragDepth(float z)
+      {
+        float near = g_FrustumNearFar.x;
+        float far = g_FrustumNearFar.y;
+        return ((-far / (far - near) * z - far * near / (near - far)) / -z);
+        //return far / (far - near) + ((far * near / (near - far)) / z);
+        //return (far + near) / (far - near) + ((-2.0 * far * near / (far - near)) / z);
+      }
+
      #ifdef STEEP_PARALLAX
+
         uniform int m_HeightMapSize;
         varying vec2 v_tsParallaxOffset;
 
@@ -217,6 +229,7 @@
           }
 
           vec2 vParallaxOffset = v_tsParallaxOffset * (1.0 - fParallaxAmount);
+          gl_FragDepth = getFragDepth((gl_FragCoord.z + (1.0 - fParallaxAmount) * (1.0 + c_ParallaxScale) / v_tsView.z) / gl_FragCoord.w);
 
           // The computed texture offset for the displaced point on the pseudo-extruded surface:
           vec2 texSampleBase = pomTexCoord - vParallaxOffset;

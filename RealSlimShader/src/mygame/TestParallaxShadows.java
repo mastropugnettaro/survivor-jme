@@ -94,7 +94,7 @@ public class TestParallaxShadows extends SimpleApplication
     if (sphereMesh == null)
     {
       log.log(Level.SEVERE, "Generating SphereMesh. This may take some time.");
-      sphereMesh = new Sphere(SPHERE_SEGMENTS, SPHERE_SEGMENTS, 0.5f);
+      sphereMesh = new Sphere(SPHERE_SEGMENTS, SPHERE_SEGMENTS, 1f);
       sphereMesh.setTextureMode(TextureMode.Projected);
       TangentBinormalGenerator.generate(sphereMesh);
       
@@ -110,10 +110,10 @@ public class TestParallaxShadows extends SimpleApplication
     sphere.setMaterial(sphereMat);
     
     
-    Box box = new Box(2f, 1.1f, 2f);
+    Box box = new Box(2f, 0.1f, 2f);
     TangentBinormalGenerator.generate(box);
     Geometry floor = new Geometry("Floor", box);
-    floor.setLocalTranslation(0f, -1f, 0f);
+    //floor.setLocalTranslation(0f, -1f, 0f);
     MaterialEx floorMat = new MaterialEx("Materials/Floor_SP_POMSS.j3m", assetManager);
     MultiPassParallelLightingRenderer mpplr = new MultiPassParallelLightingRenderer();
     mpplr.setQuadsPerPass(1); // 1 is safe, > 1 yields more fps
