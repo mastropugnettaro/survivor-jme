@@ -71,38 +71,7 @@ public class MultiPassParallelLightingRenderer implements MaterialExLightingRend
     // initialize with safe values (working & good looking)
     // recompiling might take some frames
     mat.setInt("QuadsPerPass", quadsPerPass);
-    mat.setBoolean("HasSpotLights", true);
-    
-    MatParam mp = mat.getParam("SteepParallax");
-    if ((mp != null) && (mp.getVarType() == VarType.Boolean)) 
-    {
-      Boolean steep = (Boolean) mp.getValue();
-      if ((steep != null) && steep.booleanValue())
-      {
-        // for Quadtree Displacement Mapping
-        MatParamTexture parallaxMapParam = mat.getTextureParam("ParallaxMap");
-        if (parallaxMapParam != null)
-        {
-          Texture parallaxMap = parallaxMapParam.getTextureValue();
-          MipMapGeneratorEx.generateMipMaps(parallaxMap.getImage(), MipMapGeneratorEx.maxScaler);
-          //parallaxMap.setAnisotropicFilter(0);
-          parallaxMap.setMagFilter(Texture.MagFilter.Nearest);
-          parallaxMap.setMinFilter(Texture.MinFilter.NearestNearestMipMap);
-          //parallaxMap.setMagFilter(Texture.MagFilter.Bilinear);
-          //parallaxMap.setMinFilter(Texture.MinFilter.BilinearNearestMipMap);
-
-          Image parallaxMapImage = parallaxMap.getImage();
-          if (parallaxMapImage != null)
-          {
-            parallaxMapSize = parallaxMap.getImage().getWidth();
-            parallaxMapLod = (int) (Math.log(parallaxMapSize) / Math.log(2.0));
-          }
-          
-          mat.setInt("ParallaxMapSize", parallaxMapSize);
-          mat.setInt("ParallaxMapLod", parallaxMapLod);
-        }        
-      }    
-    }    
+    mat.setBoolean("HasSpotLights", true);    
   }
 
   public void detach(Material mat, RenderManager rm) 

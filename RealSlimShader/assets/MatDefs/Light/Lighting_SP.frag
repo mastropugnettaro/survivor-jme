@@ -1,6 +1,3 @@
-#extension GL_EXT_gpu_shader4 : enable
-#extension GL_ATI_shader_texture_lod : enable
-
 #ifndef NUM_LIGHTS
   #define NUM_LIGHTS 1
 #endif
@@ -88,7 +85,6 @@
       }
 
      #ifdef STEEP_PARALLAX
-        uniform float m_ParallaxShadowSoftening;
         uniform int m_HeightMapSize;
         varying vec2 v_tsParallaxOffset;
 
@@ -99,9 +95,6 @@
 
         const int c_nLODThreshold = 4;
         const bool c_bVisualizeLOD = false;
-
-        //#define USE_TEXTURE2D_GRAD
-        //#define USE_TEXTURE2D_LOD
 
         // Adaptive in-shader level-of-detail system implementation. Compute the 
         // current mip level explicitly in the pixel shader and use this information 
@@ -127,39 +120,6 @@
         float tmp_fMinTexCoordDelta = max(tmp_dTexCoords.x, tmp_dTexCoords.y); 
         // Compute the current mip level  (* 0.5 is effectively computing a square root before )
         float fMipLevel = max(0.5 * log2(tmp_fMinTexCoordDelta), 0.0);
-
-        #ifdef GL_ATI_shader_texture_lod
-          float getHeightSample(const in vec2 texCoord, const in float lod)
-          {
-            #if defined(PARALLAXMAP)
-              return texture2DLod(m_ParallaxMap, texCoord, lod).r;
-            #elif defined(NORMALMAP_PARALLAX)
-              return texture2DLod(m_NormalMap, texCoord, lod).a;
-            #endif
-          }
-        #endif
-
-        #ifdef GL_EXT_gpu_shader4
-          float getHeightSample(const in vec2 texCoord, const in vec2 dx, const in vec2 dy)
-          {
-            #if defined(PARALLAXMAP)
-              return texture2DGrad(m_ParallaxMap, texCoord, dx, dy).r;
-            #elif defined(NORMALMAP_PARALLAX)
-              return texture2DGrad(m_NormalMap, texCoord, dy, dy).a;
-            #endif
-          }
-        #endif
-
-        float getHeightSampleEx(const in vec2 texCoord)
-        {
-          #if defined(USE_TEXTURE2D_GRAD) && defined(GL_EXT_gpu_shader4)
-            return getHeightSample(texCoord, dx, dy);
-          #elif defined(USE_TEXTURE2D_LOD) && defined(GL_ATI_shader_texture_lod)
-            return getHeightSample(texCoord, fMipLevel);
-          #else
-            return getHeightSample(texCoord);
-          #endif
-        }
 
         int calculateNumSteps(const in vec3 wsView, const in vec3 wsNormal)
         {
@@ -219,7 +179,7 @@
             vTexCurrentOffset -= vTexOffsetPerStep;
 
             // Sample height map which in this case is stored in the alpha channel of the normal map:
-            fCurrHeight = getHeightSampleEx(vTexCurrentOffset);
+            fCurrHeight = getHeightSample(vTexCurrentOffset);
 
             fCurrentBound -= fStepSize;
 
@@ -239,11 +199,6 @@
               fPrevHeight = fCurrHeight;
             }
           }
-
-  //        if (fPrevHeight == fCurrHeight)
-  //        {
-  //          discard;
-  //        }
 
           float fDelta2 = pt2.x - pt2.y;
           float fDelta1 = pt1.x - pt1.y;
@@ -304,20 +259,22 @@
 
         #ifdef PARALLAX_SHADOWS
 
+          uniform float m_ParallaxShadowSoftening;
+
           void addParallaxShadow(const in vec3 tsLight, const in vec2 parallaxTexCoord, inout float parallaxShadowSum)
           {
             vec2 vLightRayTS = tsLight.xy * c_ParallaxScale;
 
             // Compute the soft blurry shadows taking into account self-occlusion for 
             // features of the height field:
-            float sh0 =  getHeightSampleEx(parallaxTexCoord);
-            float shA = (getHeightSampleEx(parallaxTexCoord + vLightRayTS * 0.88) - sh0 - 0.88) *  1.0 * m_ParallaxShadowSoftening;
-            float sh9 = (getHeightSampleEx(parallaxTexCoord + vLightRayTS * 0.77) - sh0 - 0.77) *  2.0 * m_ParallaxShadowSoftening;
-            float sh8 = (getHeightSampleEx(parallaxTexCoord + vLightRayTS * 0.66) - sh0 - 0.66) *  4.0 * m_ParallaxShadowSoftening;
-            float sh7 = (getHeightSampleEx(parallaxTexCoord + vLightRayTS * 0.55) - sh0 - 0.55) *  6.0 * m_ParallaxShadowSoftening;
-            float sh6 = (getHeightSampleEx(parallaxTexCoord + vLightRayTS * 0.44) - sh0 - 0.44) *  8.0 * m_ParallaxShadowSoftening;
-            float sh5 = (getHeightSampleEx(parallaxTexCoord + vLightRayTS * 0.33) - sh0 - 0.33) * 10.0 * m_ParallaxShadowSoftening;
-            float sh4 = (getHeightSampleEx(parallaxTexCoord + vLightRayTS * 0.22) - sh0 - 0.22) * 12.0 * m_ParallaxShadowSoftening;
+            float sh0 =  getHeightSample(parallaxTexCoord);
+            float shA = (getHeightSample(parallaxTexCoord + vLightRayTS * 0.88) - sh0 - 0.88) *  1.0 * m_ParallaxShadowSoftening;
+            float sh9 = (getHeightSample(parallaxTexCoord + vLightRayTS * 0.77) - sh0 - 0.77) *  2.0 * m_ParallaxShadowSoftening;
+            float sh8 = (getHeightSample(parallaxTexCoord + vLightRayTS * 0.66) - sh0 - 0.66) *  4.0 * m_ParallaxShadowSoftening;
+            float sh7 = (getHeightSample(parallaxTexCoord + vLightRayTS * 0.55) - sh0 - 0.55) *  6.0 * m_ParallaxShadowSoftening;
+            float sh6 = (getHeightSample(parallaxTexCoord + vLightRayTS * 0.44) - sh0 - 0.44) *  8.0 * m_ParallaxShadowSoftening;
+            float sh5 = (getHeightSample(parallaxTexCoord + vLightRayTS * 0.33) - sh0 - 0.33) * 10.0 * m_ParallaxShadowSoftening;
+            float sh4 = (getHeightSample(parallaxTexCoord + vLightRayTS * 0.22) - sh0 - 0.22) * 12.0 * m_ParallaxShadowSoftening;
 
             // Compute the actual shadow strength:
             float fOcclusionShadow = 1.0 - max(max(max(max(max(max(shA, sh9), sh8), sh7), sh6), sh5), sh4);
@@ -328,33 +285,6 @@
           }
 
         #endif
-
-        void calculatePom(const in int nNumSteps, const in vec3 tsLight, out vec2 pomTexCoord, out float parallaxShadow)
-        {
-          // Start the current sample located at the input texture coordinate, which would correspond
-          // to computing a bump mapping result:
-          pomTexCoord = v_TexCoord;
-          parallaxShadow = 0.0;
-
-          // Multiplier for visualizing the level of detail (see notes for 'nLODThreshold' variable
-          // for how that is done visually)
-          // vec4 cLODColoring = vec4(1.0, 1.0, 3.0, 1.0);
-
-          if (fMipLevel <= float(c_nLODThreshold))
-          {
-            calculatePomTexCoord(nNumSteps, pomTexCoord);
-            #ifdef PARALLAX_SHADOWS
-              addParallaxShadow(tsLight, pomTexCoord, parallaxShadow);
-            #else
-              parallaxShadow = 1.0;
-            #endif
-          }
-          else
-          {
-            parallaxShadow = 1.0;
-          }
-        }
-
       #else
 
         void calculateParallaxTexCoord(const in vec3 V, inout vec2 parallaxTexCoord)
