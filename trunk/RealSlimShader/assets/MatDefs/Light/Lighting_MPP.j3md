@@ -34,6 +34,15 @@ MaterialDef MultiPassParallelLighting {
         // Set to true to activate Quadtree Displacement Mapping 
         // Parameter name is for Lighting.j3md compatibility
         Boolean SteepParallax
+
+        // Size of textures (s = t = 2^n assumed)
+        Int HeightMapSize : 256
+
+        // Set to true to activate Parallax Occlusion Mapping 
+        // Parameter name is for Lighting.j3md compatibility
+        Boolean SteepParallax
+
+        Boolean UseLoD
     }
 
     Technique {
@@ -76,6 +85,7 @@ MaterialDef MultiPassParallelLighting {
             WorldMatrix
             WorldMatrixInverseTranspose
             CameraPosition
+            FrustumNearFar
         }
 
         Defines {
@@ -92,8 +102,7 @@ MaterialDef MultiPassParallelLighting {
 
             QUADS_PER_PASS : QuadsPerPass
             HAS_SPOTLIGHTS : HasSpotLights
-            PARALLAXMAP_SIZE : ParallaxMapSize
-            PARALLAXMAP_LOD : ParallaxMapLod
+            USE_LOD : UseLoD
         }
     }
 

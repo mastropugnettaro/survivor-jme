@@ -36,6 +36,8 @@ varying vec3 v_View;
 
   #if defined(PARALLAXMAP) || defined(NORMALMAP_PARALLAX)
     uniform float m_ParallaxHeight;
+    varying vec2 v_tsParallaxOffset;
+    const float c_ParallaxScale = PARALLAX_HEIGHT * 0.3; // steep compatibility
   #endif
 
   varying vec4 v_tsLightQuadX[QUADS_PER_PASS];
@@ -127,6 +129,25 @@ void main(void)
     vec3 wsBitangent = cross(wsNormal, wsTangent) * -inTangent.w;
     mat3 wsTangentMatrix = mat3(wsTangent, wsBitangent, wsNormal);
     v_View = wsView * wsTangentMatrix; // world space -> tangent space
+
+    #if defined(PARALLAXMAP) || defined(NORMALMAP_PARALLAX)
+      // Compute the ray direction for intersecting the height field profile with 
+      // current view ray. See the above paper for derivation of this computation.
+
+      // Compute initial parallax displacement direction:
+      vec2 vParallaxDirection = normalize(v_View.xy);
+
+      // The length of this vector determines the furthest amount of displacement:
+      float fLength = length(v_View);
+      float fParallaxLength = sqrt(fLength * fLength - v_View.z * v_View.z) / v_View.z;
+
+      // Compute the actual reverse parallax displacement vector:
+      v_tsParallaxOffset = vParallaxDirection * fParallaxLength;
+
+      // Need to scale the amount of displacement to account for different height ranges
+      // in height maps. This is controlled by an artist-editable parameter:
+      v_tsParallaxOffset *= c_ParallaxScale; // steep compatibility
+    #endif
   #else
     v_View = wsView;
     v_Normal = wsNormal;

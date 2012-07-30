@@ -1,16 +1,5 @@
-#extension GL_ATI_shader_texture_lod : enable
-#extension GL_EXT_gpu_shader4 : enable
-
 #ifndef QUADS_PER_PASS
   #define QUADS_PER_PASS 1
-#endif
-
-#ifndef PARALLAXMAP_SIZE
-  #define PARALLAXMAP_SIZE 256
-#endif
-
-#ifndef PARALLAXMAP_LOD
-  #define PARALLAXMAP_LOD 8
 #endif
 
 #define DEF // just to fix syntax highlighting a bit
@@ -108,6 +97,7 @@ const vec2 specular_ab = vec2(6.645, -5.645);
 
 #if defined(PARALLAXMAP) || defined(NORMALMAP_PARALLAX)
   uniform float m_ParallaxHeight;
+  uniform vec2 g_FrustumNearFar;
 
   float getHeightSample(const in vec2 texCoord)
   {
@@ -118,146 +108,195 @@ const vec2 specular_ab = vec2(6.645, -5.645);
     #endif
   }
 
+  float getFragDepth(float z)
+  {
+    float near = g_FrustumNearFar.x;
+    float far = g_FrustumNearFar.y;
+    return ((-far / (far - near) * z - far * near / (near - far)) / -z);
+    //return far / (far - near) + ((far * near / (near - far)) / z);
+    //return (far + near) / (far - near) + ((-2.0 * far * near / (far - near)) / z);
+  }
+
   #ifdef STEEP_PARALLAX
 
-    float getHeightSample(const in vec2 texCoord, const in float lod)
+    uniform int m_HeightMapSize;
+    varying vec2 v_tsParallaxOffset;
+
+    // Minimum and maximum samples / iterations when calculation POM
+    const float c_ParallaxScale = PARALLAX_HEIGHT * 0.3; // steep compatibility
+    const float c_PomMinSamples = 6.0;
+    const float c_PomMaxSamples = 1000.0 * c_ParallaxScale;
+
+    #ifdef USE_LOD
+
+      const int c_nLODThreshold = 4;
+      const bool c_bVisualizeLOD = false;
+
+      // Adaptive in-shader level-of-detail system implementation. Compute the 
+      // current mip level explicitly in the pixel shader and use this information 
+      // to transition between different levels of detail from the full effect to 
+      // simple bump mapping. See the above paper for more discussion of the approach
+      // and its benefits. (see: Tatarchuk-POM-SI3D06.pdf)
+
+      // Compute the current gradients:
+      vec2 tmp_fTexCoordsPerSize = v_TexCoord * float(m_HeightMapSize);
+
+      // Compute all 4 derivatives in x and y in a single instruction to optimize:
+      vec4 tmp_sdx = dFdx(vec4(tmp_fTexCoordsPerSize, v_TexCoord));
+      vec4 tmp_sdy = dFdy(vec4(tmp_fTexCoordsPerSize, v_TexCoord));
+
+      vec2 tmp_dxSize = vec2(tmp_sdx.xy);
+      vec2 tmp_dySize = vec2(tmp_sdy.xy);
+      vec2 dx         = vec2(tmp_sdx.zw);
+      vec2 dy         = vec2(tmp_sdy.zw);
+
+      // Find min of change in u and v across quad: compute du and dv magnitude across quad
+      vec2 tmp_dTexCoords = tmp_dxSize * tmp_dxSize + tmp_dySize * tmp_dySize;
+      // Standard mipmapping uses max here
+      float tmp_fMinTexCoordDelta = max(tmp_dTexCoords.x, tmp_dTexCoords.y); 
+      // Compute the current mip level  (* 0.5 is effectively computing a square root before )
+      float fMipLevel = max(0.5 * log2(tmp_fMinTexCoordDelta), 0.0);
+    #endif
+
+    int calculateNumSteps(const in vec3 wsView, const in vec3 wsNormal)
     {
-      #if defined(PARALLAXMAP)
-        return texture2DLod(m_ParallaxMap, texCoord, lod).r;
-      #elif defined(NORMALMAP_PARALLAX)
-        return texture2DLod(m_NormalMap, texCoord, lod).a;
-      #endif
+      // Utilize dynamic flow control to change the number of samples per ray 
+      // depending on the viewing angle for the surface. Oblique angles require 
+      // smaller step sizes to achieve more accurate precision for computing displacement.
+      // We express the sampling rate as a linear function of the angle between 
+      // the geometric normal and the view direction ray:
+      return int(mix(c_PomMinSamples, c_PomMaxSamples, dot(wsView, wsNormal)));
     }
 
-    #define QDM_OFFSET 0.0001
-    #define BILINEAR_SMOOTH_FACTOR 2.0
-    const float minLod = 0.0; // todo: calculate minimal LoD (ddx, ddy)
-    float scale = m_ParallaxHeight * 0.3; // steep compatibility
-    float qdmOffset = 0.5 / float(PARALLAXMAP_SIZE) * scale;
-
-    vec3 getInterpolatedPosition(
-      const in vec3 E, const in vec3 P, const in float size, const in float lod)
+    int calculateNumSteps(const in vec3 V)
     {
-      float halfSampleSize = 0.5 / size;
-      vec3 halfSampleOffset = E * (halfSampleSize * (abs(E.x) + abs(E.y) + abs(E.y)) / 3.0);
-      vec3 Pa = P - halfSampleOffset;
-      vec3 Pb = P + halfSampleOffset;
-      float da = (-1.0 + getHeightSample(Pa.xy, lod)) * scale;
-      float db = (-1.0 + getHeightSample(Pb.xy, lod)) * scale;
-      float a = abs(Pa.z - da);
-      float b = abs(Pb.z - db);
-      float mf = a / (a + b);
-      return mix(Pa, Pb, mf);
+      // steep parallax method
+      return int(mix(c_PomMinSamples, c_PomMaxSamples, 1.0 - V.z));
     }
 
-    void calculateQdmTexCoord(const in vec3 E, inout vec2 parallaxTexCoord)
+    void calculatePomTexCoord(const in int nNumSteps, inout vec2 pomTexCoord)
     {
-      if (E.z > -0.01) return;
+      //===============================================//
+      // Parallax occlusion mapping offset computation //
+      //===============================================//
 
-      float lod = float(PARALLAXMAP_LOD);
-      float size = 1.0;
-      float depth = 0.0;
-      vec3 P0 = vec3(parallaxTexCoord, 0.0);
-      vec3 P = P0;
-      vec3 En = normalize(E);
-      En.xy *= scale;
-      En /= abs(En.z);
-      vec2 T = step(0.0, En.xy);
-      bool tracing = true;
-      int counter = 0;
-    
-      while (tracing)
+      // Intersect the view ray with the height field profile along the direction of
+      // the parallax offset ray (computed in the vertex shader. Note that the code is
+      // designed specifically to take advantage of the dynamic flow control constructs
+      // in HLSL and is very sensitive to specific syntax. When converting to other examples,
+      // if still want to use dynamic flow control in the resulting assembly shader,
+      // care must be applied.
+      // 
+      // In the below steps we approximate the height field profile as piecewise linear
+      // curve. We find the pair of endpoints between which the intersection between the 
+      // height field profile and the view ray is found and then compute line segment
+      // intersection for the view ray and the line segment formed by the two endpoints.
+      // This intersection is the displacement offset from the original texture coordinate.
+      // See the above paper for more details about the process and derivation.
+
+      float fCurrHeight = 0.0;
+      float fStepSize   = 1.0 / float(nNumSteps);
+      float fPrevHeight = 1.0;
+
+      int   nStepIndex = 0;
+      bool  bCondition = true;
+
+      vec2  vTexOffsetPerStep = fStepSize * v_tsParallaxOffset;
+      vec2  vTexCurrentOffset = pomTexCoord;
+      float fCurrentBound     = 1.0;
+      float fParallaxAmount   = 0.0;
+
+      vec2  pt1 = vec2(0.0);
+      vec2  pt2 = vec2(0.0);
+
+      vec2  texOffset2 = vec2(0.0);
+
+      while (nStepIndex < nNumSteps)
       {
-        while (lod >= minLod) // todo: dynamic LoD
-        {
-          if (counter++ > 100)
-          {
-            tracing = false;
-            break;
-          }
+        vTexCurrentOffset -= vTexOffsetPerStep;
 
-          vec2 tc = floor(P.xy * size) / size;
-          depth = -1.0 + getHeightSample(tc, lod);
+        // Sample height map which in this case is stored in the alpha channel of the normal map:
+        fCurrHeight = getHeightSample(vTexCurrentOffset);
 
-          if (P.z > depth)
-          {
-            vec2 A = T / size;
-            vec3 B = vec3(tc + A, depth);
-            vec3 F = (B - P) / En;
+        fCurrentBound -= fStepSize;
 
-            if ((F.z < F.x) && (F.z < F.y))
-            {
-              P = P + En * F.z;
-              P.z = depth;
-              lod -= 1.0;
-              size *= 2.0;
-            }
-            else
-            {
-              P = P + En * (min(F.x, F.y) + qdmOffset);
-            }
-          }
-          else
-          {
-            lod -= 1.0;
-            size *= 2.0;
-          }
-        }
+        if (fCurrHeight > fCurrentBound)
+        {   
+          pt1 = vec2(fCurrentBound, fCurrHeight);
+          pt2 = vec2(fCurrentBound + fStepSize, fPrevHeight);
 
-        float rayLength = length(P.xy - P0.xy) + qdmOffset;
-        float halfSampleSize = 1.0 / 256.0 / 2.0; // 0.25 / size;
+          texOffset2 = vTexCurrentOffset - vTexOffsetPerStep;
 
-        float da = P.z * (rayLength - BILINEAR_SMOOTH_FACTOR * halfSampleSize) / rayLength;
-	      float db = P.z * (rayLength + BILINEAR_SMOOTH_FACTOR * halfSampleSize) / rayLength;
-
-        vec3 Pa = P0 + En * da;
-        vec3 Pb = P0 + En * db;
-
-        da = -1.0 + getHeightSample(Pa.xy, minLod);
-        db = -1.0 + getHeightSample(Pb.xy, minLod);
-
-        da = abs(Pa.z - da);
-        db = abs(Pb.z - db);
- 
-        P = mix(Pa, Pb, da / (da + db));
-        tracing = false;
-
-/*
-        float halfSampleSize = 0.25 / size;
-        float halfSampleOffset = (length(P.xy - P0.xy) + qdmOffset) * halfSampleSize;
-
-        vec3 Pb = P + halfSampleOffset;
-        float db = -1.0 + getHeightSample(Pb.xy, minLod);
-
-        //if (Pb.z > db)
-        if (false)
-        {
-          // no intersection, continue tracing
-          lod = minLod;
-          size /= 2.0;            
-
-          vec2 A = T / size;
-          vec2 B = vec2(floor(P.xy * size) / size + A);
-          vec2 F = (B - P.xy) / En.xy;
-          float Fmin = min(F.x, F.y);
-
-          // Set P to next cell
-          P = P + En * (Fmin + qdmOffset);
+          nStepIndex = nNumSteps + 1; // leave loop
+          //fPrevHeight = fCurrHeight;
         }
         else
         {
-          vec3 Pa = P - halfSampleOffset;
-          float da = -1.0 + getHeightSample(Pa.xy, minLod);
-          float a = abs(Pa.z - da);
-          float b = abs(Pb.z - db);
-          float mf = a / (a + b);
-          P = mix(Pa, Pb, mf);
-          tracing = false;
+          nStepIndex++;
+          fPrevHeight = fCurrHeight;
         }
-*/
       }
 
-      parallaxTexCoord = P.xy;
+      float fDelta2 = pt2.x - pt2.y;
+      float fDelta1 = pt1.x - pt1.y;
+
+      float fDenominator = fDelta2 - fDelta1;
+
+      // SM 3.0 requires a check for divide by zero, since that operation will generate
+      // an 'Inf' number instead of 0, as previous models (conveniently) did:
+      if (fDenominator == 0.0)
+      {
+        fParallaxAmount = 0.0;
+      }
+      else
+      {
+        fParallaxAmount = (pt1.x * fDelta2 - pt2.x * fDelta1) / fDenominator;
+      }
+
+      vec2 vParallaxOffset = v_tsParallaxOffset * (1.0 - fParallaxAmount);
+      //gl_FragDepth = getFragDepth((gl_FragCoord.z + (1.0 - fCurrHeight)) / gl_FragCoord.w);
+      //gl_FragDepth = gl_FragCoord.z / gl_FragCoord.w;
+      //gl_FragDepth = gl_FragCoord.z;
+
+      // The computed texture offset for the displaced point on the pseudo-extruded surface:
+      vec2 texSampleBase = pomTexCoord - vParallaxOffset;
+      pomTexCoord = texSampleBase;
+
+      //if (pomTexCoord.x < 0.0) discard;
+      //if (pomTexCoord.x > 1.0) discard;
+      //if (pomTexCoord.y < 0.0) discard;
+      //if (pomTexCoord.y > 1.0) discard;	
+
+      #ifdef USE_LOD
+        // Multiplier for visualizing the level of detail (see notes for 'nLODThreshold' variable
+        // for how that is done visually)
+        // vec4 cLODColoring = vec4(1.0, 1.0, 3.0, 1.0);
+
+        // cLODColoring = vec4(1.0, 1.0, 1.0, 1.0);
+
+        float  fMipLevelInt;    // mip level integer portion
+        float  fMipLevelFrac;   // mip level fractional amount for blending in between levels
+
+        // Lerp to bump mapping only if we are in between, transition section:
+
+        if (fMipLevel > float(c_nLODThreshold - 1))
+        {
+          // Lerp based on the fractional part:
+          // fMipLevelFrac = modf(fMipLevel, fMipLevelInt); // needs GLSL130
+          fMipLevelFrac = mod(fMipLevel, 1.0);
+          fMipLevelInt = floor(fMipLevel);
+
+          // if (g_bVisualizeLOD)
+          // {
+          //   // For visualizing: lerping from regular POM-resulted color through blue color for transition layer:
+          //   cLODColoring = vec4(1.0, 1.0, max(1.0, 2.0 * fMipLevelFrac), 1.0);
+          // }
+
+          // Lerp the texture coordinate from parallax occlusion mapped coordinate to bump mapping
+          // smoothly based on the current mip level:
+          pomTexCoord = mix(texSampleBase, v_TexCoord, fMipLevelFrac);
+        }
+      #endif
     }
 
   #else
@@ -375,7 +414,13 @@ void main (void)
   #ifdef NORMALMAP
     #if defined(PARALLAXMAP) || defined(NORMALMAP_PARALLAX)
       #ifdef STEEP_PARALLAX
-        calculateQdmTexCoord(-V, texCoord);
+        #ifdef USE_LOD
+          if (fMipLevel <= float(c_nLODThreshold))
+        #endif
+        {
+          int nNumSteps = calculateNumSteps(V);
+          calculatePomTexCoord(nNumSteps, texCoord);
+        }
       #else
         calculateParallaxTexCoord(V, texCoord);
       #endif

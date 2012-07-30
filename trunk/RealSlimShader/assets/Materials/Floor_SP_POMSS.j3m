@@ -9,6 +9,7 @@ Material MyMaterial : MatDefs/Light/Lighting_MPP.j3md {
         NormalMap : Textures/four_normal.png
         ParallaxHeight : 1.2
         UseMaterialColors : true
+        UseLoD : true
      }
     AdditionalRenderState {
     }
