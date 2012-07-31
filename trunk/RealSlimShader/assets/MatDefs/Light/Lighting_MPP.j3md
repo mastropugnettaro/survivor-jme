@@ -43,6 +43,8 @@ MaterialDef MultiPassParallelLighting {
         Boolean SteepParallax
 
         Boolean UseLoD
+
+        Boolean ParallaxDepthCorrection
     }
 
     Technique {
@@ -102,7 +104,8 @@ MaterialDef MultiPassParallelLighting {
 
             QUADS_PER_PASS : QuadsPerPass
             HAS_SPOTLIGHTS : HasSpotLights
-            USE_LOD : UseLoD
+            PARALLAX_DEPTH_CORRECTION : ParallaxDepthCorrection
+            PARALLAX_LOD_THRESHOLD : ParallaxLodThreshold
         }
     }
 

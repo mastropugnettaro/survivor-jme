@@ -9,6 +9,12 @@
   #define NEED_SPECULAR
 #endif
 
+#if defined(PARALLAX_LOD_THRESHOLD)
+  #if PARALLAX_LOD_THRESHOLD >= 0
+    #define USE_LOD
+  #endif
+#endif
+
 #if defined(DIFFUSEMAP) || defined(NORMALMAP) || defined(SPECULARMAP) || defined(ALPHAMAP) || defined(PARALLAXMAP)
   varying vec2 v_TexCoord;
 #endif
@@ -86,16 +92,16 @@
         #endif
       }
 
-      float getFragDepth(float z)
-      {
-        float near = g_FrustumNearFar.x;
-        float far = g_FrustumNearFar.y;
-        return ((-far / (far - near) * z - far * near / (near - far)) / -z);
-        //return far / (far - near) + ((far * near / (near - far)) / z);
-        //return (far + near) / (far - near) + ((-2.0 * far * near / (far - near)) / z);
-      }
+      #ifdef PARALLAX_DEPTH_CORRECTION
+        float getFragDepth(const float z)
+        {
+          float near = g_FrustumNearFar.x;
+          float far = g_FrustumNearFar.y;
+          return ((-far / (far - near) * z - far * near / (near - far)) / -z);
+        }
+      #endif
 
-     #ifdef STEEP_PARALLAX
+      #ifdef STEEP_PARALLAX
 
         uniform int m_HeightMapSize;
         varying vec2 v_tsParallaxOffset;
@@ -105,33 +111,37 @@
         const float c_PomMinSamples = 6.0;
         const float c_PomMaxSamples = 1000.0 * c_ParallaxScale;
 
-        const int c_nLODThreshold = 4;
-        const bool c_bVisualizeLOD = false;
+        #ifdef USE_LOD
 
-        // Adaptive in-shader level-of-detail system implementation. Compute the 
-        // current mip level explicitly in the pixel shader and use this information 
-        // to transition between different levels of detail from the full effect to 
-        // simple bump mapping. See the above paper for more discussion of the approach
-        // and its benefits. (see: Tatarchuk-POM-SI3D06.pdf)
+          const int c_nLODThreshold = PARALLAX_LOD_THRESHOLD;
+          //const bool c_bVisualizeLOD = false;
 
-        // Compute the current gradients:
-        vec2 tmp_fTexCoordsPerSize = v_TexCoord * float(m_HeightMapSize);
+          // Adaptive in-shader level-of-detail system implementation. Compute the 
+          // current mip level explicitly in the pixel shader and use this information 
+          // to transition between different levels of detail from the full effect to 
+          // simple bump mapping. See the above paper for more discussion of the approach
+          // and its benefits. (see: Tatarchuk-POM-SI3D06.pdf)
 
-        // Compute all 4 derivatives in x and y in a single instruction to optimize:
-        vec4 tmp_sdx = dFdx(vec4(tmp_fTexCoordsPerSize, v_TexCoord));
-        vec4 tmp_sdy = dFdy(vec4(tmp_fTexCoordsPerSize, v_TexCoord));
+          // Compute the current gradients:
+          vec2 tmp_fTexCoordsPerSize = v_TexCoord * float(m_HeightMapSize);
 
-        vec2 tmp_dxSize = vec2(tmp_sdx.xy);
-        vec2 tmp_dySize = vec2(tmp_sdy.xy);
-        vec2 dx         = vec2(tmp_sdx.zw);
-        vec2 dy         = vec2(tmp_sdy.zw);
+          // Compute all 4 derivatives in x and y in a single instruction to optimize:
+          vec4 tmp_sdx = dFdx(vec4(tmp_fTexCoordsPerSize, v_TexCoord));
+          vec4 tmp_sdy = dFdy(vec4(tmp_fTexCoordsPerSize, v_TexCoord));
 
-        // Find min of change in u and v across quad: compute du and dv magnitude across quad
-        vec2 tmp_dTexCoords = tmp_dxSize * tmp_dxSize + tmp_dySize * tmp_dySize;
-        // Standard mipmapping uses max here
-        float tmp_fMinTexCoordDelta = max(tmp_dTexCoords.x, tmp_dTexCoords.y); 
-        // Compute the current mip level  (* 0.5 is effectively computing a square root before )
-        float fMipLevel = max(0.5 * log2(tmp_fMinTexCoordDelta), 0.0);
+          vec2 tmp_dxSize = vec2(tmp_sdx.xy);
+          vec2 tmp_dySize = vec2(tmp_sdy.xy);
+          vec2 dx         = vec2(tmp_sdx.zw);
+          vec2 dy         = vec2(tmp_sdy.zw);
+
+          // Find min of change in u and v across quad: compute du and dv magnitude across quad
+          vec2 tmp_dTexCoords = tmp_dxSize * tmp_dxSize + tmp_dySize * tmp_dySize;
+          // Standard mipmapping uses max here
+          float tmp_fMinTexCoordDelta = max(tmp_dTexCoords.x, tmp_dTexCoords.y); 
+          // Compute the current mip level  (* 0.5 is effectively computing a square root before )
+          float fMipLevel = max(0.5 * log2(tmp_fMinTexCoordDelta), 0.0);
+
+        #endif
 
         int calculateNumSteps(const in vec3 wsView, const in vec3 wsNormal)
         {
@@ -229,7 +239,11 @@
           }
 
           vec2 vParallaxOffset = v_tsParallaxOffset * (1.0 - fParallaxAmount);
-          gl_FragDepth = getFragDepth((gl_FragCoord.z + (1.0 - fParallaxAmount) * (1.0 + c_ParallaxScale) / v_tsView.z) / gl_FragCoord.w);
+
+          #ifdef PARALLAX_DEPTH_CORRECTION
+            gl_FragDepth = getFragDepth((gl_FragCoord.z + (1.0 - fParallaxAmount) * 
+              (1.0 + c_ParallaxScale) / v_tsView.z) / gl_FragCoord.w);
+          #endif
 
           // The computed texture offset for the displaced point on the pseudo-extruded surface:
           vec2 texSampleBase = pomTexCoord - vParallaxOffset;
@@ -240,34 +254,37 @@
           //if (pomTexCoord.y < 0.0) discard;
           //if (pomTexCoord.y > 1.0) discard;	
 
-          // Multiplier for visualizing the level of detail (see notes for 'nLODThreshold' variable
-          // for how that is done visually)
-          // vec4 cLODColoring = vec4(1.0, 1.0, 3.0, 1.0);
+          #ifdef USE_LOD
 
-          // cLODColoring = vec4(1.0, 1.0, 1.0, 1.0);
+            // Multiplier for visualizing the level of detail (see notes for 'nLODThreshold' variable
+            // for how that is done visually)
+            // vec4 cLODColoring = vec4(1.0, 1.0, 3.0, 1.0);
 
-          float  fMipLevelInt;    // mip level integer portion
-          float  fMipLevelFrac;   // mip level fractional amount for blending in between levels
+            // cLODColoring = vec4(1.0, 1.0, 1.0, 1.0);
 
-          // Lerp to bump mapping only if we are in between, transition section:
+            float  fMipLevelInt;    // mip level integer portion
+            float  fMipLevelFrac;   // mip level fractional amount for blending in between levels
 
-          if (fMipLevel > float(c_nLODThreshold - 1))
-          {
-            // Lerp based on the fractional part:
-            // fMipLevelFrac = modf(fMipLevel, fMipLevelInt); // needs GLSL130
-            fMipLevelFrac = mod(fMipLevel, 1.0);
-            fMipLevelInt = floor(fMipLevel);
+            // Lerp to bump mapping only if we are in between, transition section:
 
-            // if (g_bVisualizeLOD)
-            // {
-            //   // For visualizing: lerping from regular POM-resulted color through blue color for transition layer:
-            //   cLODColoring = vec4(1.0, 1.0, max(1.0, 2.0 * fMipLevelFrac), 1.0);
-            // }
+            if (fMipLevel > float(c_nLODThreshold - 1))
+            {
+              // Lerp based on the fractional part:
+              // fMipLevelFrac = modf(fMipLevel, fMipLevelInt); // needs GLSL130
+              fMipLevelFrac = mod(fMipLevel, 1.0);
+              fMipLevelInt = floor(fMipLevel);
 
-            // Lerp the texture coordinate from parallax occlusion mapped coordinate to bump mapping
-            // smoothly based on the current mip level:
-            pomTexCoord = mix(texSampleBase, v_TexCoord, fMipLevelFrac);
-          }
+              // if (g_bVisualizeLOD)
+              // {
+              //   // For visualizing: lerping from regular POM-resulted color through blue color for transition layer:
+              //   cLODColoring = vec4(1.0, 1.0, max(1.0, 2.0 * fMipLevelFrac), 1.0);
+              // }
+
+              // Lerp the texture coordinate from parallax occlusion mapped coordinate to bump mapping
+              // smoothly based on the current mip level:
+              pomTexCoord = mix(texSampleBase, v_TexCoord, fMipLevelFrac);
+            }
+          #endif
         }
 
         #ifdef PARALLAX_SHADOWS
@@ -431,7 +448,9 @@
         vec2 parallaxTexCoord = v_TexCoord;
 
         #ifdef STEEP_PARALLAX
-          if (fMipLevel <= float(c_nLODThreshold))
+          #ifdef USE_LOD
+            if (fMipLevel <= float(c_nLODThreshold))
+          #endif
           {
             int nNumSteps = calculateNumSteps(V);
             calculatePomTexCoord(nNumSteps, parallaxTexCoord);
@@ -481,14 +500,18 @@
 
       addLight(N, L, V, lightColor.rgb, attenuation, diffuseLightSum, specularLightSum);
       #if (defined(PARALLAXMAP) || defined(NORMALMAP_PARALLAX)) && defined(NORMALMAP) && defined(PARALLAX_SHADOWS)
-        if (fMipLevel <= float(c_nLODThreshold))
-        {
+        #ifdef USE_LOD
+          if (fMipLevel <= float(c_nLODThreshold))
+          {
+            addParallaxShadow(lightVector, parallaxTexCoord, parallaxShadowSum);
+          }
+          else
+          {
+            parallaxShadowSum = 1.0;
+          }
+        #else
           addParallaxShadow(lightVector, parallaxTexCoord, parallaxShadowSum);
-        }
-        else
-        {
-          parallaxShadowSum = 1.0;
-        }
+        #endif
       #endif
     }
 
