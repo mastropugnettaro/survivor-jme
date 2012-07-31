@@ -6,9 +6,9 @@ Material Rock : Common/MatDefs/Light/Lighting.j3md {
         UseMaterialColors : true
         Diffuse : 1.0 1.0 1.0 1.0
         Specular : 1.0 1.0 1.0 1.0
-        NormalMap : Textures/BrickWall_normal.jpg
-        ParallaxMap : Textures/BrickWall_height.jpg
-        DiffuseMap : Textures/BrickWall.jpg
+        NormalMap : Repeat Textures/BrickWall_normal.jpg
+        ParallaxMap : Repeat Textures/BrickWall_height.jpg
+        DiffuseMap : Repeat Textures/BrickWall.jpg
      }
     AdditionalRenderState {
     }

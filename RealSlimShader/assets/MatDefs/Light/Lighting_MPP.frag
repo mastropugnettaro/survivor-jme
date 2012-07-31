@@ -103,20 +103,20 @@ const vec2 specular_ab = vec2(6.645, -5.645);
   float getHeightSample(const in vec2 texCoord)
   {
     #if defined(PARALLAXMAP)
-      return texture2D(m_ParallaxMap, texCoord).r - 0.1;
+      return texture2D(m_ParallaxMap, texCoord).r;
     #elif defined(NORMALMAP_PARALLAX)
-      return texture2D(m_NormalMap, texCoord).a - 0.1;
+      return texture2D(m_NormalMap, texCoord).a;
     #endif
   }
 
-  float getFragDepth(float z)
-  {
-    float near = g_FrustumNearFar.x;
-    float far = g_FrustumNearFar.y;
-    return ((-far / (far - near) * z - far * near / (near - far)) / -z);
-    //return far / (far - near) + ((far * near / (near - far)) / z);
-    //return (far + near) / (far - near) + ((-2.0 * far * near / (far - near)) / z);
-  }
+  #ifdef PARALLAX_DEPTH_CORRECTION
+    float getFragDepth(const float z)
+    {
+      float near = g_FrustumNearFar.x;
+      float far = g_FrustumNearFar.y;
+      return ((-far / (far - near) * z - far * near / (near - far)) / -z);
+    }
+  #endif
 
   #ifdef STEEP_PARALLAX
 
@@ -128,10 +128,11 @@ const vec2 specular_ab = vec2(6.645, -5.645);
     const float c_PomMinSamples = 6.0;
     const float c_PomMaxSamples = 1000.0 * c_ParallaxScale;
 
-    #ifdef USE_LOD
+    #if defined(PARALLAX_LOD_THRESHOLD) 
+    #if PARALLAX_LOD_THRESHOLD >= 0
 
-      const int c_nLODThreshold = 4;
-      const bool c_bVisualizeLOD = false;
+      const int c_nLODThreshold = PARALLAX_LOD_THRESHOLD;
+      //const bool c_bVisualizeLOD = false;
 
       // Adaptive in-shader level-of-detail system implementation. Compute the 
       // current mip level explicitly in the pixel shader and use this information 
@@ -157,6 +158,7 @@ const vec2 specular_ab = vec2(6.645, -5.645);
       float tmp_fMinTexCoordDelta = max(tmp_dTexCoords.x, tmp_dTexCoords.y); 
       // Compute the current mip level  (* 0.5 is effectively computing a square root before )
       float fMipLevel = max(0.5 * log2(tmp_fMinTexCoordDelta), 0.0);
+    #endif
     #endif
 
     int calculateNumSteps(const in vec3 wsView, const in vec3 wsNormal)
@@ -255,7 +257,10 @@ const vec2 specular_ab = vec2(6.645, -5.645);
       }
 
       vec2 vParallaxOffset = v_tsParallaxOffset * (1.0 - fParallaxAmount);
-      gl_FragDepth = getFragDepth((gl_FragCoord.z + (1.0 - fParallaxAmount) * (1.0 + c_ParallaxScale) / v_View.z) / gl_FragCoord.w);
+      
+      #ifdef PARALLAX_DEPTH_CORRECTION
+        gl_FragDepth = getFragDepth((gl_FragCoord.z + (1.0 - fParallaxAmount) * (1.0 + c_ParallaxScale) / v_View.z) / gl_FragCoord.w);
+      #endif
 
       // The computed texture offset for the displaced point on the pseudo-extruded surface:
       vec2 texSampleBase = pomTexCoord - vParallaxOffset;
@@ -266,7 +271,8 @@ const vec2 specular_ab = vec2(6.645, -5.645);
       //if (pomTexCoord.y < 0.0) discard;
       //if (pomTexCoord.y > 1.0) discard;	
 
-      #ifdef USE_LOD
+      #if defined(PARALLAX_LOD_THRESHOLD) 
+      #if PARALLAX_LOD_THRESHOLD >= 0
         // Multiplier for visualizing the level of detail (see notes for 'nLODThreshold' variable
         // for how that is done visually)
         // vec4 cLODColoring = vec4(1.0, 1.0, 3.0, 1.0);
@@ -295,6 +301,7 @@ const vec2 specular_ab = vec2(6.645, -5.645);
           // smoothly based on the current mip level:
           pomTexCoord = mix(texSampleBase, v_TexCoord, fMipLevelFrac);
         }
+      #endif
       #endif
     }
 
@@ -413,8 +420,10 @@ void main (void)
   #ifdef NORMALMAP
     #if defined(PARALLAXMAP) || defined(NORMALMAP_PARALLAX)
       #ifdef STEEP_PARALLAX
-        #ifdef USE_LOD
+        #if defined(PARALLAX_LOD_THRESHOLD) 
+        #if PARALLAX_LOD_THRESHOLD >= 0
           if (fMipLevel <= float(c_nLODThreshold))
+        #endif
         #endif
         {
           int nNumSteps = calculateNumSteps(V);

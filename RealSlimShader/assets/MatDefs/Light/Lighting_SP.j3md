@@ -47,6 +47,10 @@ MaterialDef SinglePassLighting {
 
         // Softness of the parallax shadows
         Float ParallaxShadowSoftening : 0.58
+
+        Int PomLodThreshold : -1
+
+        Boolean ParallaxDepthCorrection
     }
 
     Technique {
@@ -82,6 +86,8 @@ MaterialDef SinglePassLighting {
             PARALLAX_HEIGHT : ParallaxHeight
             STEEP_PARALLAX : SteepParallax
             PARALLAX_SHADOWS : ParallaxShadows
+            PARALLAX_DEPTH_CORRECTION : ParallaxDepthCorrection
+            PARALLAX_LOD_THRESHOLD : ParallaxLodThreshold
         }
     }
 
@@ -118,6 +124,8 @@ MaterialDef SinglePassLighting {
             PARALLAX_HEIGHT : ParallaxHeight
             STEEP_PARALLAX : SteepParallax
             PARALLAX_SHADOWS : ParallaxShadows
+            USE_LOD : UseLoD
+            PARALLAX_DEPTH_CORRECTION : ParallaxDepthCorrection
         }
     }
 

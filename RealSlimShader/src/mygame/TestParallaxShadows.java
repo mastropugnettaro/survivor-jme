@@ -12,12 +12,16 @@ import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.math.Vector4f;
+import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.debug.Arrow;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Sphere;
 import com.jme3.scene.shape.Sphere.TextureMode;
+import com.jme3.shadow.PssmShadowRenderer;
+import com.jme3.shadow.PssmShadowRenderer.CompareMode;
+import com.jme3.shadow.PssmShadowRenderer.FilterMode;
 import com.jme3.system.AppSettings;
 import com.jme3.util.TangentBinormalGenerator;
 import java.io.File;
@@ -42,6 +46,7 @@ public class TestParallaxShadows extends SimpleApplication
   
   private ArrayList<DirectionalLight> lightList = new ArrayList<DirectionalLight>();
   private float angle;
+  private PssmShadowRenderer psr;
   
   public static void main(String[] args)
   {
@@ -94,7 +99,7 @@ public class TestParallaxShadows extends SimpleApplication
     if (sphereMesh == null)
     {
       log.log(Level.SEVERE, "Generating SphereMesh. This may take some time.");
-      sphereMesh = new Sphere(SPHERE_SEGMENTS, SPHERE_SEGMENTS, 1f);
+      sphereMesh = new Sphere(SPHERE_SEGMENTS, SPHERE_SEGMENTS, 0.5f);
       sphereMesh.setTextureMode(TextureMode.Projected);
       TangentBinormalGenerator.generate(sphereMesh);
       
@@ -113,11 +118,11 @@ public class TestParallaxShadows extends SimpleApplication
     Box box = new Box(2f, 0.1f, 2f);
     TangentBinormalGenerator.generate(box);
     Geometry floor = new Geometry("Floor", box);
-    //floor.setLocalTranslation(0f, -1f, 0f);
+    floor.setLocalTranslation(0f, -1f, 0f);
     MaterialEx floorMat = new MaterialEx("Materials/Floor_SP_POMSS.j3m", assetManager);
-    MultiPassParallelLightingRenderer mpplr = new MultiPassParallelLightingRenderer();
-    mpplr.setQuadsPerPass(1); // 1 is safe, > 1 yields more fps
-    floorMat.setLightingRenderer(mpplr, renderManager);
+    //MultiPassParallelLightingRenderer mpplr = new MultiPassParallelLightingRenderer();
+    //mpplr.setQuadsPerPass(1); // 1 is safe, > 1 yields more fps
+    //floorMat.setLightingRenderer(mpplr, renderManager);
     floor.setMaterial(floorMat);
 
     Node node = new Node();
@@ -133,7 +138,7 @@ public class TestParallaxShadows extends SimpleApplication
     cam.setFrustumPerspective(45, (float) settings.getWidth() / settings.getHeight(), 0.001f, 100.0f);
 
     AmbientLight al;
-    DirectionalLight dl;
+    DirectionalLight dl = null;
             
     al = new AmbientLight();
     al.setColor(new ColorRGBA(0.05f, 0.05f, 0.05f, 1f));
@@ -157,14 +162,28 @@ public class TestParallaxShadows extends SimpleApplication
     pl.setColor(ColorRGBA.Green);
     pl.setRadius(1.5f);
     //rootNode.addLight(pl);
-
+    
+    sphere.setShadowMode(ShadowMode.Cast);
+    floor.setShadowMode(ShadowMode.Receive);
+    
+/*    
+    psr = new PssmShadowRenderer(assetManager, 1024, 5);
+    //psr.setLambda(0.55f);
+    //psr.setShadowIntensity(0.6f);
+    //psr.setCompareMode(CompareMode.Software);
+    //psr.setFilterMode(FilterMode.Bilinear);
+    //psr.setDirection(dl.getDirection().normalize());
+    psr.setDirection(new Vector3f(-1, -1, -1).normalizeLocal());
+    viewPort.addProcessor(psr);
+*/
+    
     //viewPort.addProcessor(new AccumulationBuffer(settings.getSamples()));    
   }
   
   @Override
   public void simpleUpdate(float tpf)
   {
-    if (true) return;
+    //if (true) return;
     angle += tpf;
     float cosAngle = FastMath.cos(angle);
     float sinAngle = FastMath.sin(angle);
