@@ -35,9 +35,6 @@ MaterialDef MultiPassParallelLighting {
         // Parameter name is for Lighting.j3md compatibility
         Boolean SteepParallax
 
-        // Size of textures (s = t = 2^n assumed)
-        Int HeightMapSize : 256
-
         // Set to true to activate Parallax Occlusion Mapping 
         // Parameter name is for Lighting.j3md compatibility
         Boolean SteepParallax
@@ -104,6 +101,7 @@ MaterialDef MultiPassParallelLighting {
 
             QUADS_PER_PASS : QuadsPerPass
             HAS_SPOTLIGHTS : HasSpotLights
+            HEIGHTMAP_SIZE : HeightMapSize
             PARALLAX_DEPTH_CORRECTION : ParallaxDepthCorrection
             PARALLAX_LOD_THRESHOLD : ParallaxLodThreshold
         }
