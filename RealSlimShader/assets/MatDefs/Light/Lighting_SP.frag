@@ -80,7 +80,6 @@
 
     #if defined(PARALLAXMAP) || defined(NORMALMAP_PARALLAX)
 
-      uniform vec2 g_FrustumNearFar;
       uniform float m_ParallaxHeight;
 
       float getHeightSample(const in vec2 texCoord)
@@ -93,6 +92,8 @@
       }
 
       #ifdef PARALLAX_DEPTH_CORRECTION
+        uniform vec2 g_FrustumNearFar;
+
         float getFragDepth(const float z)
         {
           float near = g_FrustumNearFar.x;
@@ -143,23 +144,13 @@
 
         #endif
 
-        int calculateNumSteps(const in vec3 wsView, const in vec3 wsNormal)
-        {
-          // Utilize dynamic flow control to change the number of samples per ray 
-          // depending on the viewing angle for the surface. Oblique angles require 
-          // smaller step sizes to achieve more accurate precision for computing displacement.
-          // We express the sampling rate as a linear function of the angle between 
-          // the geometric normal and the view direction ray:
-          return int(mix(c_PomMinSamples, c_PomMaxSamples, dot(wsView, wsNormal)));
-        }
-
-        int calculateNumSteps(const in vec3 V)
+        float calculateNumSteps(const in vec3 V)
         {
           // steep parallax method
-          return int(mix(c_PomMinSamples, c_PomMaxSamples, 1.0 - V.z));
+          return mix(c_PomMinSamples, c_PomMaxSamples, V.z + 1.0);
         }
 
-        void calculatePomTexCoord(const in int nNumSteps, inout vec2 pomTexCoord)
+        void calculatePomTexCoord(const in float fNumSteps, inout vec2 pomTexCoord)
         {
           //===============================================//
           // Parallax occlusion mapping offset computation //
@@ -180,69 +171,37 @@
           // See the above paper for more details about the process and derivation.
 
           float fCurrHeight = 0.0;
-          float fStepSize   = 1.0 / float(nNumSteps);
           float fPrevHeight = 1.0;
+          float fStepSize = 1.0 / fNumSteps;
+          float fStepIndex = 0.0;
+          vec2 vTexOffsetPerStep = fStepSize * v_tsParallaxOffset;
+          vec2 vTexCurrentOffset = pomTexCoord;
+          float fCurrentBound = 1.0;
 
-          int   nStepIndex = 0;
-          bool  bCondition = true;
-
-          vec2  vTexOffsetPerStep = fStepSize * v_tsParallaxOffset;
-          vec2  vTexCurrentOffset = pomTexCoord;
-          float fCurrentBound     = 1.0;
-          float fParallaxAmount   = 0.0;
-
-          vec2  pt1 = vec2(0.0);
-          vec2  pt2 = vec2(0.0);
-
-          vec2  texOffset2 = vec2(0.0);
-
-          while (nStepIndex < nNumSteps)
+          // Cutting the useless crap from POM reference shader (DirectX SDK)
+          // leaves the tight loop of steep parallax mapping.
+          while (fCurrHeight <= fCurrentBound && fStepIndex < fNumSteps)
           {
             vTexCurrentOffset -= vTexOffsetPerStep;
-
-            // Sample height map which in this case is stored in the alpha channel of the normal map:
+            fPrevHeight = fCurrHeight;
             fCurrHeight = getHeightSample(vTexCurrentOffset);
-
             fCurrentBound -= fStepSize;
-
-            if (fCurrHeight > fCurrentBound)
-            {   
-              pt1 = vec2(fCurrentBound, fCurrHeight);
-              pt2 = vec2(fCurrentBound + fStepSize, fPrevHeight);
-
-              texOffset2 = vTexCurrentOffset - vTexOffsetPerStep;
-
-              nStepIndex = nNumSteps + 1; // leave loop
-              //fPrevHeight = fCurrHeight;
-            }
-            else
-            {
-              nStepIndex++;
-              fPrevHeight = fCurrHeight;
-            }
+            fStepIndex += 1.0;
           }
+
+          vec2 pt1 = vec2(fCurrentBound, fCurrHeight);
+          vec2 pt2 = vec2(fCurrentBound + fStepSize, fPrevHeight);
 
           float fDelta2 = pt2.x - pt2.y;
           float fDelta1 = pt1.x - pt1.y;
 
           float fDenominator = fDelta2 - fDelta1;
-
-          // SM 3.0 requires a check for divide by zero, since that operation will generate
-          // an 'Inf' number instead of 0, as previous models (conveniently) did:
-          if (fDenominator == 0.0)
-          {
-            fParallaxAmount = 0.0;
-          }
-          else
-          {
-            fParallaxAmount = (pt1.x * fDelta2 - pt2.x * fDelta1) / fDenominator;
-          }
-
+          float fParallaxAmount = (pt1.x * fDelta2 - pt2.x * fDelta1) / fDenominator;
           vec2 vParallaxOffset = v_tsParallaxOffset * (1.0 - fParallaxAmount);
 
           #ifdef PARALLAX_DEPTH_CORRECTION
             gl_FragDepth = getFragDepth((gl_FragCoord.z + (1.0 - fParallaxAmount) * 
-              (1.0 + c_ParallaxScale) / v_tsView.z) / gl_FragCoord.w);
+              (1.0 + c_ParallaxScale) / v_View.z) / gl_FragCoord.w);
           #endif
 
           // The computed texture offset for the displaced point on the pseudo-extruded surface:
@@ -262,17 +221,13 @@
 
             // cLODColoring = vec4(1.0, 1.0, 1.0, 1.0);
 
-            float  fMipLevelInt;    // mip level integer portion
-            float  fMipLevelFrac;   // mip level fractional amount for blending in between levels
-
             // Lerp to bump mapping only if we are in between, transition section:
-
             if (fMipLevel > float(c_nLODThreshold - 1))
             {
               // Lerp based on the fractional part:
               // fMipLevelFrac = modf(fMipLevel, fMipLevelInt); // needs GLSL130
-              fMipLevelFrac = mod(fMipLevel, 1.0);
-              fMipLevelInt = floor(fMipLevel);
+              float fMipLevelFrac = mod(fMipLevel, 1.0); // mip level fractional amount for blending in between levels
+              float fMipLevelInt = floor(fMipLevel); // mip level integer portion
 
               // if (g_bVisualizeLOD)
               // {
@@ -452,8 +407,8 @@
             if (fMipLevel <= float(c_nLODThreshold))
           #endif
           {
-            int nNumSteps = calculateNumSteps(V);
-            calculatePomTexCoord(nNumSteps, parallaxTexCoord);
+            float fNumSteps = calculateNumSteps(V);
+            calculatePomTexCoord(fNumSteps, parallaxTexCoord);
           }
         #else
           calculateParallaxTexCoord(V, parallaxTexCoord);

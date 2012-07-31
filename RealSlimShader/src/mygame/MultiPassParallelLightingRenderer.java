@@ -47,8 +47,7 @@ public class MultiPassParallelLightingRenderer implements MaterialExLightingRend
   
   protected ArrayList<Light> lightList = new ArrayList<Light>(4);
   protected int quadsPerPass = 1;
-  protected int parallaxMapSize = 256;
-  protected int parallaxMapLod = 8;
+  protected int heightMapSize = 256;
   
   public int getQuadsPerPass()
   {
@@ -65,13 +64,38 @@ public class MultiPassParallelLightingRenderer implements MaterialExLightingRend
     mat.selectTechnique("MultiPassParallelLighting", rm);
     mat.getMaterialDef().addMaterialParam(VarType.Int, "QuadsPerPass", quadsPerPass, null);
     mat.getMaterialDef().addMaterialParam(VarType.Boolean, "HasSpotLights", true, null);
-    mat.getMaterialDef().addMaterialParam(VarType.Int, "ParallaxMapSize", parallaxMapSize, null);
-    mat.getMaterialDef().addMaterialParam(VarType.Int, "ParallaxMapLod", parallaxMapLod, null);
+    mat.getMaterialDef().addMaterialParam(VarType.Int, "HeightMapSize", heightMapSize, null);
 
     // initialize with safe values (working & good looking)
     // recompiling might take some frames
     mat.setInt("QuadsPerPass", quadsPerPass);
-    mat.setBoolean("HasSpotLights", true);    
+    mat.setBoolean("HasSpotLights", true);
+    
+    MatParamTexture heightMapParam = null;
+      
+    MatParam packedNormalParallaxParam = mat.getParam("PackedNormalParallax");
+    if ((packedNormalParallaxParam != null) && 
+        (packedNormalParallaxParam.getValue() instanceof Boolean) &&
+        (((Boolean) packedNormalParallaxParam.getValue()).booleanValue()))
+    {
+      heightMapParam = mat.getTextureParam("NormalMap");
+    }
+    else
+    {
+      heightMapParam = mat.getTextureParam("ParallaxMap");
+    }
+    
+    if (heightMapParam != null)
+    {
+      Texture parallaxMap = heightMapParam.getTextureValue();
+      Image heightMapImage = parallaxMap.getImage();
+      if (heightMapImage != null)
+      {
+        heightMapSize = parallaxMap.getImage().getWidth();
+      }
+    }
+    
+    mat.setInt("HeightMapSize", heightMapSize);    
   }
 
   public void detach(Material mat, RenderManager rm) 
@@ -82,8 +106,6 @@ public class MultiPassParallelLightingRenderer implements MaterialExLightingRend
     matParam = mat.getMaterialDef().getMaterialParam("HasSpotLights");
     mat.getMaterialDef().getMaterialParams().remove(matParam);    
     matParam = mat.getMaterialDef().getMaterialParam("ParallaxMapSize");
-    mat.getMaterialDef().getMaterialParams().remove(matParam);    
-    matParam = mat.getMaterialDef().getMaterialParam("ParallaxMapLod");
     mat.getMaterialDef().getMaterialParams().remove(matParam);    
     mat.selectTechnique("Default", rm);
   }
@@ -113,8 +135,7 @@ public class MultiPassParallelLightingRenderer implements MaterialExLightingRend
     int qpp = Math.min(quadsPerPass, numQuads);
     mat.setInt("QuadsPerPass", qpp);
     mat.setBoolean("HasSpotLights", hasSpotLights);    
-    mat.setInt("ParallaxMapSize", parallaxMapSize);
-    mat.setInt("ParallaxMapLod", parallaxMapLod);
+    mat.setInt("HeightMapSize", heightMapSize);
 
     Uniform lightColor = shader.getUniform("g_LightColor");
     Uniform lightPos = shader.getUniform("g_LightPosition");

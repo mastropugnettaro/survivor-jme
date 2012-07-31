@@ -18,8 +18,8 @@ public class TestMultiPassLighting extends SimpleTestApplication
     AppSettings settings = new AppSettings(true);
     
     // uncomment for more fragment shader load
-    // settings.setResolution(1152, 864); 
-    // settings.setSamples(8);
+    //settings.setResolution(1152, 864); 
+    //settings.setSamples(8);
   
     app.setSettings(settings);
     app.setShowSettings(false);
@@ -31,7 +31,7 @@ public class TestMultiPassLighting extends SimpleTestApplication
     sphereMaterial = new MaterialEx("Materials/Rock_MP.j3m", assetManager);
     
     /* PARAMETERS TO PLAY WITH */
-    flyCam.setEnabled(false); // true for better debugging
+    flyCam.setEnabled(true); // true for better debugging
     rotatingLights = true; // false for better debugging
     useAccumulationBuffer = false; // enable for better quality with many lights
     sphereSegments = 32; // increase for more vertex shader load

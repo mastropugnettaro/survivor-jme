@@ -19,7 +19,7 @@ public class TestMultiPassParallelLightingRenderer extends SimpleTestApplication
     
     // uncomment for more fragment shader load
     //settings.setResolution(1152, 864); 
-    //settings.setSamples(16);
+    //settings.setSamples(8);
   
     app.setSettings(settings);
     app.setShowSettings(false);

@@ -6,9 +6,9 @@ Material Rock : MatDefs/Light/Lighting_MPP.j3md {
         Diffuse : 1.0 1.0 1.0 1.0
         Specular : 1.0 1.0 1.0 1.0
         Shininess : 100.0
-        ParallaxMap : Repeat Textures/BrickWall_height.jpg
         SteepParallax : true
         UseMaterialColors : true
+        ParallaxMap : Repeat Textures/BrickWall_height.jpg
      }
     AdditionalRenderState {
     }
