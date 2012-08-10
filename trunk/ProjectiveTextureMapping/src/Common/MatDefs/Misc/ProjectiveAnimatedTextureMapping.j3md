@@ -13,8 +13,6 @@ MaterialDef Projective Texture Mapping {
         Int NumTilesV
         Int SelectedTileU
         Int SelectedTileV
-        //Int Speed
-        //Float Time
     }
  
     Technique {
