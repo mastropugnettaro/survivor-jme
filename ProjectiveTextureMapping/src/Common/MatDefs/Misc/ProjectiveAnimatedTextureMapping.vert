@@ -11,7 +11,6 @@ uniform mat4 m_ProjectorViewProjectionMatrix;
   uniform vec3 m_ProjectorLocation;
 #endif
  
-// simple sprite
 uniform int m_NumTilesU;
 uniform int m_NumTilesV;
 uniform int m_SelectedTileU;
