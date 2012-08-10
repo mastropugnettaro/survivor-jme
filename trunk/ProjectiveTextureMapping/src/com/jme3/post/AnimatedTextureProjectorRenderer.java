@@ -31,36 +31,58 @@
  */
 package com.jme3.post;
 
-import com.jme3.material.Material;
-import com.jme3.renderer.queue.RenderQueue;
-import com.jme3.asset.AssetManager;
-import com.jme3.post.SceneProcessor;
-import com.jme3.renderer.RenderManager;
-import com.jme3.renderer.ViewPort;
-import com.jme3.renderer.queue.GeometryList;
-import com.jme3.texture.FrameBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.jme3.asset.AssetManager;
+import com.jme3.material.Material;
+import com.jme3.math.ColorRGBA;
+import com.jme3.renderer.RenderManager;
+import com.jme3.renderer.ViewPort;
+import com.jme3.renderer.queue.GeometryList;
+import com.jme3.renderer.queue.RenderQueue;
+import com.jme3.system.Timer;
+import com.jme3.texture.FrameBuffer;
+
 /**
  * A SceneProcessor that renders TextureProjectors, which means it projects 
- * textures on scene geometry.
+ * textures on scene geometry. The textures can have a tile animation.
  * 
- * @author survivor
+ * @author survivor, H
  */
-public class TextureProjectorRenderer implements SceneProcessor 
+public class AnimatedTextureProjectorRenderer implements SceneProcessor 
 {
   private RenderManager renderManager;
   private ViewPort viewPort;
-  private Material textureMat;
-  private ArrayList<TextureProjector> textureProjectors;
+  private final Material textureMat;
+  private final ArrayList<TextureProjector> textureProjectors;
+  private final Timer timer;
+  private int numTilesU;  
+  private int numTilesV;  
+  private int speed;  
 
-  public TextureProjectorRenderer(AssetManager assetManager) 
-  { 
-    textureMat = new Material(assetManager, "Common/MatDefs/Misc/ProjectiveTextureMapping.j3md");
-    textureProjectors = new ArrayList<TextureProjector>();
-    renderManager = null;
-    viewPort = null;
+  public AnimatedTextureProjectorRenderer(final AssetManager assetManager, 
+    final Timer timer, final int numTilesU, final int numTilesV, final int speed)
+  {
+    this(assetManager, timer, numTilesU, numTilesV, speed, null);
+  }
+
+  public AnimatedTextureProjectorRenderer(final AssetManager assetManager, 
+    final Timer timer, final int numTilesU, final int numTilesV, final int speed, 
+    final ColorRGBA color) 
+  {
+    this.numTilesU = numTilesU;
+    this.numTilesV = numTilesV;
+    this.speed = speed;
+    this.timer = timer;
+    this.textureMat = new Material(assetManager, "Common/MatDefs/Misc/ProjectiveAnimatedTextureMapping.j3md");
+    this.textureMat.setInt("NumTilesU", numTilesU);
+    this.textureMat.setInt("NumTilesV", numTilesV);
+    this.textureMat.setInt("SelectedTileU", 0);
+    this.textureMat.setInt("SelectedTileV", 0);
+    this.textureProjectors = new ArrayList<TextureProjector>();
+    this.renderManager = null;
+    this.viewPort = null;
     setPolyOffset(-0.1f, -0.1f);
   }
   
@@ -133,51 +155,48 @@ public class TextureProjectorRenderer implements SceneProcessor
    * @see SceneProcessor
    */  
   @Override
-  public void postFrame(FrameBuffer out) 
-  { 
-    renderManager.setForcedMaterial(textureMat);
-    renderManager.getRenderer().setFrameBuffer(out); // ToDo: check if needed
-      
-    for (TextureProjector textureProjector : textureProjectors)
-    { 
-      float fallOffDistance = textureProjector.getFallOffDistance();
-      textureMat.setTexture("ProjectiveMap", textureProjector.getProjectiveTexture());
-      textureMat.setMatrix4("ProjectorViewProjectionMatrix", textureProjector.getProjectorViewProjectionMatrix());      
+  public void postFrame(final FrameBuffer out) {
+    this.renderManager.setForcedMaterial(this.textureMat);
+    this.renderManager.getRenderer().setFrameBuffer(out); // ToDo: check if needed
 
-      if (textureProjector.isParallelProjection())
-      {
-        textureMat.clearParam("ProjectorLocation");
-        textureMat.setVector3("ProjectorDirection", textureProjector.getProjectorDirection());
-      }
-      else
-      {
-        textureMat.clearParam("ProjectorDirection");
-        textureMat.setVector3("ProjectorLocation", textureProjector.getProjectorLocation());        
-      }
-      
-      if (fallOffDistance != Float.MAX_VALUE)
-      {
-        textureMat.setFloat("FallOffDistance", textureProjector.getFallOffDistance());
-        textureMat.setFloat("FallOffPower", textureProjector.getFallOffPower());          
-      }
-      else
-      {
-        textureMat.clearParam("FallOffDistance");        
-        textureMat.clearParam("FallOffPower");
+    for (final TextureProjector textureProjector : this.textureProjectors) {
+      final float fallOffDistance = textureProjector.getFallOffDistance();
+      this.textureMat.setTexture("ProjectiveMap", textureProjector.getProjectiveTexture());
+      this.textureMat.setMatrix4("ProjectorViewProjectionMatrix",
+              textureProjector.getProjectorViewProjectionMatrix());
+
+      //this.textureMat.setFloat("Time", this.timer.getTimeInSeconds());
+      float now = this.timer.getTimeInSeconds() * this.speed;
+      int selectedTileU = (int) (now % numTilesU);
+      int selectedTileV = (int) (now % numTilesV);
+      this.textureMat.setInt("SelectedTileU", selectedTileU);
+      this.textureMat.setInt("SelectedTileV", selectedTileV);
+
+      if (textureProjector.isParallelProjection()) {
+        this.textureMat.clearParam("ProjectorLocation");
+        this.textureMat.setVector3("ProjectorDirection", textureProjector.getProjectorDirection());
+      } else {
+        this.textureMat.clearParam("ProjectorDirection");
+        this.textureMat.setVector3("ProjectorLocation", textureProjector.getProjectorLocation());
       }
 
-      GeometryList targetGeometryList = textureProjector.getTargetGeometryList();
-      if (targetGeometryList != null)
-      {
-        renderManager.renderGeometryList(targetGeometryList);
+      if (fallOffDistance != Float.MAX_VALUE) {
+        this.textureMat.setFloat("FallOffDistance", textureProjector.getFallOffDistance());
+        this.textureMat.setFloat("FallOffPower", textureProjector.getFallOffPower());
+      } else {
+        this.textureMat.clearParam("FallOffDistance");
+        this.textureMat.clearParam("FallOffPower");
       }
-      else
-      {
-        renderManager.renderViewPortRaw(viewPort);
-      }      
+
+      final GeometryList targetGeometryList = textureProjector.getTargetGeometryList();
+      if (targetGeometryList != null) {
+        this.renderManager.renderGeometryList(targetGeometryList);
+      } else {
+        this.renderManager.renderViewPortRaw(this.viewPort);
+      }
     }
-    
-    renderManager.setForcedMaterial(null);
+
+    this.renderManager.setForcedMaterial(null);
   }
 
   /**
