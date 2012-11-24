@@ -32,13 +32,12 @@ void main()
   vec3 wsNormal = g_WorldMatrixInverseTranspose * inNormal;
  
   projCoord = biasMat * m_ProjectorViewProjectionMatrix * wsPosition;
+  projCoord.x = (((projCoord.x + float(m_SelectedTileU)) / float(m_NumTilesU)));
+  projCoord.y = (((projCoord.y + float(m_SelectedTileV)) / float(m_NumTilesV)));
  
   #ifdef IS_PARALLEL_PROJECTION
     cosAngle = dot(wsNormal, -m_ProjectorDirection);
   #else
     cosAngle = dot(wsNormal, normalize(m_ProjectorLocation - vec3(wsPosition)));
-  #endif
- 
-  projCoord.x = (((projCoord.x + float(m_SelectedTileU)) / float(m_NumTilesU)));
-  projCoord.y = (((projCoord.y + float(m_SelectedTileV)) / float(m_NumTilesV)));
+  #endif 
 }

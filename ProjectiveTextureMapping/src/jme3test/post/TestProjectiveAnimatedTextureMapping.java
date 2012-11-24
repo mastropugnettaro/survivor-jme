@@ -131,8 +131,8 @@ public class TestProjectiveAnimatedTextureMapping extends SimpleApplication
     final GeometryList gl = new GeometryList(new OpaqueComparator());
     gl.add(geom1);
     this.pd2.projector.setTargetGeometryList(gl);
-    this.pd2.projector.getProjectorCamera().setParallelProjection(true);
     this.pd2.projector.getProjectorCamera().setFrustumPerspective(90f, 1f, 1f, 5f);
+    this.pd2.projector.getProjectorCamera().setParallelProjection(true);
 
     this.aptr = new AnimatedTextureProjectorRenderer(this.assetManager, this.timer, 6, 1, 20);
     this.aptr.getTextureProjectors().add(this.pd2.projector);
