@@ -22,6 +22,7 @@ MaterialDef Projective Texture Mapping {
         WorldParameters {
             WorldViewProjectionMatrix
             WorldMatrix
+            WorldMatrixInverseTranspose
         }
  
         RenderState {
