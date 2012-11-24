@@ -152,8 +152,8 @@ public class TestProjectiveMultiTextureMapping extends SimpleApplication
     GeometryList gl = new GeometryList(new OpaqueComparator());
     gl.add(geom1);
     
-    pd2.projector.getProjectorCamera().setParallelProjection(true);
     pd2.projector.getProjectorCamera().setFrustumPerspective(90f, 1f, 1f, 5f);
+    pd2.projector.getProjectorCamera().setParallelProjection(true);
     pd2.projector.setParameter("CombineMode", CombineMode.BLEND_ALL);
     
     ptr1 = new MultiTextureProjectorRenderer(assetManager);
