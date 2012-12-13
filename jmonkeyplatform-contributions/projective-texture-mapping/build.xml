@@ -5,4 +5,9 @@
 <project name="com.jme3.ext.projectivetexturemapping" default="netbeans" basedir=".">
     <description>Builds, tests, and runs the project com.jme3.ext.projectivetexturemapping.</description>
     <import file="nbproject/build-impl.xml"/>
+    <target name="init" depends="basic-init,files-init,build-init,-javac-init,-build-subproject"/>
+    <target name="-build-subproject">
+        <ant dir="./ProjectiveTextureMapping" inheritall="false" target="jar"/>
+        <copy file="./ProjectiveTextureMapping/dist/jME3-ext-projective-texture-mapping.jar" todir="release/libs"/>
+    </target>    
 </project>
