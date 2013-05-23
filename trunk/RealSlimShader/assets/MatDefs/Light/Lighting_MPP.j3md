@@ -31,10 +31,6 @@ MaterialDef MultiPassParallelLighting {
         //Sets the relief height for parallax mapping
         Float ParallaxHeight : 0.05
 
-        // Set to true to activate Quadtree Displacement Mapping 
-        // Parameter name is for Lighting.j3md compatibility
-        Boolean SteepParallax
-
         // Set to true to activate Parallax Occlusion Mapping 
         // Parameter name is for Lighting.j3md compatibility
         Boolean SteepParallax

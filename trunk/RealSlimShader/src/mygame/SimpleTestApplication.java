@@ -112,6 +112,7 @@ public abstract class SimpleTestApplication extends SimpleApplication
     sphere.setMaterial(sphereMaterial);
     
     Geometry box = new Geometry("Box", new Box(0.5f, 0.5f, 0.5f));
+    TangentBinormalGenerator.generate(box.getMesh());
     box.rotate(FastMath.QUARTER_PI, FastMath.QUARTER_PI, 0f);
     box.setMaterial(sphereMaterial);
 
