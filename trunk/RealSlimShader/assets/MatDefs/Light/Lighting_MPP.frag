@@ -397,7 +397,7 @@ void main (void)
         calculateParallaxTexCoord(V, texCoord);
       #endif
     #endif
-    N = normalize(vec3(texture2D(m_NormalMap, texCoord)) * 2.0 - 1.0);
+    N = normalize(vec3(texture2D(m_NormalMap, texCoord)) * vec3(2.0, -2.0, 2.0) - vec3(1.0, -1.0, 1.0));
   #else
     N = normalize(v_Normal);
   #endif
