@@ -114,7 +114,7 @@ void main(void)
 
     #if defined(NORMALMAP)
       v_wsTangent = normalize(g_WorldMatrixInverseTranspose * inTangent.xyz); // object space -> world space
-      v_wsBitangent = vec3(cross(v_wsNormal, v_wsTangent) * -inTangent.w);      
+      v_wsBitangent = vec3(cross(v_wsNormal, v_wsTangent) * inTangent.w);      
       v_tsView = v_wsView * mat3(v_wsTangent, v_wsBitangent, v_wsNormal); // world space -> tangent space
 
       #if defined(PARALLAXMAP) || defined(NORMALMAP_PARALLAX)

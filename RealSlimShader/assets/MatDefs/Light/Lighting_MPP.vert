@@ -126,7 +126,7 @@ void main(void)
 
   #ifdef NORMALMAP
     vec3 wsTangent = normalize(g_WorldMatrixInverseTranspose * inTangent.xyz); // object space -> world space
-    vec3 wsBitangent = cross(wsNormal, wsTangent) * -inTangent.w;
+    vec3 wsBitangent = cross(wsNormal, wsTangent) * inTangent.w;
     mat3 wsTangentMatrix = mat3(wsTangent, wsBitangent, wsNormal);
     v_View = wsView * wsTangentMatrix; // world space -> tangent space
 

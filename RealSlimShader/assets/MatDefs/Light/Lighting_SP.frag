@@ -414,9 +414,9 @@
           calculateParallaxTexCoord(V, parallaxTexCoord);
         #endif
 
-        N = normalize(texture2D(m_NormalMap, parallaxTexCoord).xyz * 2.0 - 1.0);
+        N = normalize(texture2D(m_NormalMap, parallaxTexCoord).xyz * vec3(2.0, -2.0, 2.0) - vec3(1.0, -1.0, 1.0));
       #else
-        N = normalize(texture2D(m_NormalMap, v_TexCoord).xyz * 2.0 - 1.0);
+        N = normalize(texture2D(m_NormalMap, v_TexCoord).xyz * vec3(2.0, -2.0, 2.0) - vec3(1.0, -1.0, 1.0));
       #endif
     #else
       V = normalize(v_wsView);
